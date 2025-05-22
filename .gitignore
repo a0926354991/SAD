@@ -1,0 +1,6 @@
+*.DS_Store
+*state_dict
+senti_c/
+trainer.ipynb
+PyABSA/
+setFitABSA/
