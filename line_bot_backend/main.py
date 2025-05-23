@@ -13,7 +13,7 @@ ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 @app.post("/webhook")
 async def webhook(req: Request):
     body = await req.json()
-    # print("📨 收到 LINE 傳來的內容：", body)   # ✅ 建議加這行
+    print("📨 收到 LINE 傳來的內容：", body)   # ✅ 建議加這行
     events = body.get("events", [])
 
     for event in events:
