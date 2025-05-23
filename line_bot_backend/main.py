@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from db import init_db, SessionLocal, User
+from line_bot_backend.db import init_db, SessionLocal, User
 from dotenv import load_dotenv
 import os
 import aiohttp
