@@ -3,8 +3,7 @@ services:
     name: linebot-fastapi
     env: python
     buildCommand: pip install -r line-bot-backend/requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
-    workingDir: line-bot-backend
+    startCommand: uvicorn line-bot-backend.main:app --host 0.0.0.0 --port 10000
     envVars:
       - key: LINE_CHANNEL_ACCESS_TOKEN
-        value: your_token_here
+        value: xoRq8rq9YMcZK7eesPiN9F59CIyFpxTvYtr2NsWh7iUL2brmiQ5jMC2jWkCYzm3xWp9BvoolqflOBnI83ccK1NQiUxMEvqWvEPpwMw0QpfAOBuVQpaezrNGulWU4nFJgal3dXV6offiX1DlZ663tyQdB04t89/1O/w1cDnyilFU=
