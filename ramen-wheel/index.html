@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>拉麵轉盤</title>
+  <!-- 如果用自訂 CSS -->
+  <!-- <link rel="stylesheet" href="style.css"> -->
+  <!-- 或者用 Tailwind -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@^3/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+  <h1 class="text-2xl font-bold mb-4">拉麵轉盤</h1>
+
+  <!-- ① 這裡要有 Canvas 元素 -->
+  <div id="wheelContainer" class="relative">
+    <canvas
+      id="wheelCanvas"
+      width="300"
+      height="300"
+      class="border rounded-full bg-white"
+    ></canvas>
+    <!-- 如果你想放指標箭頭： -->
+    <!-- <img src="assets/images/pointer.svg"
+         class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full w-8 h-8"
+         alt="指標"> -->
+  </div>
+
+<!-- 選單按鈕 -->
+<div class="flex gap-4 mb-4">
+  <button id="openFilterBtn" class="px-4 py-2 rounded bg-gray-300">調整參數</button>
+  <button id="openCustomBtn" class="px-4 py-2 rounded bg-gray-300">自定義轉盤</button>
+</div>
+
+<!-- 🔽 彈出視窗（篩選條件） -->
+<!-- 🔽 彈出視窗（篩選參數） -->
+<div id="filterModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 hidden z-50">
+  <div class="bg-white p-6 rounded-xl w-80 shadow-xl">
+    <h2 class="text-lg font-bold mb-4">調整參數</h2>
+
+    <div class="mb-3">
+      <label class="block font-semibold">口味：</label>
+      <div id="flavorGroup" class="flex flex-wrap gap-2">
+        <!-- <label><input type="checkbox" value="__all"> 不限</label> -->
+        <label><input type="checkbox" value="濃厚系"> 濃厚系</label>
+        <label><input type="checkbox" value="豚骨系"> 豚骨系</label>
+        <label><input type="checkbox" value="鹽味系"> 鹽味系</label>
+        <label><input type="checkbox" value="辣味系"> 辣味系</label>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="block font-semibold">距離：</label>
+      <div id="distanceGroup" class="flex gap-2">
+        <!-- <label><input type="checkbox" value="__all"> 不限</label> -->
+        <label><input type="checkbox" value="近"> 近</label>
+        <label><input type="checkbox" value="中"> 中</label>
+        <label><input type="checkbox" value="遠"> 遠</label>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-semibold">預算：</label>
+      <div id="budgetGroup" class="flex gap-2">
+        <!-- <label><input type="checkbox" value="__all"> 不限</label> -->
+        <label><input type="checkbox" value="低"> 低</label>
+        <label><input type="checkbox" value="中"> 中</label>
+        <label><input type="checkbox" value="高"> 高</label>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <button id="closeFilterBtn" class="text-sm px-3 py-1 bg-gray-200 rounded">取消</button>
+      <button id="confirmFilterBtn" class="text-sm px-3 py-1 bg-indigo-600 text-white rounded">確認</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- 🔍 篩選欄位 -->
+<!-- <div class="mb-4 flex flex-col gap-2">
+  <div>
+    <label>口味：</label>
+    <div id="flavorGroup" class="flex gap-2 flex-wrap">
+      <label><input type="checkbox" value="濃厚系"> 濃厚系</label>
+      <label><input type="checkbox" value="豚骨系"> 豚骨系</label>
+      <label><input type="checkbox" value="鹽味系"> 鹽味系</label>
+      <label><input type="checkbox" value="辣味系"> 辣味系</label>
+    </div>
+  </div>
+  <div>
+    <label for="distanceSelect">距離：</label>
+    <div id="distanceGroup">
+      <label><input type="checkbox" value="近"> 近</label>
+      <label><input type="checkbox" value="中"> 中</label>
+      <label><input type="checkbox" value="遠"> 遠</label>
+    </div>
+  </div>
+  <div>
+    <label for="budgetSelect">預算：</label>
+    <div id="budgetGroup" class="border rounded p-1">
+      <label><input type="checkbox" value="低"> 低</label>
+      <label><input type="checkbox" value="中"> 中</label>
+      <label><input type="checkbox" value="高"> 高</label>      
+    </div>
+  </div>
+</div> -->
+
+
+  <!-- ② 轉盤按鈕 -->
+  <button id="spinBtn"
+          class="mt-6 px-4 py-2 rounded bg-indigo-600 text-white">
+    轉一下！
+  </button>
+
+  <!-- ③ 結果顯示 -->
+  <p id="result" class="mt-4 text-xl font-semibold"></p>
+
+  <!-- ④ 載入你的轉盤邏輯 -->
+  <script src="wheel.js"></script>
+</body>
+</html>
