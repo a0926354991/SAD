@@ -1,17 +1,29 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import declarative_base, sessionmaker
+import firebase_admin
+from firebase_admin import credentials, firestore
 from datetime import datetime
 
-engine = create_engine("sqlite:///linebot.db", echo=False)
-Base = declarative_base()
-SessionLocal = sessionmaker(bind=engine)
+cred = credentials.Certificate("key.json")  # Firebase 的服務金鑰
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True)
-    line_user_id = Column(String, unique=True, index=True)
-    display_name = Column(String)
-    joined_at = Column(DateTime, default=datetime.utcnow)
+def add_user(line_user_id, display_name):
+    user_ref = db.collection("users").document(line_user_id)
+    user_ref.set({
+        "display_name": display_name,
+        "joined_at": datetime.utcnow()
+    })
 
-def init_db():
-    Base.metadata.create_all(bind=engine)
+def record_checkin(line_user_id, ramen_store):
+    checkin_ref = db.collection("checkins").document()
+    checkin_ref.set({
+        "line_user_id": line_user_id,
+        "ramen_store": ramen_store,
+        "timestamp": datetime.utcnow()
+    })
+
+def add_ramen_store(store_id, name, location):
+    store_ref = db.collection("ramen_stores").document(store_id)
+    store_ref.set({
+        "name": name,
+        "location": location
+    })

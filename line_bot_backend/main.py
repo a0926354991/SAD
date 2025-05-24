@@ -1,33 +1,27 @@
 from fastapi import FastAPI, Request
-from line_bot_backend.db import init_db, SessionLocal, User
 from dotenv import load_dotenv
+from line_bot_backend.db import add_user  # ✅ 改為使用 Firestore 函式
 import os
 import aiohttp
 
 load_dotenv()
 app = FastAPI()
-init_db()
 
 ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 @app.post("/webhook")
 async def webhook(req: Request):
     body = await req.json()
-    print("📨 收到 LINE 傳來的內容：", body)   # ✅ 建議加這行
+    print("📨 收到 LINE 傳來的內容：", body)
     events = body.get("events", [])
 
     for event in events:
         if event["type"] == "message":
-            # print("📌 event = ", event)  # 印出每個事件完整內容
             user_id = event["source"]["userId"]
             msg = event["message"]["text"]
 
-            db = SessionLocal()
-            user = db.query(User).filter_by(line_user_id=user_id).first()
-            if not user:
-                user = User(line_user_id=user_id, display_name="Unknown")
-                db.add(user)
-                db.commit()
+            # ✅ 新增使用者資料進 Firebase
+            add_user(user_id, "Unknown")  # 初始 display_name 為 Unknown，可後續補上
 
             # 回傳訊息
             reply_token = event["replyToken"]
