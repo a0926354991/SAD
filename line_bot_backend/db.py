@@ -1,9 +1,12 @@
 import firebase_admin
-from firebase_admin import credentials, firestore
 from datetime import datetime
+import os
+import json
+from firebase_admin import credentials, firestore, initialize_app
 
-cred = credentials.Certificate("key.json")  # Firebase 的服務金鑰
-firebase_admin.initialize_app(cred)
+key_dict = json.loads(os.environ["FIREBASE_KEY_JSON"])
+cred = credentials.Certificate(key_dict)
+initialize_app(cred)
 db = firestore.client()
 
 def add_user(line_user_id, display_name):
