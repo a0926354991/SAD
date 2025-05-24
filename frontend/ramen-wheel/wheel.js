@@ -37,7 +37,7 @@ function applyFilters() {
 // 2. 載入 JSON 資料並畫轉盤
 let ramenData = []; // 全部資料
 let ramenList = []; // 篩選後 name 名單
-fetch('ramen_shop.json')
+fetch('/ramen_shop.json')  
   .then(res => res.json())
   .then(data => {
     // ramenList = data.map(item => item.name);  // 只取 name 欄位
