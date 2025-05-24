@@ -20,12 +20,16 @@ async def webhook(req: Request):
             user_id = event["source"]["userId"]
             msg = event["message"]["text"]
 
-            # ✅ 新增使用者資料進 Firebase
-            add_user(user_id, "Unknown")  # 初始 display_name 為 Unknown，可後續補上
+            # ⬇️ 取得使用者名稱
+            profile = await get_user_profile(user_id)
+            display_name = profile["displayName"] if profile else "Unknown"
 
-            # 回傳訊息
+            # ⬇️ 儲存至 Firebase
+            add_user(user_id, display_name)
+
+            # 回應
             reply_token = event["replyToken"]
-            await reply_message(reply_token, f"你說了：{msg}")
+            await reply_message(reply_token, f"{display_name} 你說了：{msg}")
 
     return {"status": "ok"}
 
@@ -41,3 +45,16 @@ async def reply_message(reply_token, text):
     }
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
+
+async def get_user_profile(user_id: str):
+    url = f"https://api.line.me/v2/bot/profile/{user_id}"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}"
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as res:
+            if res.status == 200:
+                return await res.json()
+            else:
+                return None
