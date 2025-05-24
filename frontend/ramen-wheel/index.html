@@ -4,10 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>拉麵轉盤</title>
-  <!-- 如果用自訂 CSS -->
   <link rel="stylesheet" href="style.css">
-  <!-- 或者用 Tailwind -->
-  <!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@^3/dist/tailwind.min.css" rel="stylesheet"> -->
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-start">
 
@@ -15,118 +12,81 @@
     <h1 class="text-2xl font-bold text-center mb-6">拉麵轉盤</h1>
 
     <div id="wheelContainer" class="relative flex justify-center">
-      <canvas
-        id="wheelCanvas"
-        width="300"
-        height="300"
-        class="border rounded-full bg-white"
-    ></canvas>
-    <!-- 如果你想放指標箭頭： -->
-    <!-- <img src="assets/images/pointer.svg"
-         class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full w-8 h-8"
-         alt="指標"> -->
-  </div>
+      <canvas id="wheelCanvas" width="300" height="300" class="border rounded-full bg-white"></canvas>
+    </div>
 
-  <!-- 選單按鈕 -->
-  <div class="flex justify-center gap-4 mt-6">
+    <div class="flex justify-center gap-4 mt-6">
       <button id="openFilterBtn" class="px-4 py-2 text-sm rounded bg-indigo-100 text-indigo-800">調整參數</button>
       <button id="openCustomBtn" class="px-4 py-2 text-sm rounded bg-gray-200 text-gray-800">自定義轉盤</button>
+    </div>
+
+    <p id="result" class="mt-4 text-xl text-center font-semibold text-indigo-700"></p>
+
+    <div class="flex justify-center mt-4">
+      <button id="spinBtn" class="px-6 py-2 rounded bg-indigo-600 text-white">轉一下！</button>
+    </div>
   </div>
 
-
-  <!-- 結果 -->
-  <p id="result" class="mt-4 text-xl text-center font-semibold text-indigo-700"></p>
-
-  <!-- 轉盤按鈕 -->
-  <div class="flex justify-center mt-4">
-    <button id="spinBtn" class="px-6 py-2 rounded bg-indigo-600 text-white">轉一下！</button>
-  </div>
-</div>
-
-<!-- 🔽 Modal 改成卡片視覺 -->
-<div id="filterModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 hidden z-50">
-  <div class="bg-white p-6 rounded-xl w-80 shadow-xl">
-    <h2 class="text-lg font-bold mb-4">調整參數</h2>
-
-    <div class="mb-3">
-      <label class="block font-semibold">口味：</label>
-      <div id="flavorGroup" class="flex flex-wrap gap-2">
-        <!-- <label><input type="checkbox" value="__all"> 不限</label> -->
-        <label><input type="checkbox" value="濃厚系"> 濃厚系</label>
-        <label><input type="checkbox" value="豚骨系"> 豚骨系</label>
-        <label><input type="checkbox" value="鹽味系"> 鹽味系</label>
-        <label><input type="checkbox" value="辣味系"> 辣味系</label>
+  <!-- 調整參數 Modal -->
+  <div id="filterModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 hidden z-50">
+    <div class="bg-white p-6 rounded-xl w-80 shadow-xl">
+      <h2 class="text-lg font-bold mb-4">調整參數</h2>
+      <input type="text" id="flavorInput" placeholder="指定口味" class="w-full mb-2 p-2 border rounded">
+      <input type="number" id="budgetInput" placeholder="預算限制" class="w-full mb-2 p-2 border rounded">
+      <input type="number" id="distanceInput" placeholder="距離限制" class="w-full mb-4 p-2 border rounded">
+      <div class="flex justify-end">
+        <button id="closeFilterBtn" class="mr-2 px-3 py-1 bg-gray-200 rounded">取消</button>
+        <button onclick="applyFilter()" class="px-3 py-1 bg-indigo-600 text-white rounded">確認</button>
       </div>
     </div>
+  </div>
 
-    <div class="mb-3">
-      <label class="block font-semibold">距離：</label>
-      <div id="distanceGroup" class="flex gap-2">
-        <!-- <label><input type="checkbox" value="__all"> 不限</label> -->
-        <label><input type="checkbox" value="近"> 近</label>
-        <label><input type="checkbox" value="中"> 中</label>
-        <label><input type="checkbox" value="遠"> 遠</label>
+  <!-- 自定義轉盤 Modal -->
+  <div id="customModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 hidden z-50">
+    <div class="bg-white p-6 rounded-xl w-80 shadow-xl">
+      <h2 class="text-lg font-bold mb-4">自定義轉盤</h2>
+      <input type="text" id="custom1" placeholder="新增店家 1" class="w-full mb-2 p-2 border rounded">
+      <input type="text" id="custom2" placeholder="新增店家 2" class="w-full mb-4 p-2 border rounded">
+      <div class="flex justify-end">
+        <button onclick="applyCustom()" class="px-3 py-1 bg-indigo-600 text-white rounded">確認</button>
       </div>
     </div>
-
-    <div class="mb-4">
-      <label class="block font-semibold">預算：</label>
-      <div id="budgetGroup" class="flex gap-2">
-        <!-- <label><input type="checkbox" value="__all"> 不限</label> -->
-        <label><input type="checkbox" value="低"> 低</label>
-        <label><input type="checkbox" value="中"> 中</label>
-        <label><input type="checkbox" value="高"> 高</label>
-      </div>
-    </div>
-
-    <div class="flex justify-end mt-4">
-      <button id="closeFilterBtn" class="text-sm px-3 py-1 bg-gray-200 rounded">取消</button>
-      <button id="confirmFilterBtn" class="text-sm px-3 py-1 bg-indigo-600 text-white rounded">確認</button>
-    </div>
   </div>
-</div>
 
+  <script>
+    const ramenShops = ["勝王", "鬼金棒", "豚人", "長生塩人", "池音", "山嵐", "墨洋", "隱家"];
+    let filteredShops = [...ramenShops];
 
-<!-- 🔍 篩選欄位 -->
-<!-- <div class="mb-4 flex flex-col gap-2">
-  <div>
-    <label>口味：</label>
-    <div id="flavorGroup" class="flex gap-2 flex-wrap">
-      <label><input type="checkbox" value="濃厚系"> 濃厚系</label>
-      <label><input type="checkbox" value="豚骨系"> 豚骨系</label>
-      <label><input type="checkbox" value="鹽味系"> 鹽味系</label>
-      <label><input type="checkbox" value="辣味系"> 辣味系</label>
-    </div>
-  </div>
-  <div>
-    <label for="distanceSelect">距離：</label>
-    <div id="distanceGroup">
-      <label><input type="checkbox" value="近"> 近</label>
-      <label><input type="checkbox" value="中"> 中</label>
-      <label><input type="checkbox" value="遠"> 遠</label>
-    </div>
-  </div>
-  <div>
-    <label for="budgetSelect">預算：</label>
-    <div id="budgetGroup" class="border rounded p-1">
-      <label><input type="checkbox" value="低"> 低</label>
-      <label><input type="checkbox" value="中"> 中</label>
-      <label><input type="checkbox" value="高"> 高</label>      
-    </div>
-  </div>
-</div> -->
+    document.getElementById('openFilterBtn').onclick = () => {
+      document.getElementById('filterModal').classList.remove('hidden');
+    };
 
+    document.getElementById('openCustomBtn').onclick = () => {
+      document.getElementById('customModal').classList.remove('hidden');
+    };
 
-  <!-- ② 轉盤按鈕 -->
-  <!-- <button id="spinBtn"
-          class="mt-6 px-4 py-2 rounded bg-indigo-600 text-white">
-    轉一下！
-  </button> -->
+    document.getElementById('closeFilterBtn').onclick = () => {
+      document.getElementById('filterModal').classList.add('hidden');
+    };
 
-  <!-- ③ 結果顯示 -->
-  <!-- <p id="result" class="mt-4 text-xl font-semibold"></p> -->
+    function applyFilter() {
+      const flavor = document.getElementById('flavorInput').value;
+      const budget = document.getElementById('budgetInput').value;
+      const distance = document.getElementById('distanceInput').value;
+      filteredShops = ramenShops.filter(name => !flavor || name.includes(flavor));
+      alert("篩選後店家：" + filteredShops.join(", "));
+      document.getElementById('filterModal').classList.add('hidden');
+    }
 
-  <!-- ④ 載入你的轉盤邏輯 -->
+    function applyCustom() {
+      const c1 = document.getElementById('custom1').value;
+      const c2 = document.getElementById('custom2').value;
+      filteredShops = [c1, c2].filter(Boolean);
+      alert("自定義後店家：" + filteredShops.join(", "));
+      document.getElementById('customModal').classList.add('hidden');
+    }
+  </script>
+
   <script src="/ramen-wheel/wheel.js"></script>
 </body>
 </html>
