@@ -7,7 +7,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import os, re, json, time, requests
 
 # Google Maps URL
-url = "https://www.google.com/maps/place/%E6%9D%8E%E5%A5%BD%E6%8B%89%E9%BA%B5/@25.0513733,121.5272103,18z/data=!4m11!1m3!2m2!1z5ouJ6bq1!6e5!3m6!1s0x3442abcd172a24f9:0x651dbe483a714637!8m2!3d25.0513733!4d121.5294634!15sCgbmi4npurVaCCIG5ouJ6bq1kgEQcmFtZW5fcmVzdGF1cmFudKoBRAoIL20vMDlnbXMQASoKIgbmi4npurUoRTIeEAEiGiiKbHPmyKMJ2SM2J4NGBmfVZtAASWiPucwDMgoQAiIG5ouJ6bq14AEA!16s%2Fg%2F11h4g914lf?entry=ttu&g_ep=EgoyMDI1MDUwNy4wIKXMDSoASAFQAw%3D%3D"
+url = "https://www.google.com/maps/place/%E5%8D%81%E4%BA%8C%E5%B7%B7%E6%8B%89%E9%BA%B5/@25.0156951,121.5328123,17z/data=!3m1!4b1!4m6!3m5!1s0x3442a98ba212e0f5:0x8baecd4c6a3cc94e!8m2!3d25.0156951!4d121.5328123!16s%2Fg%2F11b7q2k0l3?entry=ttu&g_ep=EgoyMDI1MDUyMS4wIKXMDSoASAFQAw%3D%3D"
 
 # 儲存資料夾
 json_dir = "Web Crawler/ramin/json"
@@ -88,6 +88,48 @@ try:
     except:
         store_info["keywords"] = []
 
+    # ✅ 從網址中提取座標
+    try:
+        match = re.search(r"!3d([0-9.]+)!4d([0-9.]+)", url)
+        if match:
+            lat = float(match.group(1))
+            lng = float(match.group(2))
+            store_info["latitude"] = lat
+            store_info["longitude"] = lng
+        else:
+            store_info["latitude"] = None
+            store_info["longitude"] = None
+    except:
+        store_info["latitude"] = None
+        store_info["longitude"] = None
+
+    # ✅ 點擊「全部評論」按鈕以進入完整評論頁
+    try:
+        all_reviews_btn = wait.until(EC.element_to_be_clickable(
+            (By.CSS_SELECTOR, 'button[jsaction*="pane.reviewChart.moreReviews"]')))
+        all_reviews_btn.click()
+        time.sleep(3)
+    except:
+        print("⚠️ 找不到「全部評論」按鈕，可能無評論")
+
+    # ✅ 滾動右側評論區（不是整頁！）
+    try:
+        scrollable_div = wait.until(EC.presence_of_element_located((
+            By.CSS_SELECTOR, 'div.m6QErb.DxyBCb.kA9KIf.dS8AEf.ecceSd')))
+        for _ in range(5):  # 可調整次數
+            driver.execute_script('arguments[0].scrollTop = arguments[0].scrollHeight', scrollable_div)
+            time.sleep(1.5)
+    except:
+        print("⚠️ 評論區滾動失敗")
+
+    # ✅ 抓前幾則評論文字
+    try:
+        comment_blocks = driver.find_elements(By.CSS_SELECTOR, 'div.MyEned span.wiI7pd')
+        comments = [c.text.strip() for c in comment_blocks if c.text.strip()]
+        store_info["reviews"] = comments[:5]  # 限制最多 5 筆
+    except:
+        store_info["reviews"] = []
+
     # 菜單圖片（高解析度）
     try:
         img = driver.find_element(By.CSS_SELECTOR, 'img.DaSXdd')
@@ -98,7 +140,7 @@ try:
         store_info["menu_image"] = img_path
     except:
         store_info["menu_image"] = ""
-
+    
     # 輸出成 JSON
     with open(os.path.join(json_dir, f"{short_name}.json"), 'w', encoding='utf-8') as f:
         json.dump({"store_info": store_info}, f, ensure_ascii=False, indent=2)

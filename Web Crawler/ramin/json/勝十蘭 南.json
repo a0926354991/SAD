@@ -5,10 +5,13 @@
     "phone": "02 2370 4321",
     "open_time": "",
     "rating": 3.9,
-    "keywords": [
-      "機器",
-      "環境",
-      "煮"
+    "keywords": [],
+    "latitude": 25.0448403,
+    "longitude": 121.5161561,
+    "reviews": [
+      "2024.12.06 補評\n\n台式拉麵，標榜用機器煮出來的拉麵（？） …",
+      "口味中規中矩\n不過價格倒是比較平價\n只是座位偏小",
+      "拉麵口味種類多樣\n\n上菜速度快 …"
     ],
     "menu_image": "Web Crawler/ramin/images\\勝十蘭 南_menu.jpg"
   }
