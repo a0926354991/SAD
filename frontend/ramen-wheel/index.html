@@ -131,6 +131,29 @@
   <!-- <p id="result" class="mt-4 text-xl font-semibold"></p> -->
 
   <!-- ④ 載入你的轉盤邏輯 -->
+  <script>
+  // 取得元素
+  const openFilterBtn = document.getElementById("openFilterBtn");
+  const closeFilterBtn = document.getElementById("closeFilterBtn");
+  const filterModal = document.getElementById("filterModal");
+
+  // 顯示 Modal
+  openFilterBtn.addEventListener("click", () => {
+    filterModal.classList.remove("hidden");
+  });
+
+  // 隱藏 Modal
+  closeFilterBtn.addEventListener("click", () => {
+    filterModal.classList.add("hidden");
+  });
+
+  // 可選：點擊黑色遮罩區也關閉
+  filterModal.addEventListener("click", (e) => {
+    if (e.target === filterModal) {
+      filterModal.classList.add("hidden");
+    }
+  });
+  </script>
   <script src="/ramen-wheel/wheel.js"></script>
 </body>
 </html>
