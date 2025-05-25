@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拉麵地圖 | Ramen Map</title>
+  <link rel="stylesheet" href="src/css/style.css" />
+  <link rel="stylesheet" href="src/css/info-window.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Add Google Maps API -->
+  <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+        ({key: "AIzaSyDDMiLxT_j5_3CeTyybhDuZOcpNgS25-9s", v: "weekly"});</script>
+</head>
+<body>
+  <div class="container">
+    <div class="japanese-pattern top"></div>
+    <header>
+      <div class="header-decoration left"></div>
+      <div class="header-decoration right"></div>
+      <h1>
+        <i class="fas fa-utensils"></i>
+        🍜 拉麵地圖 | Ramen Map
+        <i class="fas fa-map-marker-alt"></i>
+      </h1>
+      <div class="search-box">
+        <div class="search-icon">
+          <i class="fas fa-search"></i>
+        </div>
+        <input type="text" id="searchInput" placeholder="搜尋拉麵店... | Search ramen shops...">
+        <button onclick="searchRamenShops()">
+          <i class="fas fa-search"></i>
+          搜尋 | Search
+        </button>
+      </div>
+    </header>
+    
+    <div class="main-content">
+      <div id="map" class="retro-map">
+        <div class="map-decoration top-left"></div>
+        <div class="map-decoration top-right"></div>
+        <div class="map-decoration bottom-left"></div>
+        <div class="map-decoration bottom-right"></div>
+      </div>
+      <div id="ramenList" class="ramen-list">
+        <div class="ramen-default-page">
+          <img src="/images/ramen-default-search.png" alt="拉麵圖示" class="ramen-info-img" />
+          <div class="ramen-default-tip">點擊拉麵圖示以查看拉麵店資訊</div>
+        </div>
+        <div id="ramenItems"></div>
+      </div>
+    </div>
+    <div class="japanese-pattern bottom"></div>
+  </div>
+  <script type="module" src="src/js/main.js"></script>
+</body>
+</html>

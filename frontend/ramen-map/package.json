@@ -1,0 +1,14 @@
+{
+  "name": "ramen-map",
+  "version": "1.0.0",
+  "description": "A map application for finding ramen shops in Taiwan",
+  "main": "src/js/main.js",
+  "scripts": {
+    "start": "serve .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "firebase": "^11.8.1",
+    "serve": "^14.2.1"
+  }
+}
