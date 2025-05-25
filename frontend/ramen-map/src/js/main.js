@@ -1,5 +1,6 @@
 import { retroStyle } from './mapStyles.js';
 import { GOOGLE_MAPS_MAP_ID } from './config.js';
+import { initCheckIn, showCheckInButton, hideCheckInButton } from './checkIn.js';
 
 let map;
 let marker;
@@ -54,12 +55,11 @@ async function initMap() {
                     gmpClickable: true
                 });
 
-                // 點擊 marker 時顯示店名
+                // 點擊 marker 時顯示店名和打卡按鈕
                 marker.addListener("gmp-click", () => {
                     // 檢查是否已有店名顯示
                     const oldNameDiv = markerContent.querySelector('.marker-store-name');
                     if (!oldNameDiv) {
-
                         // 如果沒有店名，則新增它
                         const nameDiv = document.createElement("div");
                         nameDiv.textContent = store.name;
@@ -68,26 +68,68 @@ async function initMap() {
                     }
                     renderStoreInfo(store);
                     panMapToSafeBounds(map, position);
+                    showCheckInButton(store);
                 });
 
-                // 點擊地圖其他地方時隱藏店名
+                // 點擊地圖其他地方時隱藏店名和打卡按鈕
                 map.addListener("click", () => {
                     const oldNameDiv = markerContent.querySelector('.marker-store-name');
                     if (oldNameDiv) {
                         markerContent.removeChild(oldNameDiv);
                     }
                     showDefaultPage();
+                    hideCheckInButton();
                 });
             });
         })
         .catch(error => console.error('Error loading ramen data:', error));
 }
 
+// 底部面板滾動控制
+const ramenList = document.getElementById('ramenList');
+const ramenListHandle = document.querySelector('.ramen-list-handle');
+let lastScrollTop = 0;
+let isScrolling = false;
+let scrollTimeout;
+
+// 點擊手柄切換面板狀態
+ramenListHandle.addEventListener('click', () => {
+  ramenList.classList.toggle('active');
+  if (ramenList.classList.contains('active')) {
+    ramenList.style.transform = 'translateY(0)';
+  } else {
+    ramenList.style.transform = 'translateY(calc(100% - 50px))';
+  }
+});
+
+// 監聽面板滾動
+ramenList.addEventListener('scroll', () => {
+  if (!isScrolling) {
+    isScrolling = true;
+    clearTimeout(scrollTimeout);
+  }
+
+  const currentScroll = ramenList.scrollTop;
+  const scrollDirection = currentScroll > lastScrollTop ? 'down' : 'up';
+
+  // 如果向下滾動，展開面板
+  if (scrollDirection === 'down') {
+    ramenList.classList.add('active');
+    ramenList.style.transform = 'translateY(0)';
+    ramenList.style.maxHeight = '80vh';
+  }
+
+  lastScrollTop = currentScroll;
+
+  // 設置滾動結束的延遲
+  scrollTimeout = setTimeout(() => {
+    isScrolling = false;
+  }, 150);
+});
+
 // 將詳細資訊渲染到右側欄
 function renderStoreInfo(store) {
     const ramenItems = document.getElementById('ramenItems');
-    const defaultPage = document.querySelector('.ramen-default-page');
-    if (defaultPage) defaultPage.style.display = 'none';
     ramenItems.innerHTML = `
         <div class="store-info-full">
             <div class="store-header">
@@ -112,42 +154,22 @@ function renderStoreInfo(store) {
             </div>
         </div>
     `;
+
+    // 自動展開底部面板
+    ramenList.classList.add('active');
+    ramenList.style.transform = 'translateY(0)';
+    ramenList.style.maxHeight = 'var(--panel-height)';
 }
 
-// 點擊地圖空白處時，恢復 default page
+// 點擊地圖空白處時，恢復預設狀態
 function showDefaultPage() {
     const ramenItems = document.getElementById('ramenItems');
-    const defaultPage = document.querySelector('.ramen-default-page');
     if (ramenItems) ramenItems.innerHTML = '';
-    if (defaultPage) defaultPage.style.display = '';
-}
 
-function buildContent(store) {
-    const content = document.createElement("div");
-    content.classList.add("property");
-    
-    // 將營業時間轉換為更易讀的格式
-    const openTime = store.open_time.split(';')[0].trim();
-    
-    content.innerHTML = `
-        <div class="details">
-            <div class="price">${store.name}</div>
-            <div class="address">${store.address || ''}</div>
-            <div class="features">
-                <div>
-                    <i class="fas fa-star" title="評分"></i>
-                    <span class="fa-sr-only">評分</span>
-                    <span>${store.rating}</span>
-                </div>
-                <div>
-                    <i class="fas fa-tags" title="關鍵字"></i>
-                    <span class="fa-sr-only">關鍵字</span>
-                    <span>${store.keywords ? store.keywords.join('、') : ''}</span>
-                </div>
-            </div>
-        </div>
-    `;
-    return content;
+    // 收起底部面板
+    ramenList.classList.remove('active');
+    ramenList.style.transform = 'translateY(calc(100% - 50px))';
+    ramenList.style.maxHeight = 'var(--panel-height)';
 }
 
 // 檢查並移動地圖，確保標記在安全範圍內
@@ -184,4 +206,64 @@ function panMapToSafeBounds(map, position) {
     }
 }
 
-initMap();
+// Modal functionality
+const checkInFab = document.getElementById('checkInFab');
+const checkInModal = document.getElementById('checkInModal');
+const closeModal = document.querySelector('.close-modal');
+const checkInForm = document.getElementById('checkInForm');
+
+// Open modal
+checkInFab.addEventListener('click', () => {
+    checkInModal.classList.add('active');
+    document.body.classList.add('modal-open');
+});
+
+// Close modal
+function closeCheckInModal() {
+    checkInModal.classList.remove('active');
+    document.body.classList.remove('modal-open');
+    checkInForm.reset(); // Reset form
+}
+
+closeModal.addEventListener('click', closeCheckInModal);
+
+// Close modal when clicking outside
+checkInModal.addEventListener('click', (e) => {
+    if (e.target === checkInModal) {
+        closeCheckInModal();
+    }
+});
+
+// Handle form submission
+checkInForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        name: document.getElementById('storeName').value,
+        address: document.getElementById('storeAddress').value,
+        rating: document.getElementById('storeRating').value,
+        keywords: document.getElementById('storeKeywords').value.split(',').map(k => k.trim()),
+        open_time: document.getElementById('storeOpenTime').value,
+        menu_image: document.getElementById('storeMenu').files[0]
+    };
+
+    try {
+        // Here you would typically send the data to your backend
+        console.log('Form submitted:', formData);
+        
+        // For now, just show a success message
+        alert('打卡成功！');
+        closeCheckInModal();
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('提交失敗，請稍後再試');
+    }
+});
+
+// 初始化所有功能
+function init() {
+    initMap();
+    initCheckIn();
+}
+
+init();
