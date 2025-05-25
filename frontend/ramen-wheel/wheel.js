@@ -193,17 +193,5 @@ document.getElementById('confirmFilterBtn').addEventListener('click', () => {
   applyFilters(); // ✅ 套用篩選
 });
 
-const customModal = document.getElementById('customModal');
 
-document.getElementById('openCustomBtn').addEventListener('click', () => {
-  customModal.classList.remove('hidden');
-});
 
-document.getElementById('closeCustomBtn').addEventListener('click', () => {
-  customModal.classList.add('hidden');
-});
-
-document.getElementById('confirmCustomBtn').addEventListener('click', () => {
-  customModal.classList.add('hidden');
-  // TODO: 自定義邏輯（例如新增選項）
-});
