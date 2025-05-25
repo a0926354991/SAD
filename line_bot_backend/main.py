@@ -37,6 +37,7 @@ async def webhook(req: Request):
 
         if event_type == "message":
             msg_type = event["message"]["type"]
+            print("📍 傳入訊息類型：", msg_type)
 
             # 1️⃣ 使用者傳文字訊息
             if msg_type == "text":
@@ -100,35 +101,32 @@ async def reply_ask_location(reply_token):
 
 ## 選單訊息：拉麵口味選單
 async def reply_ramen_flavor_menu(reply_token):
-    body = {
-        "replyToken": reply_token,
-        "messages": [{
-            "type": "template",
-            "altText": "選擇拉麵口味",
-            "template": {
-                "type": "buttons",
-                "title": "想吃哪一種口味的拉麵？",
-                "text": "請選擇口味",
-                "actions": [
-                    {"type": "message", "label": "🍜 豚骨", "text": "口味：豚骨"},
-                    {"type": "message", "label": "🍜 醬油", "text": "口味：醬油"},
-                    {"type": "message", "label": "🍜 味噌", "text": "口味：味噌"},
-                    {"type": "message", "label": "🍜 鹽味", "text": "口味：鹽味"},
-                    {"type": "message", "label": "🍜 辣味", "text": "口味：辣味"},
-                    {"type": "message", "label": "🍜 海鮮", "text": "口味：海鮮"},
-                    {"type": "message", "label": "🍜 雞白湯", "text": "口味：雞白湯"},
-                    # {"type": "message", "label": "📖 更多選項", "text": "口味選項頁 2"}
-                ]
-            }
-        }]
-    }
     url = "https://api.line.me/v2/bot/message/reply"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
         "Content-Type": "application/json"
     }
+    body = {
+        "replyToken": reply_token,
+        "messages": [{
+            "type": "text",
+            "text": "請選擇想吃的拉麵口味 🍜",
+            "quickReply": {
+                "items": [
+                    {"type": "action", "action": {"type": "message", "label": "豚骨", "text": "口味：豚骨"}},
+                    {"type": "action", "action": {"type": "message", "label": "醬油", "text": "口味：醬油"}},
+                    {"type": "action", "action": {"type": "message", "label": "味噌", "text": "口味：味噌"}},
+                    {"type": "action", "action": {"type": "message", "label": "鹽味", "text": "口味：鹽味"}},
+                    {"type": "action", "action": {"type": "message", "label": "辣味", "text": "口味：辣味"}},
+                    {"type": "action", "action": {"type": "message", "label": "海鮮", "text": "口味：海鮮"}},
+                    {"type": "action", "action": {"type": "message", "label": "雞白湯", "text": "口味：雞白湯"}},
+                ]
+            }
+        }]
+    }
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
+
 
 ## 多頁訊息：回傳推薦拉麵店
 async def reply_ramen_carousel(reply_token, ramen_list):
@@ -196,7 +194,7 @@ async def get_user_profile(user_id: str):
                 return await res.json()
             else:
                 return None
-            
+
 
 '''
 @app.post("/webhook")
@@ -233,4 +231,35 @@ async def webhook(req: Request):
             # await reply_message(reply_token, random_reply)
 
     return {"status": "ok"}
+
+async def reply_ramen_flavor_menu(reply_token):
+    body = {
+        "replyToken": reply_token,
+        "messages": [{
+            "type": "template",
+            "altText": "選擇拉麵口味",
+            "template": {
+                "type": "buttons",
+                "title": "想吃哪一種口味的拉麵？",
+                "text": "請選擇口味",
+                "actions": [
+                    {"type": "message", "label": "🍜 豚骨", "text": "口味：豚骨"},
+                    {"type": "message", "label": "🍜 醬油", "text": "口味：醬油"},
+                    {"type": "message", "label": "🍜 味噌", "text": "口味：味噌"},
+                    {"type": "message", "label": "🍜 鹽味", "text": "口味：鹽味"},
+                    {"type": "message", "label": "🍜 辣味", "text": "口味：辣味"},
+                    {"type": "message", "label": "🍜 海鮮", "text": "口味：海鮮"},
+                    {"type": "message", "label": "🍜 雞白湯", "text": "口味：雞白湯"},
+                    # {"type": "message", "label": "📖 更多選項", "text": "口味選項頁 2"}
+                ]
+            }
+        }]
+    }
+    url = "https://api.line.me/v2/bot/message/reply"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        await session.post(url, json=body, headers=headers)
 '''
