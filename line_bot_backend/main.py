@@ -93,7 +93,6 @@ async def webhook(req: Request):
 
                 # 隨機回覆拉麵文案
                 else:
-                    # await reply_message(reply_token, f"{display_name} 你說了：{msg}")
                     responses = [
                         "我目前的狀態：\n〇 曖昧\n〇 單身\n〇 穩定交往中\n● 拉 King 麵，我沒交往你，請別佔有我",
                         "「我喜歡你」這句話，太輕浮。\n「我愛你」這句話，太沈重。\n「要不要一起吃拉麵」這句話，剛剛好。",
@@ -199,7 +198,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                                 "margin": "md",
                                 "color": "#f0f0f0"
                             }
-                            for flavor in ["豚骨", "醬油", "味噌", "鹽味", "辣味", "海鮮", "雞白湯"]
+                            for flavor in FLAVORS
                         ]
                     ]
                 },
