@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
-from db import add_user, get_all_ramen_shops  # ✅ 改為使用 Firestore 函式
+from line_bot_backend.db import add_user, get_all_ramen_shops  # render
+# from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 
 import os
