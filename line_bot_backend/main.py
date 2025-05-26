@@ -37,7 +37,7 @@ async def webhook(req: Request):
 
         if event_type == "message":
             msg_type = event["message"]["type"]
-            print("📍 傳入訊息類型：", msg_type)
+            # print("📍 傳入訊息類型：", msg_type)
 
             # 1️⃣ 使用者傳文字訊息
             if msg_type == "text":
@@ -45,7 +45,7 @@ async def webhook(req: Request):
 
                 # 推薦
                 if any(keyword in msg for keyword in RECOMMEND_KEYWORDS):
-                    await reply_ask_location(reply_token)
+                    await reply_recommend(reply_token, user_id)
 
                 # 使用者選擇口味
                 elif msg.startswith("今天想吃的拉麵口味："):
@@ -56,7 +56,7 @@ async def webhook(req: Request):
                             ramen_list = await search_ramen_nearby(latlng["lat"], latlng["lng"], flavor)
                             await reply_ramen_carousel(reply_token, ramen_list)
                         else:
-                            await reply_message(reply_token, "請先分享你的位置資訊喔📍")
+                            await reply_message(reply_token, "請先按左下角的加號➕，分享你的位置資訊喔📍")
                     else:
                         await reply_message(reply_token, "請選擇正確的拉麵口味⚠️")
 
@@ -95,12 +95,16 @@ async def reply_message(reply_token, text):
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
 
-## 文字訊息：請求回傳位置資訊
-async def reply_ask_location(reply_token):
-    await reply_message(reply_token, "請按左下角的加號➕，傳送你的位置資訊，我會幫你推薦附近的拉麵！")
+## 回覆拉麵推薦
+async def reply_recommend(reply_token, user_id):
+    latlng = user_locations.get(user_id)
+    if latlng:
+        await reply_ramen_flavor_flex_menu(reply_token)
+    else:
+        await reply_message(reply_token, "請按左下角的加號➕，分享你的位置資訊，我會幫你推薦附近的拉麵！")
 
 ## 選單訊息：拉麵口味選單
-async def reply_ramen_flavor_menu(reply_token):
+async def reply_ramen_flavor_quick_reply(reply_token):
     url = "https://api.line.me/v2/bot/message/reply"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -163,37 +167,37 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                     {
                     "type": "button",
                     "action": { "type": "message", "label": "🍜 豚骨", "text": "今天想吃的拉麵口味：豚骨"},
-                    "style": "secondary", "height": "sm", "margin": "sm"
+                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
                     },
                     {
                     "type": "button",
                     "action": { "type": "message", "label": "🍜 醬油", "text": "今天想吃的拉麵口味：醬油"},
-                    "style": "secondary", "height": "sm", "margin": "sm"
+                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
                     },
                     {
                     "type": "button",
                     "action": { "type": "message", "label": "🍜 味噌", "text": "今天想吃的拉麵口味：味噌"},
-                    "style": "secondary", "height": "sm", "margin": "sm"
+                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
                     },
                     {
                     "type": "button",
                     "action": { "type": "message", "label": "🍜 鹽味", "text": "今天想吃的拉麵口味：鹽味"},
-                    "style": "secondary", "height": "sm", "margin": "sm"
+                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
                     },
                     {
                     "type": "button",
                     "action": { "type": "message", "label": "🍜 辣味", "text": "今天想吃的拉麵口味：辣味"},
-                    "style": "secondary", "height": "sm", "margin": "sm"
+                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
                     },
                     {
                     "type": "button",
                     "action": { "type": "message", "label": "🍜 海鮮", "text": "今天想吃的拉麵口味：海鮮"},
-                    "style": "secondary", "height": "sm", "margin": "sm"
+                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
                     },
                     {
                     "type": "button",
                     "action": { "type": "message", "label": "🍜 雞白湯", "text": "今天想吃的拉麵口味：雞白湯"},
-                    "style": "secondary", "height": "sm", "margin": "sm"
+                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
                     }
                 ]
                 },
