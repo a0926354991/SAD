@@ -25,13 +25,16 @@ async function initMap() {
     });
 
     // 讀取拉麵店資料
-    fetch('/data/ramen.json')
+    // fetch('/data/ramen.json')
+    // fetch('shops')
+    fetch("https://linebot-fastapi-uhmi.onrender.com/shops")
         .then(response => response.json())
         .then(data => {
             data.ramen_stores.forEach(store => {
                 const position = {
                     lat: store.latitude,
                     lng: store.longitude
+
                 };
 
                 // marker 內容只放圖片

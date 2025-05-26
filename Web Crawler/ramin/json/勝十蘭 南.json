@@ -5,7 +5,11 @@
     "phone": "02 2370 4321",
     "open_time": "",
     "rating": 3.9,
-    "keywords": [],
+    "keywords": [
+      "味噌",
+      "豚骨",
+      "醬油"
+    ],
     "latitude": 25.0448403,
     "longitude": 121.5161561,
     "reviews": [
