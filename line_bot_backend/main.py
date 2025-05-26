@@ -133,33 +133,6 @@ async def reply_recommend(reply_token, user_id):
     else:
         await reply_message(reply_token, "【 拉麵推薦 】\n請按左下角的加號➕，分享你的位置資訊，我會幫你推薦附近的拉麵！")
 
-## 選單訊息：拉麵口味選單
-async def reply_ramen_flavor_quick_reply(reply_token):
-    url = "https://api.line.me/v2/bot/message/reply"
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    body = {
-        "replyToken": reply_token,
-        "messages": [{
-            "type": "text",
-            "text": "請選擇想吃的拉麵口味🍜",
-            "quickReply": {
-                "items": [
-                    {"type": "action", "action": {"type": "message", "label": "豚骨", "text": "今天想吃的拉麵口味：豚骨"}},
-                    {"type": "action", "action": {"type": "message", "label": "醬油", "text": "今天想吃的拉麵口味：醬油"}},
-                    {"type": "action", "action": {"type": "message", "label": "味噌", "text": "今天想吃的拉麵口味：味噌"}},
-                    {"type": "action", "action": {"type": "message", "label": "鹽味", "text": "今天想吃的拉麵口味：鹽味"}},
-                    {"type": "action", "action": {"type": "message", "label": "辣味", "text": "今天想吃的拉麵口味：辣味"}},
-                    {"type": "action", "action": {"type": "message", "label": "海鮮", "text": "今天想吃的拉麵口味：海鮮"}},
-                    {"type": "action", "action": {"type": "message", "label": "雞白湯", "text": "今天想吃的拉麵口味：雞白湯"}},
-                ]
-            }
-        }]
-    }
-    async with aiohttp.ClientSession() as session:
-        await session.post(url, json=body, headers=headers)
 
 ## 選單訊息：拉麵口味選單（flex menu）
 async def reply_ramen_flavor_flex_menu(reply_token):
@@ -290,3 +263,32 @@ async def get_user_profile(user_id: str):
             else:
                 return None
 
+'''
+## 選單訊息：拉麵口味選單
+async def reply_ramen_flavor_quick_reply(reply_token):
+    url = "https://api.line.me/v2/bot/message/reply"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    body = {
+        "replyToken": reply_token,
+        "messages": [{
+            "type": "text",
+            "text": "請選擇想吃的拉麵口味🍜",
+            "quickReply": {
+                "items": [
+                    {"type": "action", "action": {"type": "message", "label": "豚骨", "text": "今天想吃的拉麵口味：豚骨"}},
+                    {"type": "action", "action": {"type": "message", "label": "醬油", "text": "今天想吃的拉麵口味：醬油"}},
+                    {"type": "action", "action": {"type": "message", "label": "味噌", "text": "今天想吃的拉麵口味：味噌"}},
+                    {"type": "action", "action": {"type": "message", "label": "鹽味", "text": "今天想吃的拉麵口味：鹽味"}},
+                    {"type": "action", "action": {"type": "message", "label": "辣味", "text": "今天想吃的拉麵口味：辣味"}},
+                    {"type": "action", "action": {"type": "message", "label": "海鮮", "text": "今天想吃的拉麵口味：海鮮"}},
+                    {"type": "action", "action": {"type": "message", "label": "雞白湯", "text": "今天想吃的拉麵口味：雞白湯"}},
+                ]
+            }
+        }]
+    }
+    async with aiohttp.ClientSession() as session:
+        await session.post(url, json=body, headers=headers)
+'''
