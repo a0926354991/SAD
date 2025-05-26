@@ -9,13 +9,15 @@
       "豚骨",
       "辣味"
     ],
-    "latitude": 25.040339,
-    "longitude": 121.3882286,
     "reviews": [
       "裝潢蠻日式風格，拉麵Q彈，湯頭不會太鹹，是日式拉麵的改良版，重點是價格較傳統日式拉麵店便宜",
       "蒜香是不錯，也有預料到大碗是麵加多，但肉太少、吃到後面剩柴與鹹，覺得質量完全不到位…（原來二年以前就長這樣了qq)看到心情整個不對了",
       "因為學校在附近 所以吃過好幾次\n餐點看起來很好看 好吃但是有種說不上來的感覺🤔 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\原野拉麵_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\原野拉麵_menu.jpg",
+    "location": {
+      "latitude": 25.040339,
+      "longitude": 121.3882286
+    }
   }
 }

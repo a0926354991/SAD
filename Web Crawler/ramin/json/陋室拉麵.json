@@ -10,13 +10,15 @@
       "魚介",
       "豚骨"
     ],
-    "latitude": 25.0593106,
-    "longitude": 121.5189971,
     "reviews": [
       "2024/11/28   內附菜單   現金支付💰   230\n推薦：清酒泡辣椒 …",
       "斯是陋室，為吾德馨\n\n和親友剛在附近攝影結束，看評論就近過來嚐鮮。經歷一整天的略有狼狽，老闆貼心的提供髮圈給披頭散發的我倆，真是太感謝了。 …",
       "20241116『雞湯拉麵』\n\n店內空間不大，僅有六個座位 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\陋室拉麵_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\陋室拉麵_menu.jpg",
+    "location": {
+      "latitude": 25.0593106,
+      "longitude": 121.5189971
+    }
   }
 }

@@ -9,13 +9,15 @@
       "雞白湯",
       "辣味"
     ],
-    "latitude": 25.0289991,
-    "longitude": 121.4613009,
     "reviews": [
       "⭐️豚骨野菜\n\n個人是豚骨愛好者～ …",
       "醬油豚白湯$250\n中卷麵還算硬\n雞豚叉燒軟嫩不會膩 …",
       "已經注意這間很久～但時間都錯過了，\n總算今天有幸時間對上就來試試了。 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\麵屋饗_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\麵屋饗_menu.jpg",
+    "location": {
+      "latitude": 25.0289991,
+      "longitude": 121.4613009
+    }
   }
 }

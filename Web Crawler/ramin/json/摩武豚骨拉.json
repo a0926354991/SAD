@@ -9,13 +9,15 @@
       "豚骨",
       "味噌"
     ],
-    "latitude": 25.066668,
-    "longitude": 121.494753,
     "reviews": [
       "三重拉麵選項真的不多\n在網路上看到推薦後立馬來吃\n餐點種類沒有特別多 …",
       "主打豚骨拉麵，有6種不同的拉麵可以選擇\n麵條可以選擇軟硬度，湯頭也能選濃淡。\n內用可以免費加湯加麵一次， …",
       "麻辣湯頭好喝叉燒肉質鮮嫩多汁\n糖心蛋不錯麵條口感中規中矩\n筍片偏好吃 剝皮辣椒真的很好吃\n整體環境乾淨cp值高 值得下次關顧"
     ],
-    "menu_image": "Web Crawler/ramin/images\\摩武豚骨拉_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\摩武豚骨拉_menu.jpg",
+    "location": {
+      "latitude": 25.066668,
+      "longitude": 121.494753
+    }
   }
 }

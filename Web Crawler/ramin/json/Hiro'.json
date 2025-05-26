@@ -8,13 +8,15 @@
     "keywords": [
       "魚介"
     ],
-    "latitude": 24.9793346,
-    "longitude": 121.5427836,
     "reviews": [
       "外觀漂亮的日式料理店，門口有些板凳，客滿時讓等候的客人可以稍作休息。店內寬敞舒適，也有空間充足的置放行李。直接和店員點餐即可入座等候餐點。 …",
       "拉麵湯頭濃郁，叉燒厚實，可以加麵，非常值得一吃，炸雞就非常普通，午餐跟晚餐菜單不同，晚餐看起來比較厲害。貼心店家還準備髮圈，外面候位也有椅子，店內很多公仔很可愛。",
       "好吃的拉麵 值得一試\n湯頭很濃郁\n叉燒肉也好吃 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\Hiro'_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\Hiro'_menu.jpg",
+    "location": {
+      "latitude": 24.9793346,
+      "longitude": 121.5427836
+    }
   }
 }

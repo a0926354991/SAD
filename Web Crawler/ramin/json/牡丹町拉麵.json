@@ -8,13 +8,15 @@
     "keywords": [
       "豚骨"
     ],
-    "latitude": 25.001843,
-    "longitude": 121.5226325,
     "reviews": [
       "拉麵湯濃郁 豬排好吃 也很厚實價格也便宜",
       "單純以拉麵來評論的話就是蠻遜色的，與其它家很多頂級拉麵來說，但是優點是套餐非常的划算，覺得旁邊的炸物反而比拉麵還優，就是可以吃的那種但是不會特別去買",
       "#新北市永和區\n#永元路\n#牡丹町日式拉麵 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\牡丹町拉麵_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\牡丹町拉麵_menu.jpg",
+    "location": {
+      "latitude": 25.001843,
+      "longitude": 121.5226325
+    }
   }
 }

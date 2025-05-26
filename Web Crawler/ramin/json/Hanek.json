@@ -8,13 +8,15 @@
     "keywords": [
       "雞白湯"
     ],
-    "latitude": 25.0301924,
-    "longitude": 121.5286488,
     "reviews": [
       "店內以拉麵店而言，位置算蠻多的\n甚至裡面也有提供廁所\n點餐方式是使用自助點餐機，付款方式則只限現金 …",
       "［🔍完整食記歡迎追蹤 IG：yy.eating］\n［用餐日期：2025.03.01］\n- …",
       "中規中矩的雞湯拉麵，湯頭看似濃郁實際喝起來偏淡且偏油，預設的麵量不多，麵體是細麵硬度ok，叉燒份量對不起它的價格，口感及味道也普普，酒香糖心蛋還不錯入味，熟度也剛好；秘製唐揚雞不錯吃但吃多會膩，炸得很酥脆，皮蠻多的、肉量普通。 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\Hanek_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\Hanek_menu.jpg",
+    "location": {
+      "latitude": 25.0301924,
+      "longitude": 121.5286488
+    }
   }
 }

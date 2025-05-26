@@ -9,9 +9,11 @@
       "豚骨",
       "辣味"
     ],
-    "latitude": 25.0287079,
-    "longitude": 121.5645754,
     "reviews": [],
-    "menu_image": "Web Crawler/ramin/images\\一真亭ラー_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\一真亭ラー_menu.jpg",
+    "location": {
+      "latitude": 25.0287079,
+      "longitude": 121.5645754
+    }
   }
 }

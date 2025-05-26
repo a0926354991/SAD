@@ -9,13 +9,15 @@
       "醬油",
       "雞白湯"
     ],
-    "latitude": 25.0073813,
-    "longitude": 121.5190774,
     "reviews": [
       "#新北市 #永和區\n#拉麵 #雞白湯 #海拉麵 …",
       "20250413 [首刷]\n本次評價『美味，CP』👍👍👍 …",
       "七種湯頭，都是以雞湯為基底，搖起一口湯在口中漱口，會感受到濃郁濃稠的雞湯味，像滴雞精那樣\n\n湯頭一流，麵條也蠻好吃的，原來的一球麵，再續兩球，就沒有湯了，但是份量也夠了吃得飽 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\海拉麵_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\海拉麵_menu.jpg",
+    "location": {
+      "latitude": 25.0073813,
+      "longitude": 121.5190774
+    }
   }
 }

@@ -9,13 +9,15 @@
       "海老",
       "豚骨"
     ],
-    "latitude": 24.9826923,
-    "longitude": 121.5358371,
     "reviews": [
       "價格屬於中等，雞白湯的湯頭的雞味非常濃，不愛雞肉腥味的可以避免選擇，麵條稍微偏硬，口感還好，服務人員態度超親切，用餐完畢餐具必須自己回收。",
       "環境：環境乾淨明亮，用餐舒適\n價位：平價，高CP值\n服務：女服務生很親切溫暖 …",
       "拉麵好吃，湯頭濃沒有雞腥味，可以免費加麵一次！\n有許多種叉燒品項可以選擇、個人喜歡雞叉燒"
     ],
-    "menu_image": "Web Crawler/ramin/images\\一幸拉麵 _menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\一幸拉麵 _menu.jpg",
+    "location": {
+      "latitude": 24.9826923,
+      "longitude": 121.5358371
+    }
   }
 }

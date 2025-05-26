@@ -10,13 +10,15 @@
       "醬油",
       "味噌"
     ],
-    "latitude": 25.0828299,
-    "longitude": 121.5466781,
     "reviews": [
       "其實就是一般拉麵店\n湯頭不會太鹹很好入口\n差點被估狗上這些奇奇怪怪的評論勸退 …",
       "餐點美麗令人食指大動、老闆風趣幽默熱心，店裡播放的日文歌曲也是精挑細選，看得出店家對日本文化的喜愛，絕對推薦的好店！",
       "點了野菜拉麵\n湯頭不會鹹\n拉麵還可以 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\勝拉麵_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\勝拉麵_menu.jpg",
+    "location": {
+      "latitude": 25.0828299,
+      "longitude": 121.5466781
+    }
   }
 }

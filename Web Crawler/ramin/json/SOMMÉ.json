@@ -9,13 +9,15 @@
       "海老",
       "雞白湯"
     ],
-    "latitude": 25.0307163,
-    "longitude": 121.5565246,
     "reviews": [
       "很精緻的拉麵，不論是拉麵本人，還是可以單點的配菜。是個可以約會的拉麵店。\n\n點了松露雞、番茄海鮮、蜜汁豬，我個人第一名是番茄海鮮，湯很爽口。但朋友都喜歡松露雞 …",
       "台北通化街質感轉角特色拉麵店🥹\n環境走暗黑低調現代感風格✨✨✨\n主打法式澄清系拉麵💕湯頭一喝就愛ㄟ！ …",
       "今天來信義安和￼美食嚐鮮 🤤\n\n一家位於捷運信義安和站， …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\SOMMÉ_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\SOMMÉ_menu.jpg",
+    "location": {
+      "latitude": 25.0307163,
+      "longitude": 121.5565246
+    }
   }
 }

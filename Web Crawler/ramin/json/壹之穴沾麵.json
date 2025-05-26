@@ -8,13 +8,15 @@
     "keywords": [
       "豚骨"
     ],
-    "latitude": 25.0221516,
-    "longitude": 121.5431571,
     "reviews": [
       "溏心蛋不入味 還多加點一顆\n舒肥雞和叉燒軟嫩\n沾麵的醬汁是熱的 沾麵幾次就變涼（可加熱但麻煩 …",
       "我是覺得普。\n豚雞沾麵，肉盛，麵大份，310。 …",
       "今天很幸運有點到限定口味 雲丹醬鮭魚卵沾（海膽醬搭配雞白湯湯底）！\n\n個人覺得是較清爽的類型，沾麵湯不會太過濃郁、膩口！那有兩大塊豬叉燒、三塊雞叉燒跟一顆溏心蛋，鮭魚卵也豪不手軟 ，CP值高高！ …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\壹之穴沾麵_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\壹之穴沾麵_menu.jpg",
+    "location": {
+      "latitude": 25.0221516,
+      "longitude": 121.5431571
+    }
   }
 }

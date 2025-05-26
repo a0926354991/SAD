@@ -8,9 +8,11 @@
     "keywords": [
       "鹽味"
     ],
-    "latitude": 25.0130637,
-    "longitude": 121.5353865,
     "reviews": [],
-    "menu_image": "Web Crawler/ramin/images\\一階堂拉麵_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\一階堂拉麵_menu.jpg",
+    "location": {
+      "latitude": 25.0130637,
+      "longitude": 121.5353865
+    }
   }
 }

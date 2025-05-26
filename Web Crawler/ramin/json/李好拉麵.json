@@ -11,7 +11,9 @@
       "辣味"
     ],
     "menu_image": "Web Crawler/ramin/images\\李好拉麵_menu.jpg",
-    "latitude": 25.0513733,
-    "longitude": 121.5294634
+    "location": {
+      "latitude": 25.0513733,
+      "longitude": 121.5294634
+    }
   }
 }

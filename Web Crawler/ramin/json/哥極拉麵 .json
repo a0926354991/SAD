@@ -8,13 +8,15 @@
     "keywords": [
       "豚骨"
     ],
-    "latitude": 25.0460742,
-    "longitude": 121.513606,
     "reviews": [
       "一開始也是在社群看到的一間店 想說後面要找時間來吃吃看 今天就決定約朋友來吃了\n\n店在北車這邊 要來比較建議坐捷運或公車比較好 這邊車位超難找 機車也是一位難求啊 我繞了10分鐘才找到位置 …",
       "松露豚骨拉麵 …",
       "2025.05.03\n在北車附近，走過來5分鐘左右非常方便\n今天點：黑蒜 濃厚豚骨湯 $230 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\哥極拉麵 _menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\哥極拉麵 _menu.jpg",
+    "location": {
+      "latitude": 25.0460742,
+      "longitude": 121.513606
+    }
   }
 }

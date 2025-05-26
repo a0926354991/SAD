@@ -10,13 +10,15 @@
       "魚介",
       "雞白湯"
     ],
-    "latitude": 25.0225923,
-    "longitude": 121.5293904,
     "reviews": [
       "濃湯真的很濃，可以免費加麵一球/半球（細麵），座位真的很少，要碰碰運氣才不用久等，建議是悠哉的時候來。\n\n各種主菜肉類都很好吃。",
       "醬油拉麵很好吃 不會有選擇障礙 跟一般不一樣的叉燒飯調味不會膩 會選擇二訪吃極濃湯頭的好店 可惜位置較少",
       "拉麵超好吃，濃醇香，\n老闆與老闆娘超nice，\n特別推薦吃鴨胸叉燒飯， …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\數寄屋 銀_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\數寄屋 銀_menu.jpg",
+    "location": {
+      "latitude": 25.0225923,
+      "longitude": 121.5293904
+    }
   }
 }

@@ -9,13 +9,15 @@
       "雞白湯",
       "鹽味"
     ],
-    "latitude": 25.0362808,
-    "longitude": 121.5470012,
     "reviews": [
       "★拉麵迷請進→FB搜尋：『台灣拉麵愛好會』、IG：twramenclub\n\n▎區域／鄰近地點：台北大安區／仁愛敦南圓環 …",
       "人多的時候要稍微排一下，菜單簡單明瞭，運氣好有吃到每日限量跟隱藏版料理\n\n今日點了 …",
       "背脂黑膠蒜🧄醬香濃郁不苦，附上兩種🐷叉燒炙燒，非常好吃😋，雞湯🐔雖然不像驥園雞湯ㄧ樣膠濃黏嘴👄，但是清香甘甜不膩口，已是台北少見的雞湯佳作🐓，很推薦來嚐鮮喔🥰⋯⋯ …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\醇一拉麵 _menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\醇一拉麵 _menu.jpg",
+    "location": {
+      "latitude": 25.0362808,
+      "longitude": 121.5470012
+    }
   }
 }

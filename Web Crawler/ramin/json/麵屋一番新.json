@@ -9,13 +9,15 @@
       "辣味",
       "雞白湯"
     ],
-    "latitude": 25.0328537,
-    "longitude": 121.4497406,
     "reviews": [
       "麵屋一番以其平價的雞白湯拉麵聞名，口感濃稠不黏口，適合在天氣涼爽時享用。",
       "感覺價格已經沒有以前（2020年）有競爭力了\n但是還是挺不錯的\n吃慣日式拉麵的記得要加鹹",
       "服務態度不錯，鹹淡、軟硬都可以客製，有蒜酥可自取，每碗基本配料：雞叉燒、海苔\n\n雞白湯拉麵(鹹度正常) …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\麵屋一番新_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\麵屋一番新_menu.jpg",
+    "location": {
+      "latitude": 25.0328537,
+      "longitude": 121.4497406
+    }
   }
 }

@@ -10,13 +10,15 @@
       "豚骨",
       "醬油"
     ],
-    "latitude": 25.0014005,
-    "longitude": 121.5025155,
     "reviews": [
       "下死人了\n3個不大不小的唐揚雞要80\n1個小的迷你豬排要60 …",
       "點了外送，培煎雙肉雞白湯，味道很普通超鹹，價格也偏貴，不會再訪。",
       "機台式點餐，自助式取餐與回收。 激辛拉麵的湯頭及麵條口感搭配起來適中恰當，一人份吃起來剛好。"
     ],
-    "menu_image": "Web Crawler/ramin/images\\初原麵場(_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\初原麵場(_menu.jpg",
+    "location": {
+      "latitude": 25.0014005,
+      "longitude": 121.5025155
+    }
   }
 }

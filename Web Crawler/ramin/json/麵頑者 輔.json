@@ -9,13 +9,15 @@
       "雞白湯",
       "豚骨"
     ],
-    "latitude": 25.034344,
-    "longitude": 121.4309632,
     "reviews": [
       "這是一間在校園外的711 騎樓裡的一家小店\n別看他小\n先說口味 個人感覺是非常足夠的 …",
       "這家好像是新開的，在514巷7-11外面。他是路邊攤內用只有三個位置。 …",
       "麵很硬 湯不是用熬的 肉偏小塊 配料吃起來都是外面現成的 還要160 吃完大拉特拉\n我只能安慰自己花了160買了瀉藥"
     ],
-    "menu_image": "Web Crawler/ramin/images\\麵頑者 輔_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\麵頑者 輔_menu.jpg",
+    "location": {
+      "latitude": 25.034344,
+      "longitude": 121.4309632
+    }
   }
 }

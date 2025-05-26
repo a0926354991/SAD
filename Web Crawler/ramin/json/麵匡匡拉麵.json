@@ -8,13 +8,15 @@
     "keywords": [
       "豚骨"
     ],
-    "latitude": 25.0192456,
-    "longitude": 121.4218905,
     "reviews": [
       "老實說出乎我意料之外的好吃\n其實比起不少台灣以往大家認為有名的拉麵店都好\n我能明白很多拉麵就是鹹來複製日本的感覺 …",
       "店員態度親切，內用環境也挺明亮的。\n餐點整體味道都不錯。\n唐揚雞的外皮稍微硬了點，可能炸太久。\n麵的份量偏少，男生可能吃不太飽。",
       "招牌豚骨湯頭很濃，叉燒還不賴\n看照片覺得唐揚雞很可口，但看到送來樣子…😅\n近期沒有龍鬚菜，會換花椰菜\nps. 目前只有現金支付 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\麵匡匡拉麵_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\麵匡匡拉麵_menu.jpg",
+    "location": {
+      "latitude": 25.0192456,
+      "longitude": 121.4218905
+    }
   }
 }

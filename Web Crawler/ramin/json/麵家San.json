@@ -10,13 +10,15 @@
       "味噌",
       "魚介"
     ],
-    "latitude": 24.9804975,
-    "longitude": 121.5420747,
     "reviews": [
       "麵家 SANKA 讚歌商店 …",
       "·鴨蔥鹽味拉麵\n沒有鴨味的鴨肉，老闆特別挑過，但我喜歡鴨味🤣\n不過湯頭清爽好喝，建議柚子胡椒的部分不要像我吃到一半全下，最後稍微有一點點不清爽（活該🤣） …",
       "新店的宵夜選項不多，難得可以在宵夜時段吃到好吃的拉麵，營業時間從中午12點到晚上12點(last order 23:40) …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\麵家San_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\麵家San_menu.jpg",
+    "location": {
+      "latitude": 24.9804975,
+      "longitude": 121.5420747
+    }
   }
 }

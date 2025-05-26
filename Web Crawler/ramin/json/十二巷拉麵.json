@@ -9,9 +9,11 @@
       "豚骨",
       "海老"
     ],
-    "latitude": 25.0156951,
-    "longitude": 121.5328123,
     "reviews": [],
-    "menu_image": "Web Crawler/ramin/images\\十二巷拉麵_menu.jpg"
+    "menu_image": "Web Crawler/ramin/images\\十二巷拉麵_menu.jpg",
+    "location": {
+      "latitude": 25.0156951,
+      "longitude": 121.5328123
+    }
   }
 }
