@@ -136,18 +136,6 @@ async def reply_ramen_flavor_flex_menu(reply_token):
             "altText": "今天想吃哪種拉麵？請選擇拉麵口味！",
             "contents": {
                 "type": "bubble",
-                # "header": {
-                # "type": "box",
-                # "layout": "vertical",
-                # "contents": [
-                #     {
-                #     "type": "text",
-                #     "text": "今天想吃哪種拉麵？",
-                #     "weight": "bold",
-                #     "size": "lg"
-                #     }
-                # ]
-                # },
                 "body": {
                 "type": "box",
                 "layout": "vertical",
@@ -155,14 +143,18 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                 "contents": [
                     {
                     "type": "text",
-                    "text": "想吃哪種拉麵？",
+                    "text": "今天想吃哪種拉麵？",
                     "weight": "bold",
                     "size": "lg",
                     "wrap": True
                     },
                     {
+                    "type": "spacer",
+                    "size": "md"
+                    },
+                    {
                     "type": "text",
-                    "text": "選擇想吃的拉麵口味，",
+                    "text": "\n選擇想吃的拉麵口味，為你推薦附近的拉麵店家",
                     "size": "sm",
                     "color": "#888888",
                     "margin": "none",
@@ -171,49 +163,42 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                     {
                     "type": "button",
                     "action": { "type": "message", "label": "🍜 豚骨", "text": "今天想吃的拉麵口味：豚骨"},
-                    "style": "secondary", "height": "sm", "margin": "md"
+                    "style": "secondary", "height": "sm", "margin": "sm"
                     },
                     {
                     "type": "button",
                     "action": { "type": "message", "label": "🍜 醬油", "text": "今天想吃的拉麵口味：醬油"},
-                    "style": "secondary", "height": "sm", "margin": "md"
+                    "style": "secondary", "height": "sm", "margin": "sm"
                     },
                     {
                     "type": "button",
-                    "action": {
-                        "type": "message", "label": "🍜 味噌", "text": "今天想吃的拉麵口味：味噌"},
-                    "style": "secondary", "height": "sm", "margin": "md"
+                    "action": { "type": "message", "label": "🍜 味噌", "text": "今天想吃的拉麵口味：味噌"},
+                    "style": "secondary", "height": "sm", "margin": "sm"
                     },
                     {
                     "type": "button",
-                    "action": {
-                        "type": "message", "label": "🍜 鹽味", "text": "今天想吃的拉麵口味：鹽味"},
-                    "style": "secondary", "height": "sm", "margin": "md"
+                    "action": { "type": "message", "label": "🍜 鹽味", "text": "今天想吃的拉麵口味：鹽味"},
+                    "style": "secondary", "height": "sm", "margin": "sm"
                     },
                     {
                     "type": "button",
-                    "action": {
-                        "type": "message", "label": "🍜 辣味", "text": "今天想吃的拉麵口味：辣味"},
-                    "style": "secondary", "height": "sm", "margin": "md"
+                    "action": { "type": "message", "label": "🍜 辣味", "text": "今天想吃的拉麵口味：辣味"},
+                    "style": "secondary", "height": "sm", "margin": "sm"
                     },
                     {
                     "type": "button",
-                    "action": {
-                        "type": "message", "label": "🍜 海鮮", "text": "今天想吃的拉麵口味：海鮮"},
-                    "style": "secondary", "height": "sm", "margin": "md"
+                    "action": { "type": "message", "label": "🍜 海鮮", "text": "今天想吃的拉麵口味：海鮮"},
+                    "style": "secondary", "height": "sm", "margin": "sm"
                     },
                     {
                     "type": "button",
-                    "action": {
-                        "type": "message", "label": "🍜 雞白湯", "text": "今天想吃的拉麵口味：雞白湯"},
-                    "style": "secondary", "height": "sm", "margin": "md"
+                    "action": { "type": "message", "label": "🍜 雞白湯", "text": "今天想吃的拉麵口味：雞白湯"},
+                    "style": "secondary", "height": "sm", "margin": "sm"
                     }
                 ]
                 },
                 "styles": {
-                "body": {
-                    "backgroundColor": "#ffffff"
-                }
+                    "body": { "backgroundColor": "#ffffff"}
                 }
             }
             }]
