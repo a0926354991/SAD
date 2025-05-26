@@ -1,6 +1,9 @@
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
 from line_bot_backend.db import add_user  # ✅ 改為使用 Firestore 函式
+from line_bot_backend.db import get_all_ramen_shops
+from fastapi.middleware.cors import CORSMiddleware
+
 import os
 import aiohttp
 import random
@@ -282,6 +285,18 @@ async def get_user_profile(user_id: str):
                 return await res.json()
             else:
                 return None
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 或改成你的前端網址
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+            
+
+@app.get("/shops")
+def read_all_ramen_shops():
+    return get_all_ramen_shops()
 
 
 '''
