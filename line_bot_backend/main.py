@@ -137,26 +137,65 @@ async def reply_ramen_flavor_flex_menu(reply_token):
             "contents": {
                 "type": "bubble",
                 "header": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": [{"type": "text", "text": "想吃哪一種拉麵？", "weight": "bold", "size": "lg"}]
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                    {
+                    "type": "text",
+                    "text": "今天想吃哪種拉麵？",
+                    "weight": "bold",
+                    "size": "lg"
+                    }
+                ]
                 },
                 "body": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "spacing": "md",
-                    "contents": [
-                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 豚骨", "text": "口味：豚骨"}},
-                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 醬油", "text": "口味：醬油"}},
-                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 味噌", "text": "口味：味噌"}},
-                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 鹽味", "text": "口味：鹽味"}},
-                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 雞白湯", "text": "口味：雞白湯"}},
-                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 海鮮", "text": "口味：海鮮"}},
-                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 辣味", "text": "口味：辣味"}}
-                    ]
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "md",
+                "contents": [
+                    {
+                    "type": "text",
+                    "text": "選擇想吃的拉麵口味，",
+                    "size": "xs",
+                    "color": "#888888",
+                    "margin": "none",
+                    "wrap": True
+                    },
+                    {
+                    "type": "button",
+                    "action": { "type": "message", "label": "🍜 豚骨", "text": "口味：豚骨"
+                    },
+                    "style": "secondary", "height": "sm", "margin": "md"
+                    },
+                    {
+                    "type": "button",
+                    "action": { "type": "message", "label": "🍜 醬油", "text": "口味：醬油"
+                    },
+                    "style": "secondary", "height": "sm", "margin": "md"
+                    },
+                    {
+                    "type": "button",
+                    "action": {
+                        "type": "message", "label": "🍜 味噌", "text": "今天想吃的拉麵口味：味噌"
+                    },
+                    "style": "secondary", "height": "sm", "margin": "md"
+                    },
+                    {
+                    "type": "button",
+                    "action": {
+                        "type": "message", "label": "🍜 鹽味", "text": "今天想吃的拉麵口味：鹽味"
+                    },
+                    "style": "secondary", "height": "sm", "margin": "md"
+                    }
+                ]
+                },
+                "styles": {
+                "body": {
+                    "backgroundColor": "#ffffff"
+                }
                 }
             }
-        }]
+            }]
     }
     url = "https://api.line.me/v2/bot/message/reply"
     headers = {
