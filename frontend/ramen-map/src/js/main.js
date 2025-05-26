@@ -30,8 +30,8 @@ async function initMap() {
         .then(data => {
             data.ramen_stores.forEach(store => {
                 const position = {
-                    lat: store.coordinates.lat,
-                    lng: store.coordinates.lng
+                    lat: store.latitude,
+                    lng: store.longitude
                 };
 
                 // marker 內容只放圖片
@@ -45,6 +45,11 @@ async function initMap() {
 
                 markerContent.appendChild(ramenImg);
 
+                const nameDiv = document.createElement("div");
+                nameDiv.textContent = store.name;
+                nameDiv.className = "marker-store-name";
+                markerContent.appendChild(nameDiv);
+
                 // 建立 marker
                 const marker = new AdvancedMarkerElement({
                     map,
@@ -56,15 +61,6 @@ async function initMap() {
 
                 // 點擊 marker 時顯示店名和打卡按鈕
                 marker.addListener("gmp-click", () => {
-                    // 檢查是否已有店名顯示
-                    const oldNameDiv = markerContent.querySelector('.marker-store-name');
-                    if (!oldNameDiv) {
-                        // 如果沒有店名，則新增它
-                        const nameDiv = document.createElement("div");
-                        nameDiv.textContent = store.name;
-                        nameDiv.className = "marker-store-name";
-                        markerContent.appendChild(nameDiv);
-                    }
                     renderStoreInfo(store);
                     panMapToSafeBounds(map, position);
                     showCheckInButton(store);
@@ -72,10 +68,6 @@ async function initMap() {
 
                 // 點擊地圖其他地方時隱藏店名和打卡按鈕
                 map.addListener("click", () => {
-                    const oldNameDiv = markerContent.querySelector('.marker-store-name');
-                    if (oldNameDiv) {
-                        markerContent.removeChild(oldNameDiv);
-                    }
                     showDefaultPage();
                     hideCheckInButton();
                 });
@@ -227,7 +219,6 @@ function closeCheckInModal() {
     document.body.classList.remove('modal-open');
     checkInForm.reset();
     photoPreview.innerHTML = '';
-    currentStore = null;
     ratingStars.forEach(star => star.classList.remove('active'));
 }
 
@@ -306,7 +297,18 @@ function initWheel() {
             const startAngle = index * anglePerSlice + currentRotation;
             const endAngle = (index + 1) * anglePerSlice + currentRotation;
             
-            ctx.fillStyle = index % 2 === 0 ? '#FF6B6B' : '#4ECDC4';
+            // 使用三種日本傳統色彩輪替，確保最後一片與前一片和第一片不同
+            const colors = ['#E87A90', '#88C9A1', '#F7B977'];  // 櫻色、若竹色、山吹色
+            let colorIndex;
+            if (index === ramenStores.length - 1) {
+                // 最後一片：選擇與前一片和第一片不同的顏色
+                const prevColor = (index - 1) % 3;
+                const firstColor = 0;
+                colorIndex = colors.findIndex((_, i) => i !== prevColor && i !== firstColor);
+            } else {
+                colorIndex = index % 3;
+            }
+            ctx.fillStyle = colors[colorIndex];
             
             ctx.beginPath();
             ctx.moveTo(centerX, centerY);
@@ -400,37 +402,19 @@ function initWheel() {
     confirmButton.addEventListener('click', () => {
         if (selectedStore) {
             const position = {
-                lat: selectedStore.coordinates.lat,
-                lng: selectedStore.coordinates.lng
+                lat: selectedStore.latitude,
+                lng: selectedStore.longitude
             };
             
             // 計算新的中心點，將標記放在地圖中間偏上的位置
             const newCenter = {
-                lat: position.lat - 0.001, // 向上偏移約100公尺
+                lat: position.lat - 0.0015, // 向上偏移約150公尺
                 lng: position.lng
             };
             
             map.panTo(newCenter);
-            map.setZoom(18);
-            
-            // 找到對應的標記並模擬點擊效果
-            const markers = document.querySelectorAll('.marker-content');
-            markers.forEach(markerContent => {
-                const markerImg = markerContent.querySelector('.ramen-marker-img');
-                if (markerImg && markerImg.parentElement.title === selectedStore.name) {
-                    // 移除其他標記的店名
-                    document.querySelectorAll('.marker-store-name').forEach(nameDiv => {
-                        nameDiv.remove();
-                    });
-                    
-                    // 添加店名到選中的標記
-                    const nameDiv = document.createElement("div");
-                    nameDiv.textContent = selectedStore.name;
-                    nameDiv.className = "marker-store-name";
-                    markerContent.appendChild(nameDiv);
-                }
-            });
-            
+            map.setZoom(16);
+        
             renderStoreInfo(selectedStore);
             showCheckInButton(selectedStore);
 
