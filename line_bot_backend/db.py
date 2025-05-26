@@ -6,6 +6,8 @@ from firebase_admin import credentials, firestore, initialize_app
 
 key_dict = json.loads(os.environ["FIREBASE_KEY_JSON"])
 cred = credentials.Certificate(key_dict)
+
+# cred = credentials.Certificate("key.json")
 initialize_app(cred)
 db = firestore.client()
 
@@ -39,3 +41,7 @@ def get_all_ramen_shops():
         shop["id"] = doc.id
         result.append(shop)
     return result
+
+# if __name__ == "__main__":
+#     shops = get_all_ramen_shops()
+#     print(json.dumps(shops, ensure_ascii=False, indent=2))
