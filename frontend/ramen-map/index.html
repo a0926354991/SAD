@@ -32,6 +32,9 @@
       </div>
     </header>
     
+    <!-- 新增：提示訊息容器 -->
+    <div id="toastContainer" class="toast-container"></div>
+
     <div class="main-content">
       <div id="map" class="retro-map">
         <div class="map-decoration top-left"></div>
@@ -53,8 +56,12 @@
   </div>
 
   <!-- 浮動打卡按鈕 -->
-  <button id="checkInFab" class="fab">
+  <button id="addToWheelFab" class="fab" style="bottom: 100px;">
     <i class="fas fa-plus"></i>
+  </button>
+
+  <button id="checkInFab" class="fab">
+    <i class="fas fa-camera"></i>
   </button>
 
   <!-- 拉麵轉盤按鈕 -->

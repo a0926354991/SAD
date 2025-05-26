@@ -4,6 +4,117 @@ let map;
 let marker;
 let nameLabel;
 let currentStore = null;
+let wheelStores = []; // 新增：儲存轉盤中的商店
+let allStores = []; // 新增：儲存所有拉麵店資料
+let allMarkers = []; // 新增：儲存所有標記
+
+// 新增：顯示提示訊息
+function showToast(message) {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+
+    // 3秒後移除提示訊息
+    setTimeout(() => {
+        toast.remove();
+    }, 1500);
+}
+
+// 新增：檢查店家是否在轉盤中
+function isStoreInWheel(store) {
+    return wheelStores.some(wheelStore => 
+        wheelStore.name === store.name && 
+        wheelStore.address === store.address
+    );
+}
+
+// 新增：更新加入/移除按鈕的圖示
+function updateAddToWheelButton(store) {
+    const addToWheelFab = document.getElementById('addToWheelFab');
+    if (store && isStoreInWheel(store)) {
+        addToWheelFab.innerHTML = '<i class="fas fa-minus"></i>';
+    } else {
+        addToWheelFab.innerHTML = '<i class="fas fa-plus"></i>';
+    }
+}
+
+// 新增：即時搜尋功能
+function searchStores(query, showToast = false, selectFirst = false) {
+    const searchResults = allStores.filter(store => 
+        store.name.toLowerCase().includes(query.toLowerCase()) ||
+        store.address.toLowerCase().includes(query.toLowerCase()) ||
+        (store.keywords && store.keywords.some(keyword => 
+            keyword.toLowerCase().includes(query.toLowerCase())
+        ))
+    );
+
+    const searchResultsList = document.getElementById('searchResults');
+    searchResultsList.innerHTML = '';
+
+    if (query.trim() === '') {
+        searchResultsList.style.display = 'none';
+        return;
+    }
+
+    if (searchResults.length > 0) {
+        searchResults.forEach((store, index) => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'search-result-item';
+            resultItem.innerHTML = `
+                <div class="store-name">${store.name}</div>
+                <div class="store-address">${store.address}</div>
+            `;
+            resultItem.addEventListener('click', () => {
+                selectStore(store);
+                searchResultsList.style.display = 'none';
+            });
+            searchResultsList.appendChild(resultItem);
+
+            // 如果是第一個結果且需要選中，則選中它
+            if (index === 0 && selectFirst) {
+                selectStore(store);
+                searchResultsList.style.display = 'none';
+            }
+        });
+        // 只有在即時搜尋時才顯示結果列表
+        if (!selectFirst) {
+            searchResultsList.style.display = 'block';
+        }
+    } else {
+        searchResultsList.style.display = 'none';
+        // 當需要顯示提示且沒有結果時，顯示提示訊息
+        if (showToast) {
+            showToast('😭找不到符合的店家😭');
+        }
+    }
+}
+
+// 新增：選擇店家
+function selectStore(store) {
+    const position = {
+        lat: store.latitude,
+        lng: store.longitude
+    };
+    
+    const newCenter = {
+        lat: position.lat - 0.0015,
+        lng: position.lng
+    };
+    
+    map.panTo(newCenter);
+    map.setZoom(16);
+
+    renderStoreInfo(store);
+    showCheckInButton(store);
+
+    // 找到對應的標記並只顯示它
+    const selectedMarker = allMarkers.find(marker => marker.store === store);
+    if (selectedMarker) {
+        showOnlySelectedMarker(selectedMarker);
+    }
+}
 
 // Initialize the map
 async function initMap() {
@@ -25,16 +136,14 @@ async function initMap() {
     });
 
     // 讀取拉麵店資料
-    // fetch('/data/ramen.json')
-    // fetch('shops')
-    fetch("https://linebot-fastapi-uhmi.onrender.com/shops")
+    fetch('/data/ramen.json')
         .then(response => response.json())
         .then(data => {
+            allStores = data.ramen_stores;
             data.ramen_stores.forEach(store => {
                 const position = {
                     lat: store.latitude,
                     lng: store.longitude
-
                 };
 
                 // marker 內容只放圖片
@@ -62,6 +171,10 @@ async function initMap() {
                     gmpClickable: true
                 });
 
+                // 儲存標記和店家的關聯
+                marker.store = store;
+                allMarkers.push(marker);
+
                 // 點擊 marker 時顯示店名和打卡按鈕
                 marker.addListener("gmp-click", () => {
                     renderStoreInfo(store);
@@ -73,6 +186,7 @@ async function initMap() {
                 map.addListener("click", () => {
                     showDefaultPage();
                     hideCheckInButton();
+                    showAllMarkers();
                 });
             });
         })
@@ -160,6 +274,9 @@ function showDefaultPage() {
     ramenList.classList.remove('active');
     ramenList.style.transform = 'translateY(calc(100% - 50px))';
     ramenList.style.maxHeight = 'var(--panel-height)';
+
+    // 顯示所有標記
+    showAllMarkers();
 }
 
 // 檢查並移動地圖，確保標記在安全範圍內
@@ -252,12 +369,15 @@ function handlePhotoPreview(e) {
 function showCheckInButton(store) {
     currentStore = store;
     checkInFab.classList.add('active');
+    addToWheelFab.classList.add('active');
+    updateAddToWheelButton(store); // 新增：更新按鈕圖示
 }
 
 // 隱藏打卡按鈕
 function hideCheckInButton() {
     currentStore = null;
     checkInFab.classList.remove('active');
+    addToWheelFab.classList.remove('active');
 }
 
 // 拉麵轉盤功能
@@ -270,22 +390,41 @@ function initWheel() {
     const canvas = document.getElementById('wheelCanvas');
     const selectedStoreName = document.getElementById('selectedStoreName');
     const ctx = canvas.getContext('2d');
+    const addToWheelFab = document.getElementById('addToWheelFab');
 
     canvas.width = 300;
     canvas.height = 300;
 
-    let ramenStores = [];
     let currentRotation = 0;
     let isSpinning = false;
     let selectedStore = null;
 
-    fetch('/data/ramen.json')
-        .then(response => response.json())
-        .then(data => {
-            ramenStores = data.ramen_stores;
-            drawWheel();
-        })
-        .catch(error => console.error('Error loading ramen data:', error));
+    // 修改：加入/移除轉盤的功能
+    addToWheelFab.addEventListener('click', () => {
+        if (currentStore) {
+            const isInWheel = isStoreInWheel(currentStore);
+            
+            if (!isInWheel) {
+                wheelStores.push(currentStore);
+                showToast('🎉已將店家加入轉盤🎉');
+            } else {
+                // 從轉盤中移除店家
+                wheelStores = wheelStores.filter(store => 
+                    !(store.name === currentStore.name && 
+                      store.address === currentStore.address)
+                );
+                showToast('🗑️已從轉盤移除店家🗑️');
+            }
+            
+            // 更新按鈕圖示
+            updateAddToWheelButton(currentStore);
+            
+            // 如果轉盤視窗是開啟的，重新繪製轉盤
+            if (wheelModal.classList.contains('active')) {
+                drawWheel();
+            }
+        }
+    });
 
     function drawWheel() {
         const centerX = canvas.width / 2;
@@ -294,17 +433,30 @@ function initWheel() {
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        const anglePerSlice = (2 * Math.PI) / ramenStores.length;
+        if (wheelStores.length === 0) {
+            // 如果轉盤為空，顯示提示文字
+            ctx.fillStyle = '#f8f9fa';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = '#666';
+            ctx.font = '16px Noto Sans JP';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('請先加入店家', centerX, centerY);
+            return;
+        }
         
-        ramenStores.forEach((store, index) => {
+        const anglePerSlice = (2 * Math.PI) / wheelStores.length;
+        
+        wheelStores.forEach((store, index) => {
             const startAngle = index * anglePerSlice + currentRotation;
             const endAngle = (index + 1) * anglePerSlice + currentRotation;
             
-            // 使用三種日本傳統色彩輪替，確保最後一片與前一片和第一片不同
-            const colors = ['#E87A90', '#88C9A1', '#F7B977'];  // 櫻色、若竹色、山吹色
+            const colors = ['#E87A90', '#88C9A1', '#F7B977'];
             let colorIndex;
-            if (index === ramenStores.length - 1) {
-                // 最後一片：選擇與前一片和第一片不同的顏色
+            if (index === wheelStores.length - 1) {
                 const prevColor = (index - 1) % 3;
                 const firstColor = 0;
                 colorIndex = colors.findIndex((_, i) => i !== prevColor && i !== firstColor);
@@ -344,7 +496,7 @@ function initWheel() {
     }
 
     function spinWheel() {
-        if (isSpinning) return;
+        if (isSpinning || wheelStores.length === 0) return;
         
         isSpinning = true;
         spinButton.disabled = true;
@@ -371,11 +523,11 @@ function initWheel() {
                 spinButton.disabled = false;
                 confirmButton.disabled = false;
                 
-                const anglePerSlice = (2 * Math.PI) / ramenStores.length;
+                const anglePerSlice = (2 * Math.PI) / wheelStores.length;
                 const pointerAngle = -Math.PI / 2;
                 let idx = ((pointerAngle - currentRotation) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) / anglePerSlice;
                 const selectedIndex = Math.floor(idx);
-                selectedStore = ramenStores[selectedIndex];
+                selectedStore = wheelStores[selectedIndex];
                 selectedStoreName.textContent = selectedStore.name;
             }
         }
@@ -390,7 +542,7 @@ function initWheel() {
     });
 
     canvas.addEventListener('click', () => {
-        if (!isSpinning) {
+        if (!isSpinning && wheelStores.length > 0) {
             spinWheel();
         }
     });
@@ -404,23 +556,7 @@ function initWheel() {
 
     confirmButton.addEventListener('click', () => {
         if (selectedStore) {
-            const position = {
-                lat: selectedStore.latitude,
-                lng: selectedStore.longitude
-            };
-            
-            // 計算新的中心點，將標記放在地圖中間偏上的位置
-            const newCenter = {
-                lat: position.lat - 0.0015, // 向上偏移約150公尺
-                lng: position.lng
-            };
-            
-            map.panTo(newCenter);
-            map.setZoom(16);
-        
-            renderStoreInfo(selectedStore);
-            showCheckInButton(selectedStore);
-
+            selectStore(selectedStore);
             wheelModal.classList.remove('active');
             document.body.classList.remove('modal-open');
         }
@@ -434,10 +570,71 @@ function initWheel() {
     });
 }
 
+// 新增：只顯示選中的標記
+function showOnlySelectedMarker(selectedMarker) {
+    allMarkers.forEach(marker => {
+        if (marker === selectedMarker) {
+            marker.map = map;
+        } else {
+            marker.map = null;
+        }
+    });
+}
+
+// 新增：顯示所有標記
+function showAllMarkers() {
+    allMarkers.forEach(marker => {
+        marker.map = map;
+    });
+}
+
 // 初始化所有功能
 function init() {
     initMap();
     initWheel();
+
+    // 新增：搜尋功能初始化
+    const searchInput = document.getElementById('searchInput');
+    const searchBox = document.querySelector('.search-box');
+
+    // 創建搜尋按鈕
+    const searchButton = document.createElement('button');
+    searchButton.className = 'search-button';
+    searchButton.innerHTML = '<i class="fas fa-search"></i>';
+    searchBox.appendChild(searchButton);
+
+    // 創建搜尋結果容器
+    const searchResults = document.createElement('div');
+    searchResults.id = 'searchResults';
+    searchResults.className = 'search-results';
+    searchBox.appendChild(searchResults);
+
+    // 執行搜尋的函數
+    const performSearch = () => {
+        searchStores(searchInput.value, true, true);
+    };
+
+    // 點擊搜尋按鈕時搜尋
+    searchButton.addEventListener('click', performSearch);
+
+    // 按下 Enter 時搜尋
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    // 即時搜尋，不顯示找不到的提示，不選中第一個
+    searchInput.addEventListener('input', (e) => {
+        searchStores(e.target.value, false, false);
+    });
+
+    // 點擊其他地方時隱藏搜尋結果
+    document.addEventListener('click', (e) => {
+        if (!searchBox.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
 
     // 打卡功能事件監聽
     checkInFab.addEventListener('click', () => {
