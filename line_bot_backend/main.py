@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
-from line_bot_backend.db import add_user  # ✅ 改為使用 Firestore 函式
-from line_bot_backend.db import get_all_ramen_shops
+from line_bot_backend.db import add_user, get_all_ramen_shops  # render
+# from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 
 import os
@@ -22,6 +22,19 @@ FLAVORS = ["豚骨", "醬油", "味噌", "鹽味", "辣味", "雞白湯", "海�
 
 # 儲存使用者位置（之後要改用 Firestore，現在先這樣）
 user_locations = {}
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 或改成你的前端網址
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+# 拿取所有拉麵店
+@app.get("/all_shops")
+def read_all_ramen_shops():
+    shops = get_all_ramen_shops()
+    return {"ramen_stores": shops}
 
 @app.post("/webhook")
 async def webhook(req: Request):
@@ -278,14 +291,3 @@ async def get_user_profile(user_id: str):
             else:
                 return None
 
-# @app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],  # 或改成你的前端網址
-#     allow_methods=["*"],
-#     allow_headers=["*"]
-# )
-
-
-# @app.get("/shops")
-# def read_all_ramen_shops():
-#     return get_all_ramen_shops()
