@@ -57,6 +57,11 @@
     <i class="fas fa-plus"></i>
   </button>
 
+  <!-- 拉麵轉盤按鈕 -->
+  <button id="wheelFab" class="fab wheel-fab">
+    <i class="fas fa-dharmachakra"></i>
+  </button>
+
   <!-- 打卡模態框 -->
   <div id="checkInModal" class="modal">
     <div class="modal-content">
@@ -92,6 +97,29 @@
           </div>
           <button type="submit" class="submit-btn">打卡</button>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 拉麵轉盤模態框 -->
+  <div id="wheelModal" class="modal">
+    <div class="modal-content wheel-modal-content">
+      <div class="modal-header">
+        <h2>拉麵轉盤</h2>
+        <button class="close-modal" id="closeWheelModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="wheel-container">
+        <canvas id="wheelCanvas"></canvas>
+        <div class="selected-store">
+            <h3>選中的店家</h3>
+            <p id="selectedStoreName">尚未選擇</p>
+        </div>
+        <div class="wheel-buttons">
+            <button id="spinButton" class="wheel-btn">再轉一次</button>
+            <button id="confirmButton" class="wheel-btn confirm">確認</button>
+        </div>
       </div>
     </div>
   </div>

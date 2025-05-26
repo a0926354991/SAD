@@ -1,10 +1,9 @@
-import { retroStyle } from './mapStyles.js';
 import { GOOGLE_MAPS_MAP_ID } from './config.js';
-import { initCheckIn, showCheckInButton, hideCheckInButton } from './checkIn.js';
 
 let map;
 let marker;
 let nameLabel;
+let currentStore = null;
 
 // Initialize the map
 async function initMap() {
@@ -94,37 +93,35 @@ let scrollTimeout;
 
 // 點擊手柄切換面板狀態
 ramenListHandle.addEventListener('click', () => {
-  ramenList.classList.toggle('active');
-  if (ramenList.classList.contains('active')) {
-    ramenList.style.transform = 'translateY(0)';
-  } else {
-    ramenList.style.transform = 'translateY(calc(100% - 50px))';
-  }
+    ramenList.classList.toggle('active');
+    if (ramenList.classList.contains('active')) {
+        ramenList.style.transform = 'translateY(0)';
+    } else {
+        ramenList.style.transform = 'translateY(calc(100% - 50px))';
+    }
 });
 
 // 監聽面板滾動
 ramenList.addEventListener('scroll', () => {
-  if (!isScrolling) {
-    isScrolling = true;
-    clearTimeout(scrollTimeout);
-  }
+    if (!isScrolling) {
+        isScrolling = true;
+        clearTimeout(scrollTimeout);
+    }
 
-  const currentScroll = ramenList.scrollTop;
-  const scrollDirection = currentScroll > lastScrollTop ? 'down' : 'up';
+    const currentScroll = ramenList.scrollTop;
+    const scrollDirection = currentScroll > lastScrollTop ? 'down' : 'up';
 
-  // 如果向下滾動，展開面板
-  if (scrollDirection === 'down') {
-    ramenList.classList.add('active');
-    ramenList.style.transform = 'translateY(0)';
-    ramenList.style.maxHeight = '80vh';
-  }
+    if (scrollDirection === 'down') {
+        ramenList.classList.add('active');
+        ramenList.style.transform = 'translateY(0)';
+        ramenList.style.maxHeight = '80vh';
+    }
 
-  lastScrollTop = currentScroll;
+    lastScrollTop = currentScroll;
 
-  // 設置滾動結束的延遲
-  scrollTimeout = setTimeout(() => {
-    isScrolling = false;
-  }, 150);
+    scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+    }, 150);
 });
 
 // 將詳細資訊渲染到右側欄
@@ -155,7 +152,6 @@ function renderStoreInfo(store) {
         </div>
     `;
 
-    // 自動展開底部面板
     ramenList.classList.add('active');
     ramenList.style.transform = 'translateY(0)';
     ramenList.style.maxHeight = 'var(--panel-height)';
@@ -166,7 +162,6 @@ function showDefaultPage() {
     const ramenItems = document.getElementById('ramenItems');
     if (ramenItems) ramenItems.innerHTML = '';
 
-    // 收起底部面板
     ramenList.classList.remove('active');
     ramenList.style.transform = 'translateY(calc(100% - 50px))';
     ramenList.style.maxHeight = 'var(--panel-height)';
@@ -179,8 +174,8 @@ function panMapToSafeBounds(map, position) {
 
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
-    const latPadding = (ne.lat() - sw.lat()) * 0.2; // 上下留 20% 的安全範圍
-    const lngPadding = (ne.lng() - sw.lng()) * 0.2; // 左右留 20% 的安全範圍
+    const latPadding = (ne.lat() - sw.lat()) * 0.2;
+    const lngPadding = (ne.lng() - sw.lng()) * 0.2;
 
     const safeBounds = {
         north: ne.lat() - latPadding,
@@ -193,7 +188,6 @@ function panMapToSafeBounds(map, position) {
         position.lat < safeBounds.south || 
         position.lng > safeBounds.east || 
         position.lng < safeBounds.west) {
-        // 計算新的中心點，讓標記剛好進入安全範圍
         const newCenter = {
             lat: position.lat > safeBounds.north ? safeBounds.north - latPadding * 0.5 :
                  position.lat < safeBounds.south ? safeBounds.south + latPadding * 0.5 :
@@ -206,64 +200,303 @@ function panMapToSafeBounds(map, position) {
     }
 }
 
-// Modal functionality
+// 打卡功能相關的 DOM 元素
 const checkInFab = document.getElementById('checkInFab');
 const checkInModal = document.getElementById('checkInModal');
 const closeModal = document.querySelector('.close-modal');
 const checkInForm = document.getElementById('checkInForm');
+const storeNameElement = document.getElementById('checkInStoreName');
+const storeAddressElement = document.getElementById('checkInStoreAddress');
+const ratingInput = document.getElementById('storeRating');
+const ratingStars = document.querySelectorAll('.rating-input i');
+const photoInput = document.getElementById('checkInPhoto');
+const photoPreview = document.getElementById('photoPreview');
 
-// Open modal
-checkInFab.addEventListener('click', () => {
+// 開啟打卡頁面
+function openCheckInModal(store) {
+    currentStore = store;
+    storeNameElement.textContent = store.name;
+    storeAddressElement.textContent = store.address;
     checkInModal.classList.add('active');
     document.body.classList.add('modal-open');
-});
+}
 
-// Close modal
+// 關閉打卡頁面
 function closeCheckInModal() {
     checkInModal.classList.remove('active');
     document.body.classList.remove('modal-open');
-    checkInForm.reset(); // Reset form
+    checkInForm.reset();
+    photoPreview.innerHTML = '';
+    currentStore = null;
+    ratingStars.forEach(star => star.classList.remove('active'));
 }
 
-closeModal.addEventListener('click', closeCheckInModal);
-
-// Close modal when clicking outside
-checkInModal.addEventListener('click', (e) => {
-    if (e.target === checkInModal) {
-        closeCheckInModal();
-    }
-});
-
-// Handle form submission
-checkInForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+// 處理評分星星點擊
+function handleRatingClick(e) {
+    const rating = parseInt(e.target.dataset.rating);
+    ratingInput.value = rating;
     
-    const formData = {
-        name: document.getElementById('storeName').value,
-        address: document.getElementById('storeAddress').value,
-        rating: document.getElementById('storeRating').value,
-        keywords: document.getElementById('storeKeywords').value.split(',').map(k => k.trim()),
-        open_time: document.getElementById('storeOpenTime').value,
-        menu_image: document.getElementById('storeMenu').files[0]
-    };
+    ratingStars.forEach(star => {
+        const starRating = parseInt(star.dataset.rating);
+        star.classList.toggle('active', starRating <= rating);
+    });
+}
 
-    try {
-        // Here you would typically send the data to your backend
-        console.log('Form submitted:', formData);
-        
-        // For now, just show a success message
-        alert('打卡成功！');
-        closeCheckInModal();
-    } catch (error) {
-        console.error('Error submitting form:', error);
-        alert('提交失敗，請稍後再試');
+// 處理照片預覽
+function handlePhotoPreview(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            photoPreview.innerHTML = `<img src="${e.target.result}" alt="預覽照片">`;
+        };
+        reader.readAsDataURL(file);
     }
-});
+}
+
+// 顯示打卡按鈕
+function showCheckInButton(store) {
+    currentStore = store;
+    checkInFab.classList.add('active');
+}
+
+// 隱藏打卡按鈕
+function hideCheckInButton() {
+    currentStore = null;
+    checkInFab.classList.remove('active');
+}
+
+// 拉麵轉盤功能
+function initWheel() {
+    const wheelFab = document.getElementById('wheelFab');
+    const wheelModal = document.getElementById('wheelModal');
+    const closeWheelModal = document.getElementById('closeWheelModal');
+    const spinButton = document.getElementById('spinButton');
+    const confirmButton = document.getElementById('confirmButton');
+    const canvas = document.getElementById('wheelCanvas');
+    const selectedStoreName = document.getElementById('selectedStoreName');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = 300;
+    canvas.height = 300;
+
+    let ramenStores = [];
+    let currentRotation = 0;
+    let isSpinning = false;
+    let selectedStore = null;
+
+    fetch('/data/ramen.json')
+        .then(response => response.json())
+        .then(data => {
+            ramenStores = data.ramen_stores;
+            drawWheel();
+        })
+        .catch(error => console.error('Error loading ramen data:', error));
+
+    function drawWheel() {
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = Math.min(centerX, centerY) - 10;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const anglePerSlice = (2 * Math.PI) / ramenStores.length;
+        
+        ramenStores.forEach((store, index) => {
+            const startAngle = index * anglePerSlice + currentRotation;
+            const endAngle = (index + 1) * anglePerSlice + currentRotation;
+            
+            ctx.fillStyle = index % 2 === 0 ? '#FF6B6B' : '#4ECDC4';
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(startAngle + anglePerSlice / 2);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Noto Sans JP';
+            ctx.fillText(store.name, radius - 20, 5);
+            ctx.restore();
+        });
+        
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 10, 0, 2 * Math.PI);
+        ctx.fillStyle = '#2C3E50';
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY - radius);
+        ctx.lineTo(centerX - 10, centerY - radius + 20);
+        ctx.lineTo(centerX + 10, centerY - radius + 20);
+        ctx.closePath();
+        ctx.fillStyle = '#2C3E50';
+        ctx.fill();
+    }
+
+    function spinWheel() {
+        if (isSpinning) return;
+        
+        isSpinning = true;
+        spinButton.disabled = true;
+        confirmButton.disabled = true;
+        selectedStoreName.textContent = '轉動中...';
+        
+        const spinAngle = (Math.random() * 5 + 5) * 2 * Math.PI;
+        const duration = 3000;
+        const startTime = performance.now();
+        
+        function animate(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            const easeProgress = 1 - (1 - progress) * (1 - progress);
+            
+            currentRotation = spinAngle * easeProgress;
+            drawWheel();
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                isSpinning = false;
+                spinButton.disabled = false;
+                confirmButton.disabled = false;
+                
+                const anglePerSlice = (2 * Math.PI) / ramenStores.length;
+                const pointerAngle = -Math.PI / 2;
+                let idx = ((pointerAngle - currentRotation) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) / anglePerSlice;
+                const selectedIndex = Math.floor(idx);
+                selectedStore = ramenStores[selectedIndex];
+                selectedStoreName.textContent = selectedStore.name;
+            }
+        }
+        
+        requestAnimationFrame(animate);
+    }
+
+    wheelFab.addEventListener('click', () => {
+        wheelModal.classList.add('active');
+        document.body.classList.add('modal-open');
+        drawWheel();
+    });
+
+    canvas.addEventListener('click', () => {
+        if (!isSpinning) {
+            spinWheel();
+        }
+    });
+
+    closeWheelModal.addEventListener('click', () => {
+        wheelModal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+    });
+
+    spinButton.addEventListener('click', spinWheel);
+
+    confirmButton.addEventListener('click', () => {
+        if (selectedStore) {
+            const position = {
+                lat: selectedStore.coordinates.lat,
+                lng: selectedStore.coordinates.lng
+            };
+            
+            // 計算新的中心點，將標記放在地圖中間偏上的位置
+            const newCenter = {
+                lat: position.lat - 0.001, // 向上偏移約100公尺
+                lng: position.lng
+            };
+            
+            map.panTo(newCenter);
+            map.setZoom(18);
+            
+            // 找到對應的標記並模擬點擊效果
+            const markers = document.querySelectorAll('.marker-content');
+            markers.forEach(markerContent => {
+                const markerImg = markerContent.querySelector('.ramen-marker-img');
+                if (markerImg && markerImg.parentElement.title === selectedStore.name) {
+                    // 移除其他標記的店名
+                    document.querySelectorAll('.marker-store-name').forEach(nameDiv => {
+                        nameDiv.remove();
+                    });
+                    
+                    // 添加店名到選中的標記
+                    const nameDiv = document.createElement("div");
+                    nameDiv.textContent = selectedStore.name;
+                    nameDiv.className = "marker-store-name";
+                    markerContent.appendChild(nameDiv);
+                }
+            });
+            
+            renderStoreInfo(selectedStore);
+            showCheckInButton(selectedStore);
+
+            wheelModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+        }
+    });
+
+    wheelModal.addEventListener('click', (e) => {
+        if (e.target === wheelModal) {
+            wheelModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+        }
+    });
+}
 
 // 初始化所有功能
 function init() {
     initMap();
-    initCheckIn();
+    initWheel();
+
+    // 打卡功能事件監聽
+    checkInFab.addEventListener('click', () => {
+        if (currentStore) {
+            openCheckInModal(currentStore);
+        }
+    });
+
+    closeModal.addEventListener('click', closeCheckInModal);
+
+    checkInModal.addEventListener('click', (e) => {
+        if (e.target === checkInModal) {
+            closeCheckInModal();
+        }
+    });
+
+    ratingStars.forEach(star => {
+        star.addEventListener('click', handleRatingClick);
+    });
+
+    photoInput.addEventListener('change', handlePhotoPreview);
+
+    checkInForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!currentStore) {
+            alert('請先選擇一家拉麵店');
+            return;
+        }
+
+        const formData = {
+            store_id: currentStore.id,
+            rating: ratingInput.value,
+            comment: document.getElementById('storeComment').value,
+            photo: photoInput.files[0]
+        };
+
+        try {
+            console.log('Form submitted:', formData);
+            alert('打卡成功！');
+            closeCheckInModal();
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            alert('提交失敗，請稍後再試');
+        }
+    });
 }
 
 init();

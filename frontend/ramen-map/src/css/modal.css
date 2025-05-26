@@ -210,3 +210,134 @@ body.modal-open .container {
 .submit-btn:hover {
   background-color: #ff5252;
 } 
+
+/* 拉麵轉盤按鈕樣式 */
+.wheel-fab {
+  top: 170px;
+  left: 0;
+  right: auto;
+  bottom: auto;
+  background-color: #F1C40F;
+  width: 50px;
+  height: 50px;
+  font-size: 20px;
+  display: flex !important;
+  opacity: 1;
+  visibility: visible;
+  cursor: pointer;
+  position: fixed;
+  z-index: 1000;
+  border-radius: 0 25px 25px 0;
+  box-shadow: var(--shadow);
+  color: white;
+}
+
+.wheel-fab:hover {
+  background-color: #F1C40F;
+}
+
+/* 拉麵轉盤模態框樣式 */
+.wheel-modal-content {
+  max-width: 500px;
+  padding: 20px;
+  background-color: var(--background-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.wheel-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+#wheelCanvas {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  background-color: white;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+#wheelCanvas:hover {
+  transform: scale(1.02);
+}
+
+.wheel-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.wheel-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: var(--secondary-color);
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.wheel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.wheel-btn.confirm {
+  background-color: var(--primary-color);
+}
+
+.wheel-btn.confirm:hover {
+  background-color: #c13a3a;
+}
+
+/* 更新模態框標題樣式 */
+.wheel-modal-content .modal-header {
+  border-bottom: 2px solid var(--pattern-color);
+}
+
+.wheel-modal-content .modal-header h2 {
+  color: var(--text-color);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.wheel-modal-content .close-modal {
+  color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+.wheel-modal-content .close-modal:hover {
+  color: var(--primary-color);
+  transform: rotate(90deg);
+}
+
+.selected-store {
+  text-align: center;
+  padding: 15px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin: 10px 0;
+  min-width: 200px;
+}
+
+.selected-store h3 {
+  color: var(--text-color);
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+.selected-store p {
+  color: var(--primary-color);
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+} 
