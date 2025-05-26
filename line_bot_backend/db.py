@@ -30,3 +30,12 @@ def add_ramen_store(store_id, name, location):
         "name": name,
         "location": location
     })
+
+def get_all_ramen_shops():
+    docs = db.collection("ramen_shops").stream()
+    result = []
+    for doc in docs:
+        shop = doc.to_dict()
+        shop["id"] = doc.id
+        result.append(shop)
+    return result
