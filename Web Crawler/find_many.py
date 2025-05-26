@@ -9,7 +9,7 @@ import pandas as pd
 
 # Excel 路徑
 excel_path = r"C:\Users\User\Desktop\SAD\Web Crawler\Start research.xlsx"
-df = pd.read_excel(excel_path, sheet_name="工作表1")
+df = pd.read_excel(excel_path, sheet_name="add")
 
 # 輸出資料夾
 json_dir = "Web Crawler/ramin/json"
