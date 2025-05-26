@@ -161,7 +161,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                     },
                     {
                     "type": "text",
-                    "text": "\n選擇想吃的拉麵口味，為你推薦附近的拉麵店家",
+                    "text": "選擇想吃的拉麵口味，為你推薦附近的拉麵店家",
                     "size": "sm",
                     "color": "#888888",
                     "margin": "none",
@@ -228,8 +228,8 @@ async def reply_ramen_carousel(reply_token, ramen_list):
             "title": ramen["name"][:40],
             "text": f"評價：{ramen['rating']}，距離：{ramen['distance']} 公尺",
             "actions": [
-                {"type": "uri", "label": "📍 地圖導航", "uri": ramen["map_url"]},
-                {"type": "message", "label": "📞 撥打電話", "text": f"撥打：{ramen['phone']}"}
+                {"type": "uri", "label": "🗺️ 地圖導航", "uri": ramen["map_url"]},
+                {"type": "message", "label": "📸 打卡上傳", "text": "打卡上傳"}
             ]
         })
 
@@ -286,14 +286,14 @@ async def get_user_profile(user_id: str):
             else:
                 return None
 
-# @app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],  # 或改成你的前端網址
-#     allow_methods=["*"],
-#     allow_headers=["*"]
-# )
-            
+@app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 或改成你的前端網址
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
-# @app.get("/shops")
-# def read_all_ramen_shops():
-#     return get_all_ramen_shops()
+
+@app.get("/shops")
+def read_all_ramen_shops():
+    return get_all_ramen_shops()
