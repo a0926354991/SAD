@@ -144,79 +144,55 @@ async def reply_ramen_flavor_flex_menu(reply_token):
             "contents": {
                 "type": "bubble",
                 "body": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "md",
-                "contents": [
-                    {
-                    "type": "text",
-                    "text": "今天想吃哪種拉麵？",
-                    "weight": "bold",
-                    "size": "lg",
-                    "wrap": True
-                    },
-                    {
-                    "type": "spacer",
-                    "size": "md"
-                    },
-                    {
-                    "type": "text",
-                    "text": "選擇想吃的拉麵口味，為你推薦附近的拉麵店家",
-                    "size": "sm",
-                    "color": "#888888",
-                    "margin": "none",
-                    "wrap": True
-                    },
-                    {
-                    "type": "button",
-                    "action": { "type": "message", "label": "🍜 豚骨", "text": "今天想吃的拉麵口味：豚骨"},
-                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
-                    },
-                    {
-                    "type": "button",
-                    "action": { "type": "message", "label": "🍜 醬油", "text": "今天想吃的拉麵口味：醬油"},
-                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
-                    },
-                    {
-                    "type": "button",
-                    "action": { "type": "message", "label": "🍜 味噌", "text": "今天想吃的拉麵口味：味噌"},
-                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
-                    },
-                    {
-                    "type": "button",
-                    "action": { "type": "message", "label": "🍜 鹽味", "text": "今天想吃的拉麵口味：鹽味"},
-                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
-                    },
-                    {
-                    "type": "button",
-                    "action": { "type": "message", "label": "🍜 辣味", "text": "今天想吃的拉麵口味：辣味"},
-                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
-                    },
-                    {
-                    "type": "button",
-                    "action": { "type": "message", "label": "🍜 海鮮", "text": "今天想吃的拉麵口味：海鮮"},
-                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
-                    },
-                    {
-                    "type": "button",
-                    "action": { "type": "message", "label": "🍜 雞白湯", "text": "今天想吃的拉麵口味：雞白湯"},
-                    "style": "secondary", "height": "sm", "margin": "sm", "color": "#f0f0f0"
-                    }
-                ]
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "md",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": "今天想吃哪種拉麵？",
+                            "weight": "bold",
+                            "size": "lg",
+                            "wrap": True
+                        },
+                        {
+                            "type": "text",
+                            "text": "選擇想吃的拉麵口味，我們為你推薦附近的拉麵店家",
+                            "size": "sm",
+                            "color": "#888888",
+                            "wrap": True
+                        },
+                        *[
+                            {
+                                "type": "button",
+                                "action": { "type": "message", "label": f"🍜 {flavor}", "text": f"今天想吃的拉麵口味：{flavor}"},
+                                "style": "secondary",
+                                "height": "sm",
+                                "margin": "sm",
+                                "color": "#f0f0f0"
+                            }
+                            for flavor in ["豚骨", "醬油", "味噌", "鹽味", "辣味", "海鮮", "雞白湯"]
+                        ]
+                    ]
                 },
                 "styles": {
-                    "body": { "backgroundColor": "#ffffff"}
+                    "body": { "backgroundColor": "#ffffff" }
                 }
             }
-            }]
+        }]
     }
+
     url = "https://api.line.me/v2/bot/message/reply"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
         "Content-Type": "application/json"
     }
+
     async with aiohttp.ClientSession() as session:
-        await session.post(url, json=body, headers=headers)
+        async with session.post(url, json=body, headers=headers) as resp:
+            print("flex response status:", resp.status)
+            print("response text:", await resp.text())
+
 
 
 ## 多頁訊息：回傳推薦拉麵店
