@@ -15,7 +15,10 @@ app = FastAPI()
 ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 RECOMMEND_KEYWORDS = ["推薦", "推薦拉麵", "拉麵推薦"]
-FLAVORS = ["豚骨", "醬油", "味噌", "鹽味", "雞白湯", "海鮮", "辣味"]
+UPLOAD_KEYWORDS = ["打卡","打卡上傳", "照片上傳"]
+ANALYSIS_KEYWORDS = ["分析", "統整", "統整分析", "拉麵 dump", "拉麵 Dump", "拉麵dump", "拉麵Dump", "dump", "Dump"]
+FEEDBACK_KEYWORDS = ["意見回饋", "回饋"]
+FLAVORS = ["豚骨", "醬油", "味噌", "鹽味", "辣味", "雞白湯", "海老", "魚介"]
 
 # 儲存使用者位置（之後要改用 Firestore，現在先這樣）
 user_locations = {}
@@ -46,8 +49,20 @@ async def webhook(req: Request):
             if msg_type == "text":
                 msg = event["message"]["text"]
 
-                # 推薦
-                if any(keyword in msg for keyword in RECOMMEND_KEYWORDS):
+                # 打卡上傳
+                if any(keyword in msg for keyword in UPLOAD_KEYWORDS):
+                    await reply_message(reply_token, "【 打卡上傳 】\n功能實作中，敬請期待更多功能✨")
+                
+                # 統整分析
+                elif any(keyword in msg for keyword in ANALYSIS_KEYWORDS):
+                    await reply_message(reply_token, "【 統整分析 】\n功能實作中，敬請期待更多功能✨")
+                
+                # 意見回饋
+                elif any(keyword in msg for keyword in FEEDBACK_KEYWORDS):
+                    await reply_message(reply_token, "【 意見回饋 】\n功能實作中，敬請期待更多功能✨")
+                
+                # 拉麵推薦
+                elif any(keyword in msg for keyword in RECOMMEND_KEYWORDS):
                     await reply_recommend(reply_token, user_id)
 
                 # 使用者選擇口味
@@ -59,9 +74,9 @@ async def webhook(req: Request):
                             ramen_list = await search_ramen_nearby(latlng["lat"], latlng["lng"], flavor)
                             await reply_ramen_carousel(reply_token, ramen_list)
                         else:
-                            await reply_message(reply_token, "請先按左下角的加號➕，分享你的位置資訊喔📍")
+                            await reply_message(reply_token, "【 拉麵推薦 】\n請先按左下角的加號➕，分享你的位置資訊喔📍")
                     else:
-                        await reply_message(reply_token, "請選擇正確的拉麵口味⚠️")
+                        await reply_message(reply_token, "【 拉麵推薦 】\n請選擇正確的拉麵口味⚠️")
 
                 # 隨機回覆拉麵文案
                 else:
@@ -104,7 +119,7 @@ async def reply_recommend(reply_token, user_id):
     if latlng:
         await reply_ramen_flavor_flex_menu(reply_token)
     else:
-        await reply_message(reply_token, "請按左下角的加號➕，分享你的位置資訊，我會幫你推薦附近的拉麵！")
+        await reply_message(reply_token, "【 拉麵推薦 】\n請按左下角的加號➕，分享你的位置資訊，我會幫你推薦附近的拉麵！")
 
 ## 選單訊息：拉麵口味選單
 async def reply_ramen_flavor_quick_reply(reply_token):
@@ -168,7 +183,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                                 "action": { "type": "message", "label": f"🍜 {flavor}", "text": f"今天想吃的拉麵口味：{flavor}"},
                                 "style": "secondary",
                                 "height": "sm",
-                                "margin": "sm",
+                                "margin": "md",
                                 "color": "#f0f0f0"
                             }
                             for flavor in ["豚骨", "醬油", "味噌", "鹽味", "辣味", "海鮮", "雞白湯"]
@@ -192,7 +207,6 @@ async def reply_ramen_flavor_flex_menu(reply_token):
         async with session.post(url, json=body, headers=headers) as resp:
             print("flex response status:", resp.status)
             print("response text:", await resp.text())
-
 
 
 ## 多頁訊息：回傳推薦拉麵店
@@ -228,6 +242,7 @@ async def reply_ramen_carousel(reply_token, ramen_list):
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
 
+
 # 假資料：搜尋附近的拉麵（你可以換成 Firebase 查詢）
 async def search_ramen_nearby(lat, lng, flavor):
     return [
@@ -248,6 +263,7 @@ async def search_ramen_nearby(lat, lng, flavor):
             "phone": "02-2345-6789"
         }
     ]
+
 
 async def get_user_profile(user_id: str):
     url = f"https://api.line.me/v2/bot/profile/{user_id}"
