@@ -272,4 +272,5 @@ async def get_user_profile(user_id: str):
 
 @app.get("/shops")
 def read_all_ramen_shops():
-    return get_all_ramen_shops()
+    shops = get_all_ramen_shops()
+    return {"ramen_stores": shops}
