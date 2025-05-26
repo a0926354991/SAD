@@ -262,14 +262,14 @@ async def get_user_profile(user_id: str):
             else:
                 return None
 
-@app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # 或改成你的前端網址
-    allow_methods=["*"],
-    allow_headers=["*"]
-)
+# @app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # 或改成你的前端網址
+#     allow_methods=["*"],
+#     allow_headers=["*"]
+# )
 
 
-@app.get("/shops")
-def read_all_ramen_shops():
-    return get_all_ramen_shops()
+# @app.get("/shops")
+# def read_all_ramen_shops():
+#     return get_all_ramen_shops()
