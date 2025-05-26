@@ -286,83 +286,14 @@ async def get_user_profile(user_id: str):
             else:
                 return None
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # 或改成你的前端網址
-    allow_methods=["*"],
-    allow_headers=["*"]
-)
+# @app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # 或改成你的前端網址
+#     allow_methods=["*"],
+#     allow_headers=["*"]
+# )
             
 
-@app.get("/shops")
-def read_all_ramen_shops():
-    return get_all_ramen_shops()
-
-
-'''
-@app.post("/webhook")
-async def webhook(req: Request):
-    body = await req.json()
-    print("📨 收到 LINE 傳來的內容：", body)
-    events = body.get("events", [])
-
-    for event in events:
-        if event["type"] == "message":
-            user_id = event["source"]["userId"]
-            # msg = event["message"]["text"]
-            msg_type = event["message"]["type"]
-
-            # ⬇️ 取得使用者名稱
-            profile = await get_user_profile(user_id)
-            display_name = profile["displayName"] if profile else "Unknown"
-
-            # ⬇️ 儲存至 Firebase
-            add_user(user_id, display_name)
-
-            # 回應
-            reply_token = event["replyToken"]
-            await reply_message(reply_token, f"{display_name} 你說了：{msg}")
-
-            # 隨機回應一句拉麵文案
-            # responses = [
-            #     "我目前的狀態：\n〇 曖昧\n〇 單身\n〇 穩定交往中\n● 拉 King 麵，請別佔有我，我沒交往你",
-            #     "「我喜歡你」這句話，太輕浮。\n「我愛你」這句話，太沈重。\n「要不要一起吃拉麵」這句話，剛剛好。",
-            #     "這是拿著拉麵的兔子，路過可以幫牠加叉燒\n (\_/)\n( ･ - ･) \n/>🍜>"
-            # ]
-            # reply_token = event["replyToken"]
-            # random_reply = random.choice(responses)
-            # await reply_message(reply_token, random_reply)
-
-    return {"status": "ok"}
-
-async def reply_ramen_flavor_menu(reply_token):
-    body = {
-        "replyToken": reply_token,
-        "messages": [{
-            "type": "template",
-            "altText": "選擇拉麵口味",
-            "template": {
-                "type": "buttons",
-                "title": "想吃哪一種口味的拉麵？",
-                "text": "請選擇口味",
-                "actions": [
-                    {"type": "message", "label": "🍜 豚骨", "text": "口味：豚骨"},
-                    {"type": "message", "label": "🍜 醬油", "text": "口味：醬油"},
-                    {"type": "message", "label": "🍜 味噌", "text": "口味：味噌"},
-                    {"type": "message", "label": "🍜 鹽味", "text": "口味：鹽味"},
-                    # {"type": "message", "label": "🍜 辣味", "text": "口味：辣味"},
-                    # {"type": "message", "label": "🍜 海鮮", "text": "口味：海鮮"},
-                    # {"type": "message", "label": "🍜 雞白湯", "text": "口味：雞白湯"},
-                    # {"type": "message", "label": "📖 更多選項", "text": "口味選項頁 2"}
-                ]
-            }
-        }]
-    }
-    url = "https://api.line.me/v2/bot/message/reply"
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    async with aiohttp.ClientSession() as session:
-        await session.post(url, json=body, headers=headers)
-'''
+# @app.get("/shops")
+# def read_all_ramen_shops():
+#     return get_all_ramen_shops()
