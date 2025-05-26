@@ -48,23 +48,23 @@ async def webhook(req: Request):
                     await reply_ask_location(reply_token)
 
                 # 使用者選擇口味
-                elif msg.startswith("口味："):
-                    flavor = msg.replace("口味：", "")
+                elif msg.startswith("今天想吃的拉麵口味："):
+                    flavor = msg.replace("今天想吃的拉麵口味：", "")
                     if flavor in FLAVORS:
                         latlng = user_locations.get(user_id)
                         if latlng:
                             ramen_list = await search_ramen_nearby(latlng["lat"], latlng["lng"], flavor)
                             await reply_ramen_carousel(reply_token, ramen_list)
                         else:
-                            await reply_message(reply_token, "請先分享你的位置資訊喔 📍")
+                            await reply_message(reply_token, "請先分享你的位置資訊喔📍")
                     else:
-                        await reply_message(reply_token, "請選擇正確的拉麵口味 🍜")
+                        await reply_message(reply_token, "請選擇正確的拉麵口味⚠️")
 
                 # 隨機回覆拉麵文案
                 else:
                     # await reply_message(reply_token, f"{display_name} 你說了：{msg}")
                     responses = [
-                        "我目前的狀態：\n〇 曖昧\n〇 單身\n〇 穩定交往中\n● 拉 King 麵，請別佔有我，我沒交往你",
+                        "我目前的狀態：\n〇 曖昧\n〇 單身\n〇 穩定交往中\n● 拉 King 麵，我沒交往你，請別佔有我",
                         "「我喜歡你」這句話，太輕浮。\n「我愛你」這句話，太沈重。\n「要不要一起吃拉麵」這句話，剛剛好。",
                         "這是拿著拉麵的兔子，路過可以幫牠加叉燒\n (\_/)\n( ･ - ･) \n/>🍜>"
                     ]
@@ -77,7 +77,7 @@ async def webhook(req: Request):
                 latitude = event["message"]["latitude"]
                 longitude = event["message"]["longitude"]
                 user_locations[user_id] = {"lat": latitude, "lng": longitude}
-                await reply_ramen_flavor_menu(reply_token)
+                await reply_ramen_flavor_flex_menu(reply_token)
 
     return {"status": "ok"}
 
@@ -97,7 +97,7 @@ async def reply_message(reply_token, text):
 
 ## 文字訊息：請求回傳位置資訊
 async def reply_ask_location(reply_token):
-    await reply_message(reply_token, "請按左下角的加號➕，傳送你的位置資訊，我會幫你推薦附近的拉麵 🍜")
+    await reply_message(reply_token, "請按左下角的加號➕，傳送你的位置資訊，我會幫你推薦附近的拉麵！")
 
 ## 選單訊息：拉麵口味選單
 async def reply_ramen_flavor_menu(reply_token):
@@ -110,19 +110,58 @@ async def reply_ramen_flavor_menu(reply_token):
         "replyToken": reply_token,
         "messages": [{
             "type": "text",
-            "text": "請選擇想吃的拉麵口味 🍜",
+            "text": "請選擇想吃的拉麵口味🍜",
             "quickReply": {
                 "items": [
-                    {"type": "action", "action": {"type": "message", "label": "豚骨", "text": "口味：豚骨"}},
-                    {"type": "action", "action": {"type": "message", "label": "醬油", "text": "口味：醬油"}},
-                    {"type": "action", "action": {"type": "message", "label": "味噌", "text": "口味：味噌"}},
-                    {"type": "action", "action": {"type": "message", "label": "鹽味", "text": "口味：鹽味"}},
-                    {"type": "action", "action": {"type": "message", "label": "辣味", "text": "口味：辣味"}},
-                    {"type": "action", "action": {"type": "message", "label": "海鮮", "text": "口味：海鮮"}},
-                    {"type": "action", "action": {"type": "message", "label": "雞白湯", "text": "口味：雞白湯"}},
+                    {"type": "action", "action": {"type": "message", "label": "豚骨", "text": "今天想吃的拉麵口味：豚骨"}},
+                    {"type": "action", "action": {"type": "message", "label": "醬油", "text": "今天想吃的拉麵口味：醬油"}},
+                    {"type": "action", "action": {"type": "message", "label": "味噌", "text": "今天想吃的拉麵口味：味噌"}},
+                    {"type": "action", "action": {"type": "message", "label": "鹽味", "text": "今天想吃的拉麵口味：鹽味"}},
+                    {"type": "action", "action": {"type": "message", "label": "辣味", "text": "今天想吃的拉麵口味：辣味"}},
+                    {"type": "action", "action": {"type": "message", "label": "海鮮", "text": "今天想吃的拉麵口味：海鮮"}},
+                    {"type": "action", "action": {"type": "message", "label": "雞白湯", "text": "今天想吃的拉麵口味：雞白湯"}},
                 ]
             }
         }]
+    }
+    async with aiohttp.ClientSession() as session:
+        await session.post(url, json=body, headers=headers)
+
+## 選單訊息：拉麵口味選單（flex menu）
+async def reply_ramen_flavor_flex_menu(reply_token):
+    body = {
+        "replyToken": reply_token,
+        "messages": [{
+            "type": "flex",
+            "altText": "請選擇拉麵口味",
+            "contents": {
+                "type": "bubble",
+                "header": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [{"type": "text", "text": "想吃哪一種拉麵？", "weight": "bold", "size": "lg"}]
+                },
+                "body": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "md",
+                    "contents": [
+                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 豚骨", "text": "口味：豚骨"}},
+                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 醬油", "text": "口味：醬油"}},
+                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 味噌", "text": "口味：味噌"}},
+                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 鹽味", "text": "口味：鹽味"}},
+                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 雞白湯", "text": "口味：雞白湯"}},
+                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 海鮮", "text": "口味：海鮮"}},
+                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "🍜 辣味", "text": "口味：辣味"}}
+                    ]
+                }
+            }
+        }]
+    }
+    url = "https://api.line.me/v2/bot/message/reply"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
     }
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
@@ -138,7 +177,7 @@ async def reply_ramen_carousel(reply_token, ramen_list):
             "text": f"評價：{ramen['rating']}，距離：{ramen['distance']} 公尺",
             "actions": [
                 {"type": "uri", "label": "📍 地圖導航", "uri": ramen["map_url"]},
-                {"type": "message", "label": "📞 打電話", "text": f"撥打：{ramen['phone']}"}
+                {"type": "message", "label": "📞 撥打電話", "text": f"撥打：{ramen['phone']}"}
             ]
         })
 
@@ -247,9 +286,9 @@ async def reply_ramen_flavor_menu(reply_token):
                     {"type": "message", "label": "🍜 醬油", "text": "口味：醬油"},
                     {"type": "message", "label": "🍜 味噌", "text": "口味：味噌"},
                     {"type": "message", "label": "🍜 鹽味", "text": "口味：鹽味"},
-                    {"type": "message", "label": "🍜 辣味", "text": "口味：辣味"},
-                    {"type": "message", "label": "🍜 海鮮", "text": "口味：海鮮"},
-                    {"type": "message", "label": "🍜 雞白湯", "text": "口味：雞白湯"},
+                    # {"type": "message", "label": "🍜 辣味", "text": "口味：辣味"},
+                    # {"type": "message", "label": "🍜 海鮮", "text": "口味：海鮮"},
+                    # {"type": "message", "label": "🍜 雞白湯", "text": "口味：雞白湯"},
                     # {"type": "message", "label": "📖 更多選項", "text": "口味選項頁 2"}
                 ]
             }
