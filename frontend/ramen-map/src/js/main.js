@@ -32,8 +32,8 @@ async function initMap() {
         .then(data => {
             data.ramen_stores.forEach(store => {
                 const position = {
-                    lat: store.coordinates.lat,
-                    lng: store.coordinates.lng
+                    lat: store.coordinates.latitude,
+                    lng: store.coordinates.longitude
                 };
 
                 // marker 內容只放圖片
