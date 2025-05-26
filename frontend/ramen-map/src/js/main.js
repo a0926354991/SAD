@@ -155,7 +155,7 @@ async function initMap() {
 
                 // 圖片
                 const ramenImg = document.createElement("img");
-                ramenImg.src = "images/ramen-marker.png";
+                ramenImg.src = "./src/assets/images/ramen-marker.png";
                 ramenImg.className = "ramen-marker-img";
 
                 markerContent.appendChild(ramenImg);
