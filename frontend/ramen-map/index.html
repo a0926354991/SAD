@@ -6,6 +6,7 @@
   <title>拉麵地圖 | Ramen Map</title>
   <link rel="stylesheet" href="src/css/style.css" />
   <link rel="stylesheet" href="src/css/info-window.css" />
+  <link rel="stylesheet" href="src/css/modal.css" />
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <!-- Add Google Maps API -->
@@ -28,10 +29,6 @@
           <i class="fas fa-search"></i>
         </div>
         <input type="text" id="searchInput" placeholder="搜尋拉麵店... | Search ramen shops...">
-        <button onclick="searchRamenShops()">
-          <i class="fas fa-search"></i>
-          搜尋 | Search
-        </button>
       </div>
     </header>
     
@@ -42,16 +39,91 @@
         <div class="map-decoration bottom-left"></div>
         <div class="map-decoration bottom-right"></div>
       </div>
-      <div id="ramenList" class="ramen-list">
-        <div class="ramen-default-page">
-          <img src="/images/ramen-default-search.png" alt="拉麵圖示" class="ramen-info-img" />
-          <div class="ramen-default-tip">點擊拉麵圖示以查看拉麵店資訊</div>
-        </div>
-        <div id="ramenItems"></div>
+    </div>
+
+    <!-- 底部滑出式面板 -->
+    <div id="ramenList" class="ramen-list">
+      <div class="ramen-list-handle">
+        <i class="fas fa-chevron-up"></i>
+        <div class="handle-tip">點擊🍜查看拉麵店資訊</div>
       </div>
+      <div id="ramenItems"></div>
     </div>
     <div class="japanese-pattern bottom"></div>
   </div>
+
+  <!-- 浮動打卡按鈕 -->
+  <button id="checkInFab" class="fab">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  <!-- 拉麵轉盤按鈕 -->
+  <button id="wheelFab" class="fab wheel-fab">
+    <i class="fas fa-dharmachakra"></i>
+  </button>
+
+  <!-- 打卡模態框 -->
+  <div id="checkInModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>CHECK IN</h2>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="store-info">
+          <h3 id="checkInStoreName"></h3>
+          <p id="checkInStoreAddress"></p>
+        </div>
+        <form id="checkInForm">
+          <div class="form-group">
+            <label for="storeRating">評分</label>
+            <div class="rating-input">
+              <i class="fas fa-star" data-rating="1"></i>
+              <i class="fas fa-star" data-rating="2"></i>
+              <i class="fas fa-star" data-rating="3"></i>
+              <i class="fas fa-star" data-rating="4"></i>
+              <i class="fas fa-star" data-rating="5"></i>
+            </div>
+            <input type="hidden" id="storeRating" required>
+          </div>
+          <div class="form-group">
+            <label for="storeComment">評論</label>
+            <textarea id="storeComment" rows="4" placeholder="分享你的用餐體驗..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="checkInPhoto">打卡照片</label>
+            <input type="file" id="checkInPhoto" accept="image/*" required>
+            <div id="photoPreview" class="photo-preview"></div>
+          </div>
+          <button type="submit" class="submit-btn">打卡</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 拉麵轉盤模態框 -->
+  <div id="wheelModal" class="modal">
+    <div class="modal-content wheel-modal-content">
+      <div class="modal-header">
+        <h2>拉麵轉盤</h2>
+        <button class="close-modal" id="closeWheelModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="wheel-container">
+        <canvas id="wheelCanvas"></canvas>
+        <div class="selected-store">
+            <h3>選中的店家</h3>
+            <p id="selectedStoreName">尚未選擇</p>
+        </div>
+        <div class="wheel-buttons">
+            <button id="spinButton" class="wheel-btn">再轉一次</button>
+            <button id="confirmButton" class="wheel-btn confirm">確認</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="src/js/main.js"></script>
 </body>
 </html>

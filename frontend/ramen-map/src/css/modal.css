@@ -1,0 +1,343 @@
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  transition: transform 0.2s, background-color 0.2s;
+  z-index: 1000;
+  display: none !important; /* 使用 !important 確保預設隱藏 */
+  opacity: 0;
+  visibility: hidden;
+}
+
+.fab.active {
+  display: flex !important;
+  opacity: 1;
+  visibility: visible;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  background-color: #ff5252;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+/* 當 modal 開啟時，禁用背景內容 */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+body.modal-open .container {
+  pointer-events: none;
+  filter: blur(2px);
+  transition: filter 0.3s ease;
+}
+
+.modal-content {
+  background-color: white;
+  margin: auto;
+  padding: 16px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  transform: translateY(-20px);
+  transition: transform 0.3s ease;
+  pointer-events: auto;
+}
+
+.modal.active .modal-content {
+  transform: translateY(0);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  line-height: 1;
+}
+
+.close-modal:hover {
+  color: #333;
+}
+
+.store-info {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.store-info h3 {
+  margin: 0 0 4px 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.store-info p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.rating-input {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.rating-input i {
+  font-size: 20px;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.rating-input i.active {
+  color: #ffd700;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.1);
+}
+
+.photo-preview {
+  margin-top: 8px;
+  max-width: 100%;
+  height: 160px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.photo-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.submit-btn {
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.submit-btn:hover {
+  background-color: #ff5252;
+} 
+
+/* 拉麵轉盤按鈕樣式 */
+.wheel-fab {
+  top: 170px;
+  left: 0;
+  right: auto;
+  bottom: auto;
+  background-color: #F1C40F;
+  width: 50px;
+  height: 50px;
+  font-size: 20px;
+  display: flex !important;
+  opacity: 1;
+  visibility: visible;
+  cursor: pointer;
+  position: fixed;
+  z-index: 1000;
+  border-radius: 0 25px 25px 0;
+  box-shadow: var(--shadow);
+  color: white;
+}
+
+.wheel-fab:hover {
+  background-color: #F1C40F;
+}
+
+/* 拉麵轉盤模態框樣式 */
+.wheel-modal-content {
+  max-width: 500px;
+  padding: 20px;
+  background-color: var(--background-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.wheel-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+#wheelCanvas {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  background-color: white;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+#wheelCanvas:hover {
+  transform: scale(1.02);
+}
+
+.wheel-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.wheel-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: var(--secondary-color);
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.wheel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.wheel-btn.confirm {
+  background-color: var(--primary-color);
+}
+
+.wheel-btn.confirm:hover {
+  background-color: #c13a3a;
+}
+
+/* 更新模態框標題樣式 */
+.wheel-modal-content .modal-header {
+  border-bottom: 2px solid var(--pattern-color);
+}
+
+.wheel-modal-content .modal-header h2 {
+  color: var(--text-color);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.wheel-modal-content .close-modal {
+  color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+.wheel-modal-content .close-modal:hover {
+  color: var(--primary-color);
+  transform: rotate(90deg);
+}
+
+.selected-store {
+  text-align: center;
+  padding: 15px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin: 10px 0;
+  min-width: 200px;
+}
+
+.selected-store h3 {
+  color: var(--text-color);
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+.selected-store p {
+  color: var(--primary-color);
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+} 
