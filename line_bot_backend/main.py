@@ -90,6 +90,7 @@ async def webhook(req: Request):
                         is_valid, latlng = await is_location_valid(user_id)
                         if is_valid:
                             ramen_list = search_ramen_nearby(latlng.latitude, latlng.longitude, flavor)
+                            print("ramen_list：", ramen_list)
                             await reply_ramen_carousel(reply_token, ramen_list)
                         else:
                             await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
