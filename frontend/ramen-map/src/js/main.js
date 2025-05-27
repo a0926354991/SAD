@@ -289,11 +289,6 @@ async function initMap() {
                     renderStoreInfo(store);
                     panMapToSafeBounds(map, position);
                     showCheckInButton(store);
-
-                    // // 這一行就是自動加 store_id 到網址
-                    // const url = new URL(window.location);
-                    // url.searchParams.set('store_id', store.id);
-                    // window.history.replaceState({}, '', url);
                 });
 
                 // 點擊地圖其他地方時隱藏店名和打卡按鈕

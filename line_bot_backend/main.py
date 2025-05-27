@@ -124,7 +124,7 @@ async def webhook(req: Request):
 
                             # 傳一個訊息給使用者
                             reply_text = f"🎲 沒辦法抉擇要吃哪一家嗎？[點這裡進入轉盤]({roulette_url})"
-                            await reply_message(reply_token, reply_text)
+                            await push_message(user_id, reply_text)
                         else:
                             await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
                     else:
@@ -151,6 +151,22 @@ async def webhook(req: Request):
                 await reply_ramen_flavor_flex_menu(reply_token)
 
     return {"status": "ok"}
+
+async def push_message(user_id, text):
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    body = {
+        "to": user_id,
+        "messages": [{
+            "type": "text",
+            "text": text
+        }]
+    }
+    async with aiohttp.ClientSession() as session:
+        await session.post(url, json=body, headers=headers)
 
 
 #### Handle logic
