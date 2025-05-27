@@ -224,7 +224,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                     "spacing": "md",
                     "borderWidth": "2px",
                     "borderColor": "#FFE175",  # 你可以調整顏色
-                    # "cornerRadius": "10px",    # 加一點圓角更好看（可選）
+                    "cornerRadius": "10px",    # 加一點圓角更好看（可選）
                     "contents": [
                         {
                             "type": "text",
@@ -282,18 +282,13 @@ async def reply_ramen_carousel(reply_token, ramen_list):
         else:
             dist_str = f"{dist:.2f} 公里"
         columns.append({
-            "thumbnailImageUrl": ramen["image_url"],
+            "thumbnailImageUrl": ramen["picture_image"],
             "title": ramen["name"][:40],
-            "text": f"評價：{ramen['rating']}，距離：{dist_str}",
+            "text": f"評價：{f'{ramen['rating']}⭐️' if ramen['rating'] is not None else '尚未有評分'}\n距離：{dist_str}",
             "actions": [
-                # 原本的
-                # {"type": "uri", "label": "🗺️ 地圖導航", "uri": ramen["map_url"]},
-
-                # 新加的
                 {
                     "type": "uri",
                     "label": "🗺️ 地圖導航",
-                    # 在這裡組合 map_url，假設 id 已有
                     "uri": f"https://frontend-7ivv.onrender.com/ramen-map/?store_id={ramen['id']}"
                 },
                 {"type": "message", "label": "📸 打卡上傳", "text": "打卡上傳"}
