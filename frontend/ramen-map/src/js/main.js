@@ -197,7 +197,7 @@ function handleUrlParameters() {
     if (storeId && typeof selectStore === "function") {
         storeEvents.on('storesLoaded', (stores) => {
             // 先嘗試用 id 比對
-            let store = stores.find(s => s.id === storeId);
+            let store = stores.find(s => String(s.id) === String(storeId));
             
             // 如果找不到，再嘗試用 name 比對
             if (!store) {
