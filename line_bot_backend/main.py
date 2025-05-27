@@ -35,7 +35,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# 拿取所有拉麵店
+# 拿取拉麵店
 @app.get("/all_shops")
 def read_all_ramen_shops():
     shops = get_all_ramen_shops()

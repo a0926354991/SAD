@@ -8,6 +8,34 @@ let wheelStores = []; // 新增：儲存轉盤中的商店
 let allStores = []; // 新增：儲存所有拉麵店資料
 let allMarkers = []; // 新增：儲存所有標記
 
+// 新增：登入相關變數
+let currentUser = null;
+
+// 新增：檢查登入狀態
+function checkLoginStatus() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get("username");
+    if (username) {
+        currentUser = username;
+        updateLoginUI();
+    }
+}
+
+// 新增：更新登入UI
+function updateLoginUI() {
+    const loginButton = document.getElementById('loginButton');
+    const userInfo = document.getElementById('userInfo');
+    
+    if (currentUser) {
+        loginButton.style.display = 'none';
+        userInfo.style.display = 'flex';
+        userInfo.querySelector('.username').textContent = currentUser;
+    } else {
+        loginButton.style.display = 'flex';
+        userInfo.style.display = 'none';
+    }
+}
+
 // 新增：顯示提示訊息
 function showToast(message) {
     const toastContainer = document.getElementById('toastContainer');
@@ -383,6 +411,15 @@ function hideCheckInButton() {
     addToWheelFab.classList.remove('active');
 }
 
+// 新增：檢查是否可以打卡
+function canCheckIn() {
+    if (!currentUser) {
+        showToast('請先至LINEBOT登入！');
+        return false;
+    }
+    return true;
+}
+
 // 拉麵轉盤功能
 function initWheel() {
     const wheelFab = document.getElementById('wheelFab');
@@ -609,29 +646,35 @@ function init() {
     initMap();
     initWheel();
 
+    // 檢查登入狀態
+    checkLoginStatus();
+
     // 新增：搜尋功能初始化
     const searchInput = document.getElementById('searchInput');
     const searchBox = document.querySelector('.search-box');
+    const searchToggle = document.querySelector('.search-toggle');
+    const searchResults = document.getElementById('searchResults');
 
-    // 創建搜尋按鈕
-    const searchButton = document.createElement('button');
-    searchButton.className = 'search-button';
-    searchButton.innerHTML = '<i class="fas fa-search"></i>';
-    searchBox.appendChild(searchButton);
+    // 切換搜尋欄顯示
+    searchToggle.addEventListener('click', () => {
+        searchBox.classList.toggle('active');
+        if (searchBox.classList.contains('active')) {
+            searchInput.focus();
+        }
+    });
 
-    // 創建搜尋結果容器
-    const searchResults = document.createElement('div');
-    searchResults.id = 'searchResults';
-    searchResults.className = 'search-results';
-    searchBox.appendChild(searchResults);
+    // 點擊其他地方時隱藏搜尋欄
+    document.addEventListener('click', (e) => {
+        if (!searchBox.contains(e.target) && !searchToggle.contains(e.target)) {
+            searchBox.classList.remove('active');
+            searchResults.classList.remove('active');
+        }
+    });
 
     // 執行搜尋的函數
     const performSearch = () => {
         searchStores(searchInput.value, true, true);
     };
-
-    // 點擊搜尋按鈕時搜尋
-    searchButton.addEventListener('click', performSearch);
 
     // 按下 Enter 時搜尋
     searchInput.addEventListener('keypress', (e) => {
@@ -643,18 +686,16 @@ function init() {
     // 即時搜尋，不顯示找不到的提示，不選中第一個
     searchInput.addEventListener('input', (e) => {
         searchStores(e.target.value, false, false);
-    });
-
-    // 點擊其他地方時隱藏搜尋結果
-    document.addEventListener('click', (e) => {
-        if (!searchBox.contains(e.target)) {
-            searchResults.style.display = 'none';
+        if (e.target.value.trim() !== '') {
+            searchResults.classList.add('active');
+        } else {
+            searchResults.classList.remove('active');
         }
     });
 
     // 打卡功能事件監聽
     checkInFab.addEventListener('click', () => {
-        if (currentStore) {
+        if (currentStore && canCheckIn()) {
             openCheckInModal(currentStore);
         }
     });
@@ -690,11 +731,11 @@ function init() {
 
         try {
             console.log('Form submitted:', formData);
-            alert('打卡成功！');
+            showToast('打卡成功！');
             closeCheckInModal();
         } catch (error) {
             console.error('Error submitting form:', error);
-            alert('提交失敗，請稍後再試');
+            showToast('提交失敗，請稍後再試');
         }
     });
 
