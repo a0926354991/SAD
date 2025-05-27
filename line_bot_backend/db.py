@@ -1,7 +1,7 @@
-import firebase_admin
-from datetime import datetime
 import os
 import json
+from datetime import datetime
+import firebase_admin
 from firebase_admin import credentials, firestore, initialize_app
 
 key_dict = json.loads(os.environ["FIREBASE_KEY_JSON"])
@@ -51,6 +51,14 @@ def update_user_location(user_id: str, lat: float, lng: float):
         "latlng": GeoPoint(lat, lng),
         "last_updated": firestore.SERVER_TIMESTAMP
     })
+
+def get_user_location(user_id: str):
+    user_ref = db.collection("users").document(user_id)
+    doc = user_ref.get()
+    if doc.exists:
+        data = doc.to_dict()
+        return data.get("latlng"), data.get("last_updated")
+    return None, None
 
 # if __name__ == "__main__":
 #     shops = get_all_ramen_shops()

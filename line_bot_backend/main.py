@@ -1,16 +1,20 @@
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
-from line_bot_backend.db import add_user, get_all_ramen_shops, update_user_location  # render
+from line_bot_backend.db import add_user, get_all_ramen_shops  # render
+from line_bot_backend.db import update_user_location, get_user_location
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
+from firebase_admin import firestore # 毛加的 測試中
 
 import os
 import aiohttp
 import random
 import json
+from datetime import datetime, timezone, timedelta
 
 load_dotenv()
 app = FastAPI()
+GeoPoint = firestore.GeoPoint
 
 ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
@@ -74,7 +78,7 @@ async def webhook(req: Request):
                 elif any(keyword in msg for keyword in FEEDBACK_KEYWORDS):
                     await reply_message(reply_token, "【 意見回饋 】\n功能實作中，敬請期待更多功能✨")
                 
-                # 拉麵推薦
+                # 拉麵推薦，處理判斷
                 elif any(keyword in msg for keyword in RECOMMEND_KEYWORDS):
                     await reply_recommend(reply_token, user_id)
 
@@ -106,7 +110,7 @@ async def webhook(req: Request):
             elif msg_type == "location":
                 latitude = event["message"]["latitude"]
                 longitude = event["message"]["longitude"]
-                user_locations[user_id] = {"lat": latitude, "lng": longitude}
+                # user_locations[user_id] = {"lat": latitude, "lng": longitude}
                 update_user_location(user_id, latitude, longitude)
                 await reply_ramen_flavor_flex_menu(reply_token)
 
@@ -128,11 +132,23 @@ async def reply_message(reply_token, text):
 
 ## 回覆拉麵推薦
 async def reply_recommend(reply_token, user_id):
-    latlng = user_locations.get(user_id)
-    if latlng:
-        await reply_ramen_flavor_flex_menu(reply_token)
-    else:
-        await reply_message(reply_token, "【 拉麵推薦 】\n請按左下角的加號➕，分享你的位置資訊，我會幫你推薦附近的拉麵！")
+    latlng, last_updated = get_user_location(user_id)
+
+    if last_updated:
+        # Firestore timestamp 是 tz-aware 的，直接與現在時間相比
+        now = datetime.now(timezone.utc)
+        delta = now - last_updated
+        if delta < timedelta(minutes=3):
+            # 時間在三分鐘內，直接問口味
+            await reply_message(reply_token, "測試成功")
+            await reply_ramen_flavor_flex_menu(reply_token)
+            return
+
+    # 時間超過三分鐘，請求重新定位
+    await reply_message(
+        reply_token,
+        "【 拉麵推薦 】\n請先按左下角的加號➕，重新分享你的位置資訊"
+    )
 
 
 ## 選單訊息：拉麵口味選單（flex menu）
