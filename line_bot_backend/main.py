@@ -120,7 +120,7 @@ async def webhook(req: Request):
                             # 取出 ramen_list 的 id 組合網址
                             shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
                             ids_str = ",".join(shop_ids)
-                            roulette_url = f"https://frontend-7ivv.onrender.com/ramen-map/?ids={ids_str}"
+                            roulette_url = f"https://frontend-7ivv.onrender.com/ramen-map/?show_wheel=1&store_ids={ids_str}"
 
                             # 傳一個訊息給使用者
                             reply_text = f"🎲 沒辦法抉擇要吃哪一家嗎？[點這裡進入轉盤]({roulette_url})"
