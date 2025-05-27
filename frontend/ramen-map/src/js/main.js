@@ -813,10 +813,14 @@ async function init() {
                 showToast('打卡成功！');
                 closeCheckInModal();
             } else {
-                throw new Error(result.detail || '提交失敗');
+                // 修改錯誤處理邏輯
+                const errorMessage = result.detail || '提交失敗';
+                showToast(errorMessage);
+                console.error('Error submitting form:', errorMessage);
+                
             }
         } catch (error) {
-            console.error('Error submitting form:', error);
+            console.error('Error submitting form:', error.message || error);
             showToast('提交失敗，請稍後再試');
         }
     });

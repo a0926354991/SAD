@@ -120,28 +120,37 @@ def get_user_by_id(user_id: str):
         }
     return None
 
-def create_checkin(store_id: str, user_id: str, rating: float, comment: str = None):
+def create_checkin(data: dict):
     try:
+        store_id = data.get("store_id")
+        user_id = data.get("user_id")
+        rating = data.get("rating")
+        comment = data.get("comment", "")
+
+        # 檢查必要欄位
+        if not store_id or not user_id or rating is None:
+            return False, "Missing required field(s)"
+
         # 取得店家資訊
         store_ref = db.collection("ramen_shops").document(store_id)
         store_doc = store_ref.get()
-        
         if not store_doc.exists:
             return False, "Store not found"
-            
         store_data = store_doc.to_dict()
-        
+
         # 建立打卡記錄
-        checkin_ref = db.collection("checkins").document()
-        checkin_ref.set({
+        checkin_data = {
             "store_id": store_id,
             "store_name": store_data.get("name", ""),
             "user_id": user_id,
             "rating": rating,
             "comment": comment,
             "timestamp": datetime.utcnow()
-        })
-        
+        }
+
+        checkin_ref = db.collection("checkins").document()
+        checkin_ref.set(checkin_data)
+
         return True, "Check-in recorded successfully"
     except Exception as e:
         return False, str(e)
