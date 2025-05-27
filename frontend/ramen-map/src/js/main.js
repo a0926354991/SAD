@@ -357,7 +357,13 @@ function renderStoreInfo(store) {
             </div>
             <div class="store-section">
                 <div class="store-label">關鍵字</div>
-                <div class="store-value">${store.keywords ? store.keywords.join('、') : ''}</div>
+                <div class="store-value">
+                    ${
+                    store.keywords
+                        ? store.keywords.map(kw => `<b>#${kw}</b>`).join(' ')
+                        : ''
+                    }
+                </div>
             </div>
             <div class="store-section">
                 <div class="store-label">營業時間</div>
