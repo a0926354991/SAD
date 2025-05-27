@@ -114,7 +114,7 @@ async def webhook(req: Request):
                         if is_valid:
                             ramen_list = search_ramen_nearby(latlng.latitude, latlng.longitude, flavor)
                             # print("ramen_list：", ramen_list)
-                            await reply_ramen_carousel(reply_token, ramen_list)
+                            await reply_ramen_flex_carousel(reply_token, ramen_list)
 
                             # 取出 ramen_list 的 id 組合網址
                             shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
@@ -224,7 +224,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                     "spacing": "md",
                     "borderWidth": "2px",
                     "borderColor": "#FFE175",  # 你可以調整顏色
-                    "cornerRadius": "10px",    # 加一點圓角更好看（可選）
+                    # "cornerRadius": "10px",    # 加一點圓角更好看（可選）
                     "contents": [
                         {
                             "type": "text",
@@ -272,6 +272,103 @@ async def reply_ramen_flavor_flex_menu(reply_token):
             print("response text:", await resp.text())
 
 
+async def reply_ramen_flex_carousel(reply_token, ramen_list):
+    bubbles = []
+    for ramen in ramen_list[:10]:
+        dist = ramen['distance']
+        if dist < 1:
+            dist_str = f"{int(dist * 1000)} 公尺"
+        else:
+            dist_str = f"{dist:.2f} 公里"
+
+        rating_text = f"{ramen['rating']}⭐️" if ramen['rating'] is not None else "尚未有評分"
+
+        bubble = {
+            "type": "bubble",
+            "hero": {
+                "type": "image",
+                "url": ramen["image_url"],
+                "size": "full",
+                "aspectRatio": "20:13",
+                "aspectMode": "cover"
+            },
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "sm",
+                "contents": [
+                    {
+                        "type": "text",
+                        "text": ramen["name"][:40],
+                        "wrap": True,
+                        "weight": "bold",
+                        "size": "lg",
+                        "color": "#063D74"
+                    },
+                    {
+                        "type": "text",
+                        "text": f"評價：{rating_text}\n距離：{dist_str}",
+                        "wrap": True,
+                        "size": "sm",
+                        # "color": "#888888"
+                    }
+                ]
+            },
+            "footer": {
+                "type": "box",
+                "layout": "horizontal",
+                "spacing": "md",
+                "contents": [
+                    {
+                        "type": "button",
+                        "style": "link",
+                        "color": "#D5E3F7",
+                        "action": {
+                            "type": "uri",
+                            "label": "🗺️ 地圖導航",
+                            "uri": f"https://frontend-7ivv.onrender.com/ramen-map/?store_id={ramen['id']}"
+                        }
+                    },
+                    {
+                        "type": "button",
+                        "style": "secondary",
+                        "color": "#D5E3F7",
+                        "action": {
+                            "type": "message",
+                            "label": "📸 打卡上傳",
+                            "text": "打卡上傳"
+                        }
+                    }
+                ]
+            },
+            "styles": {
+                "body": {"backgroundColor": "#FFFFFF"},
+                "footer": {"backgroundColor": "#FFFFFF"}
+            }
+        }
+        bubbles.append(bubble)
+
+    body = {
+        "replyToken": reply_token,
+        "messages": [{
+            "type": "flex",
+            "altText": "拉麵推薦清單",
+            "contents": {
+                "type": "carousel",
+                "contents": bubbles
+            }
+        }]
+    }
+
+    url = "https://api.line.me/v2/bot/message/reply"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        await session.post(url, json=body, headers=headers)
+
+
 ## 多頁訊息：回傳推薦拉麵店
 async def reply_ramen_carousel(reply_token, ramen_list):
     columns = []
@@ -282,7 +379,7 @@ async def reply_ramen_carousel(reply_token, ramen_list):
         else:
             dist_str = f"{dist:.2f} 公里"
         columns.append({
-            "thumbnailImageUrl": ramen["picture_image"],
+            "thumbnailImageUrl": ramen["image_url"],
             "title": ramen["name"][:40],
             "text": f"評價：{f'{ramen['rating']}⭐️' if ramen['rating'] is not None else '尚未有評分'}\n距離：{dist_str}",
             "actions": [
