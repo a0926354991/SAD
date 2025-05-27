@@ -11,6 +11,22 @@ let allMarkers = []; // 新增：儲存所有標記
 // 新增：登入相關變數
 let currentUser = null;
 
+// 新增：自定義事件系統
+const storeEvents = {
+    listeners: {},
+    on(event, callback) {
+        if (!this.listeners[event]) {
+            this.listeners[event] = [];
+        }
+        this.listeners[event].push(callback);
+    },
+    emit(event, data) {
+        if (this.listeners[event]) {
+            this.listeners[event].forEach(callback => callback(data));
+        }
+    }
+};
+
 // 新增：檢查登入狀態
 function checkLoginStatus() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -144,6 +160,61 @@ function selectStore(store) {
     }
 }
 
+// 新增：處理所有 URL 參數
+function handleUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // 1. 處理登入狀態
+    const username = urlParams.get("username");
+    if (username) {
+        currentUser = username;
+        updateLoginUI();
+    }
+    
+    // 2. 處理轉盤店家列表
+    const idsParam = urlParams.get("store_ids");
+    if (idsParam) {
+        storeEvents.on('storesLoaded', (stores) => {
+            const ramenIds = idsParam.split(",");
+            wheelStores = stores.filter(store => ramenIds.includes(store.id));
+        });
+    } else {
+        wheelStores = [];
+    }
+    
+    // 3. 處理是否顯示轉盤
+    const showWheel = urlParams.get("show_wheel");
+    if (showWheel === "1") {
+        setTimeout(() => {
+            document.getElementById('wheelModal').classList.add('active');
+            document.body.classList.add('modal-open');
+            if (typeof drawWheel === "function") drawWheel();
+        }, 600);
+    }
+    
+    // 4. 處理自動聚焦單一店家
+    const storeId = urlParams.get("store_id");
+    if (storeId && typeof selectStore === "function") {
+        storeEvents.on('storesLoaded', (stores) => {
+            // 先嘗試用 id 比對
+            let store = stores.find(s => s.id === storeId);
+            
+            // 如果找不到，再嘗試用 name 比對
+            if (!store) {
+                store = stores.find(s => s.name === storeId);
+            }
+            
+            console.log('Found store:', store);
+            
+            if (store) {
+                selectStore(store);
+            } else {
+                console.error('Store not found with id/name:', storeId);
+            }
+        });
+    }
+}
+
 // Initialize the map
 async function initMap() {
     // Center on Taipei
@@ -156,7 +227,6 @@ async function initMap() {
         zoom: 13,
         center: taipei,
         mapId: GOOGLE_MAPS_MAP_ID,
-        // 隱藏預設的地點標記
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
@@ -164,22 +234,14 @@ async function initMap() {
     });
 
     // 讀取拉麵店資料
-    // fetch('/data/ramen.json')
-    // fetch('/all_shops')
-    // fetch("http://localhost:8000/all_shops")   // 後端 FastAPI 服務的網址
     fetch("https://linebot-fastapi-uhmi.onrender.com/all_shops")
         .then(response => response.json())
         .then(data => {
             allStores = data.ramen_stores;
-            const urlParams = new URLSearchParams(window.location.search);
-            const idsParam = urlParams.get("store_ids");
-            if (idsParam) {
-                const ramenIds = idsParam.split(",");
-                wheelStores = allStores.filter(store => ramenIds.includes(store.id));
-            } else {
-                wheelStores = [];
-                // 或 wheelStores = allStores;
-            }
+            
+            // 觸發 stores 載入完成事件
+            storeEvents.emit('storesLoaded', allStores);
+
             data.ramen_stores.forEach(store => {
                 const position = {
                     lat: store.location.latitude,
@@ -639,13 +701,10 @@ function showAllMarkers() {
 
 // 初始化所有功能
 function init() {
-    const showWheel = urlParams.get("show_wheel");
-
     initMap();
     initWheel();
 
-    // 檢查登入狀態
-    checkLoginStatus();
+    
 
     // 新增：搜尋功能初始化
     const searchInput = document.getElementById('searchInput');
@@ -736,26 +795,10 @@ function init() {
             showToast('提交失敗，請稍後再試');
         }
     });
+    // 處理所有 URL 參數
+    handleUrlParameters();
 
-    // 1. 網址參數檢查，進來就打開轉盤
-    if (showWheel === "1") {
-        // 為保險等 modal、canvas 及 drawWheel 都已經載入
-        setTimeout(() => {
-            document.getElementById('wheelModal').classList.add('active');
-            document.body.classList.add('modal-open');
-            if (typeof drawWheel === "function") drawWheel();
-        }, 600); // 時間依你畫面複雜度調整，通常 500~1000ms 最穩
-    }
-
-    // 2. 網址參數自動聚焦單一店家（加在 init 結尾）
-    const storeId = urlParams.get("store_id");
-    if (storeId && typeof selectStore === "function") {
-        // 可能要等 stores 載入完成才找得到
-        setTimeout(() => {
-            const store = allStores.find(s => s.id === storeId);
-            if (store) selectStore(store);
-        }, 300); // 視 stores 載入速度調整，通常 200~500ms 就夠
-    }
+    
 }
 
 init();
