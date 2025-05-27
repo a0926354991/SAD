@@ -593,6 +593,19 @@ function showAllMarkers() {
 
 // 初始化所有功能
 function init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const idsParam = urlParams.get("ids"); // 你 ramen_list 傳過來的 ids
+    const showWheel = urlParams.get("show_wheel");
+
+    // 根據 ids 決定顯示哪些店家
+    if (idsParam) {
+        const ramenIds = idsParam.split(",");
+        window.wheelStores = allStores.filter(store => ramenIds.includes(store.id));
+    } else {
+        window.wheelStores = []; // 沒帶 ids 時預設輪盤為空
+        // 或 window.wheelStores = allStores; // 如果你想顯示全部
+    }
+
     initMap();
     initWheel();
 
@@ -686,8 +699,6 @@ function init() {
     });
 
     // 1. 網址參數檢查，進來就打開轉盤
-    const urlParams = new URLSearchParams(window.location.search);
-    const showWheel = urlParams.get("show_wheel");
     if (showWheel === "1") {
         // 為保險等 modal、canvas 及 drawWheel 都已經載入
         setTimeout(() => {

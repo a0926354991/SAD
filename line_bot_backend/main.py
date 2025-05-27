@@ -92,6 +92,15 @@ async def webhook(req: Request):
                             ramen_list = search_ramen_nearby(latlng.latitude, latlng.longitude, flavor)
                             # print("ramen_list：", ramen_list)
                             await reply_ramen_carousel(reply_token, ramen_list)
+
+                            # 取出 ramen_list 的 id 組合網址
+                            shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
+                            ids_str = ",".join(shop_ids)
+                            roulette_url = f"https://your-frontend-domain/roulette.html?ids={ids_str}"
+
+                            # 傳一個訊息給使用者
+                            reply_text = f"🎲 沒辦法抉擇要吃哪一家嗎？[點這裡進入轉盤]({roulette_url})"
+                            await reply_message(reply_token, reply_text)
                         else:
                             await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
                     else:
@@ -267,67 +276,6 @@ async def reply_ramen_carousel(reply_token, ramen_list):
     }
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
-
-# def haversine(lat1, lng1, lat2, lng2):
-#     # Haversine formula
-#     R = 6371
-#     phi1 = math.radians(lat1)
-#     phi2 = math.radians(lat2)
-#     dphi = math.radians(lat2 - lat1)
-#     dlambda = math.radians(lng2 - lng1)
-#     a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
-#     return 2 * R * math.asin(math.sqrt(a))
-
-# async def search_ramen_nearby(lat, lng, flavor):
-#     db = firestore.client()
-#     # 取得所有有該 flavor 的拉麵店
-#     docs = db.collection("ramen_shops").where("keywords", "array_contains", flavor).stream()
-    
-#     shops = []
-#     async for doc in docs:
-#         data = doc.to_dict()
-#         shop_lat = data["location"]["latitude"]
-#         shop_lng = data["location"]["longitude"]
-#         dist = haversine(lat, lng, shop_lat, shop_lng)
-#         shops.append({
-#             "id": doc.id,
-#             "name": data.get("name", ""),
-#             "distance": dist,
-#             "address": data.get("address", ""),
-#             "image_url": data.get("menu_image", ""),
-#             "rating": data.get("rating", 0),
-#             "phone": data.get("phone", ""),
-#             "lat": shop_lat,
-#             "lng": shop_lng,
-#             "keywords": data.get("keywords", []),
-#             # 你可以加 rating, map_url, open_time, ...看你要回哪些
-#         })
-#     # 按照距離排序
-#     shops.sort(key=lambda x: x["distance"])
-#     return shops
-
-
-# 假資料：搜尋附近的拉麵（你可以換成 Firebase 查詢）
-# async def search_ramen_nearby(lat, lng, flavor):
-#     return [
-#         {
-#             "name": f"{flavor}拉麵一號",
-#             "rating": 4.8,
-#             "distance": 120,
-#             "image_url": "https://i.imgur.com/mkBdZbG.jpg",
-#             "map_url": "https://maps.google.com",
-#             "phone": "02-1234-5678"
-#         },
-#         {
-#             "name": f"{flavor}拉麵二號",
-#             "rating": 4.5,
-#             "distance": 250,
-#             "image_url": "https://i.imgur.com/kQyTd7H.jpg",
-#             "map_url": "https://maps.google.com",
-#             "phone": "02-2345-6789"
-#         }
-#     ]
-
 
 async def get_user_profile(user_id: str):
     url = f"https://api.line.me/v2/bot/profile/{user_id}"
