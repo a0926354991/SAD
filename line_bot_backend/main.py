@@ -86,14 +86,15 @@ async def webhook(req: Request):
                 elif msg.startswith("今天想吃的拉麵口味："):
                     flavor = msg.replace("今天想吃的拉麵口味：", "")
                     if flavor in FLAVORS:
-                        latlng = user_locations.get(user_id)
-                        if latlng:
+                        is_valid, latlng = is_location_valid(user_id)
+                        if is_valid:
                             ramen_list = await search_ramen_nearby(latlng["lat"], latlng["lng"], flavor)
                             await reply_ramen_carousel(reply_token, ramen_list)
                         else:
-                            await reply_message(reply_token, "【 拉麵推薦 】\n請先按左下角的加號➕，分享你的位置資訊喔📍")
+                            await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
                     else:
                         await reply_message(reply_token, "【 拉麵推薦 】\n請選擇正確的拉麵口味⚠️")
+
 
                 # 隨機回覆拉麵文案
                 else:
@@ -116,6 +117,20 @@ async def webhook(req: Request):
 
     return {"status": "ok"}
 
+
+#### Handle logic
+async def is_location_valid(user_id: str, threshold_minutes: int = 5):
+    latlng, last_updated = get_user_location(user_id)
+
+    if last_updated is None:
+        return False, None  # 沒有傳過位置
+
+    now = datetime.now(timezone.utc)
+    if now - last_updated < timedelta(minutes=threshold_minutes):
+        return True, latlng
+    else:
+        return False, None
+
 #### Reply message
 async def reply_message(reply_token, text):
     url = "https://api.line.me/v2/bot/message/reply"
@@ -130,25 +145,18 @@ async def reply_message(reply_token, text):
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
 
+
 ## 回覆拉麵推薦
 async def reply_recommend(reply_token, user_id):
-    latlng, last_updated = get_user_location(user_id)
-
-    if last_updated:
-        # Firestore timestamp 是 tz-aware 的，直接與現在時間相比
-        now = datetime.now(timezone.utc)
-        delta = now - last_updated
-        if delta < timedelta(minutes=3):
-            # 時間在三分鐘內，直接問口味
-            await reply_message(reply_token, "測試成功")
-            await reply_ramen_flavor_flex_menu(reply_token)
-            return
-
-    # 時間超過三分鐘，請求重新定位
-    await reply_message(
-        reply_token,
-        "【 拉麵推薦 】\n請先按左下角的加號➕，重新分享你的位置資訊"
-    )
+    is_valid, _ = is_location_valid(user_id)
+    if is_valid:
+        await reply_message(reply_token, "測試成功")
+        await reply_ramen_flavor_flex_menu(reply_token)
+    else:
+        await reply_message(
+            reply_token,
+            "【 拉麵推薦 】\n請按左下角的加號➕，分享你的位置資訊，我會為你推薦附近的拉麵店！"
+        )
 
 
 ## 選單訊息：拉麵口味選單（flex menu）
@@ -279,6 +287,7 @@ async def get_user_profile(user_id: str):
                 return await res.json()
             else:
                 return None
+
 
 '''
 ## 選單訊息：拉麵口味選單
