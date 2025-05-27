@@ -229,7 +229,7 @@ async def reply_ramen_carousel(reply_token, ramen_list):
             "title": ramen["name"][:40],
             "text": f"評價：{ramen['rating']}，距離：{ramen['distance']} 公尺",
             "actions": [
-                {"type": "uri", "label": "🗺️ 地圖導航", "uri": ramen["map_url"]},
+                # {"type": "uri", "label": "🗺️ 地圖導航", "uri": ramen["map_url"]},
                 {"type": "message", "label": "📸 打卡上傳", "text": "打卡上傳"}
             ]
         })
