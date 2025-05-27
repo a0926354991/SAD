@@ -94,8 +94,8 @@ function searchStores(query, showToast = false, selectFirst = false) {
 // 新增：選擇店家
 function selectStore(store) {
     const position = {
-        lat: store.latitude,
-        lng: store.longitude
+        lat: store.location.latitude,
+        lng: store.location.longitude
     };
     
     const newCenter = {
@@ -259,7 +259,7 @@ function renderStoreInfo(store) {
             </div>
             <div class="store-menu-img">
                 <div class="menu-title">菜單</div>
-                <img src="/data/${store.menu_image || ''}" alt="${store.name} 菜單" style="width:100%;max-width:350px;margin:10px auto 0;display:block;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);background:#fafafa;" />
+                <img src="${store.menu_image || ''}" alt="${store.name} 菜單" style="width:100%;max-width:350px;margin:10px auto 0;display:block;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);background:#fafafa;" />
             </div>
         </div>
     `;
