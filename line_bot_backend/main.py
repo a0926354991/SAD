@@ -87,7 +87,7 @@ async def webhook(req: Request):
                 elif msg.startswith("今天想吃的拉麵口味："):
                     flavor = msg.replace("今天想吃的拉麵口味：", "")
                     if flavor in FLAVORS:
-                        is_valid, latlng = is_location_valid(user_id)
+                        is_valid, latlng = await is_location_valid(user_id)
                         if is_valid:
                             ramen_list = await search_ramen_nearby(latlng["lat"], latlng["lng"], flavor)
                             await reply_ramen_carousel(reply_token, ramen_list)
