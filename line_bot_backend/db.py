@@ -4,6 +4,7 @@ from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore, initialize_app
 from google.cloud.firestore_v1.base_document import DocumentSnapshot
+import math
 
 key_dict = json.loads(os.environ["FIREBASE_KEY_JSON"])
 cred = credentials.Certificate(key_dict)
@@ -69,6 +70,42 @@ def get_user_location(user_id: str):
         data = doc.to_dict()
         return data.get("latlng"), data.get("last_updated")
     return None, None
+
+def search_ramen_nearby(lat, lng, flavor):
+    # 取得所有有該 flavor 的拉麵店
+    docs = db.collection("ramen_shops").where("keywords", "array_contains", flavor).stream()
+    
+    shops = []
+    for doc in docs:
+        data = doc.to_dict()
+        shop_lat = data["location"]["latitude"]
+        shop_lng = data["location"]["longitude"]
+        dist = haversine(lat, lng, shop_lat, shop_lng)
+        shops.append({
+            "id": doc.id,
+            "name": data.get("name", ""),
+            "distance": dist,
+            "address": data.get("address", ""),
+            "image_url": data.get("menu_image", ""),
+            "rating": data.get("rating", 0),
+            "phone": data.get("phone", ""),
+            "lat": shop_lat,
+            "lng": shop_lng,
+            "keywords": data.get("keywords", []),
+        })
+    # 按照距離排序
+    shops.sort(key=lambda x: x["distance"])
+    return shops
+
+def haversine(lat1, lng1, lat2, lng2):
+    # Haversine formula
+    R = 6371
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lng2 - lng1)
+    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+    return 2 * R * math.asin(math.sqrt(a))
 
 # if __name__ == "__main__":
 #     shops = get_all_ramen_shops()
