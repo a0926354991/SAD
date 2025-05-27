@@ -684,6 +684,18 @@ function init() {
             alert('提交失敗，請稍後再試');
         }
     });
+    
+    // 1. 網址參數檢查，進來就打開轉盤
+    const urlParams = new URLSearchParams(window.location.search);
+    const showWheel = urlParams.get("show_wheel");
+    if (showWheel === "1") {
+        // 為保險等 modal、canvas 及 drawWheel 都已經載入
+        setTimeout(() => {
+            document.getElementById('wheelModal').classList.add('active');
+            document.body.classList.add('modal-open');
+            if (typeof drawWheel === "function") drawWheel();
+        }, 600); // 時間依你畫面複雜度調整，通常 500~1000ms 最穩
+    }
 }
 
 init();

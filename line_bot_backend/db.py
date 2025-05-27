@@ -7,6 +7,7 @@ from firebase_admin import credentials, firestore, initialize_app
 key_dict = json.loads(os.environ["FIREBASE_KEY_JSON"])
 cred = credentials.Certificate(key_dict)
 
+# 本機跑要開這行
 # cred = credentials.Certificate("key.json")
 initialize_app(cred)
 db = firestore.client()
