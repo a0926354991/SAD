@@ -28,12 +28,24 @@ const storeEvents = {
 };
 
 // 新增：檢查登入狀態
-function checkLoginStatus() {
+async function checkLoginStatus() {
     const urlParams = new URLSearchParams(window.location.search);
-    const username = urlParams.get("username");
-    if (username) {
-        currentUser = username;
-        updateLoginUI();
+    const userId = urlParams.get("user_id");
+    
+    if (userId) {
+        try {
+            const response = await fetch(`https://linebot-fastapi-uhmi.onrender.com/users/${userId}`);
+            const data = await response.json();
+            
+            if (data.status === "success") {
+                currentUser = data.user.display_name;
+                updateLoginUI();
+            } else {
+                console.error('User not found:', data.message);
+            }
+        } catch (error) {
+            console.error('Error checking login status:', error);
+        }
     }
 }
 
@@ -168,12 +180,7 @@ function selectStore(store) {
 function handleUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // 1. 處理登入狀態
-    const username = urlParams.get("username");
-    if (username) {
-        currentUser = username;
-        updateLoginUI();
-    }
+    // 1. 處理登入狀態 - 移到 checkLoginStatus 函式中
     
     // 2. 處理轉盤店家列表
     const idsParam = urlParams.get("store_ids");
@@ -704,11 +711,12 @@ function showAllMarkers() {
 }
 
 // 初始化所有功能
-function init() {
+async function init() {
     initMap();
     initWheel();
 
-    
+    // 檢查登入狀態
+    await checkLoginStatus();
 
     // 新增：搜尋功能初始化
     const searchInput = document.getElementById('searchInput');
@@ -801,8 +809,6 @@ function init() {
     });
     // 處理所有 URL 參數
     handleUrlParameters();
-
-    
 }
 
 init();

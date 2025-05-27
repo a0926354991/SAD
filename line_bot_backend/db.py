@@ -107,6 +107,19 @@ def haversine(lat1, lng1, lat2, lng2):
     a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
     return 2 * R * math.asin(math.sqrt(a))
 
+def get_user_by_id(user_id: str):
+    user_ref = db.collection("users").document(user_id)
+    doc = user_ref.get()
+    if doc.exists:
+        data = doc.to_dict()
+        return {
+            "id": doc.id,
+            "display_name": data.get("display_name", ""),
+            "joined_at": data.get("joined_at", ""),
+            "last_updated": data.get("last_updated", "")
+        }
+    return None
+
 # if __name__ == "__main__":
 #     shops = get_all_ramen_shops()
 #     print(json.dumps(shops, ensure_ascii=False, indent=2))
