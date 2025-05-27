@@ -82,7 +82,7 @@ def search_ramen_nearby(lat, lng, flavor):
         shop_lng = data["location"]["longitude"]
         dist = haversine(lat, lng, shop_lat, shop_lng)
         shops.append({
-            "id": doc.get("id", ""),
+            "id": data.get("id", ""),
             "name": data.get("name", ""),
             "distance": dist,
             "address": data.get("address", ""),
