@@ -183,7 +183,7 @@ function handleUrlParameters() {
     if (idsParam) {
         storeEvents.on('storesLoaded', (stores) => {
             const ramenIds = idsParam.split(",");
-            wheelStores = stores.filter(store => ramenIds.includes(store.id));
+            wheelStores = stores.filter(store => ramenIds.includes(String(store.id)));
         });
     } else {
         wheelStores = [];
