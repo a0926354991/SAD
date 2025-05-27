@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
-from line_bot_backend.db import add_user, get_all_ramen_shops  # render
+from line_bot_backend.db import add_user, get_all_ramen_shops, update_user_location  # render
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -107,6 +107,7 @@ async def webhook(req: Request):
                 latitude = event["message"]["latitude"]
                 longitude = event["message"]["longitude"]
                 user_locations[user_id] = {"lat": latitude, "lng": longitude}
+                update_user_location(user_id, latitude, longitude)
                 await reply_ramen_flavor_flex_menu(reply_token)
 
     return {"status": "ok"}

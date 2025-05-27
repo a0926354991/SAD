@@ -11,6 +11,7 @@ cred = credentials.Certificate(key_dict)
 # cred = credentials.Certificate("key.json")
 initialize_app(cred)
 db = firestore.client()
+GeoPoint = firestore.GeoPoint
 
 def add_user(line_user_id, display_name):
     user_ref = db.collection("users").document(line_user_id)
@@ -42,6 +43,14 @@ def get_all_ramen_shops():
         shop["id"] = doc.id
         result.append(shop)
     return result
+
+## 毛加的，linebot 要用
+def update_user_location(user_id: str, lat: float, lng: float):
+    user_ref = db.collection("users").document(user_id)
+    user_ref.update({
+        "latlng": GeoPoint(lat, lng),
+        "last_updated": firestore.SERVER_TIMESTAMP
+    })
 
 # if __name__ == "__main__":
 #     shops = get_all_ramen_shops()
