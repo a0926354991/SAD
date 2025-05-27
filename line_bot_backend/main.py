@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, HTTPException
 from dotenv import load_dotenv
 from line_bot_backend.db import add_user, get_all_ramen_shops, get_user_by_id  # render
-from line_bot_backend.db import update_user_location, get_user_location, search_ramen_nearby
+from line_bot_backend.db import update_user_location, get_user_location, search_ramen_nearby, create_checkin
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore # 毛加的 測試中
@@ -49,6 +49,13 @@ def check_user(user_id: str):
     if user:
         return {"status": "success", "user": user}
     raise HTTPException(status_code=404, detail="User not found")
+
+@app.post("/checkin")
+async def submit_checkin(store_id: str, user_id: str, rating: float, comment: str = None):
+    success, message = create_checkin(store_id, user_id, rating, comment)
+    if not success:
+        raise HTTPException(status_code=404 if message == "Store not found" else 500, detail=message)
+    return {"status": "success", "message": message}
 
 @app.post("/webhook")
 async def webhook(req: Request):
@@ -329,3 +336,4 @@ async def reply_ramen_flavor_quick_reply(reply_token):
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
 '''
+

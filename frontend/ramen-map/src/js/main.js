@@ -793,15 +793,28 @@ async function init() {
 
         const formData = {
             store_id: currentStore.id,
-            rating: ratingInput.value,
-            comment: document.getElementById('storeComment').value,
-            photo: photoInput.files[0]
+            user_id: currentUser,
+            rating: parseFloat(ratingInput.value),
+            comment: document.getElementById('storeComment').value
         };
 
         try {
-            console.log('Form submitted:', formData);
-            showToast('打卡成功！');
-            closeCheckInModal();
+            const response = await fetch('https://linebot-fastapi-uhmi.onrender.com/checkin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+            
+            if (response.ok) {
+                showToast('打卡成功！');
+                closeCheckInModal();
+            } else {
+                throw new Error(result.detail || '提交失敗');
+            }
         } catch (error) {
             console.error('Error submitting form:', error);
             showToast('提交失敗，請稍後再試');
