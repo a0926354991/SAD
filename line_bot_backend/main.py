@@ -90,7 +90,7 @@ async def webhook(req: Request):
                         is_valid, latlng = await is_location_valid(user_id)
                         if is_valid:
                             ramen_list = search_ramen_nearby(latlng.latitude, latlng.longitude, flavor)
-                            # print("ramen_list：", ramen_list)
+                            print("ramen_list：", ramen_list)
                             await reply_ramen_carousel(reply_token, ramen_list)
 
                             # 取出 ramen_list 的 id 組合網址
