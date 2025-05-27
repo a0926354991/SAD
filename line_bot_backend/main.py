@@ -281,7 +281,6 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
             dist_str = f"{int(dist * 1000)} 公尺"
         else:
             dist_str = f"{dist:.2f} 公里"
-
         rating_text = f"{ramen['rating']} ⭐️" if ramen['rating'] is not None else "尚未有評分"
 
         bubble = {
@@ -322,7 +321,7 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
                 "contents": [
                     {
                         "type": "button",
-                        "style": "link",
+                        "style": "secondary",
                         "color": "#D5E3F7",
                         "action": {
                             "type": "uri",
