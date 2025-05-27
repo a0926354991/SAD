@@ -15,7 +15,7 @@
       "餐點美麗令人食指大動、老闆風趣幽默熱心，店裡播放的日文歌曲也是精挑細選，看得出店家對日本文化的喜愛，絕對推薦的好店！",
       "點了野菜拉麵\n湯頭不會鹹\n拉麵還可以 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\勝拉麵_menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E5%8B%9D%E6%8B%89%E9%BA%B5_menu.jpg",
     "location": {
       "latitude": 25.0828299,
       "longitude": 121.5466781

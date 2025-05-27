@@ -13,7 +13,7 @@
       "麵屋 有漁\n2025.04.04 卡布奇諾蝦湯+魚酥 …",
       "台北市西門町商圈隆昌街上的拉麵店「麵屋有漁」，\n主打石斑魚白湯拉麵和蝦湯拉麵，\n都嘗得到滿滿鮮味， …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\麵屋 有漁_menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E9%BA%B5%E5%B1%8B%20%E6%9C%89%E6%BC%81_menu.jpg",
     "location": {
       "latitude": 25.0414974,
       "longitude": 121.5057654

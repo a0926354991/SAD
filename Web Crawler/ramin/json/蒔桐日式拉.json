@@ -14,7 +14,7 @@
       "價格實惠，份量足夠，有多種日式料理選擇，用餐時間會客滿。",
       "新菜單有蛤蠣拉麵250大概是下新莊我吃過蛤蠣最大顆的店家 其他都小小的很普通 喜歡的可以來吃 希望老闆也更新一下Google 的菜單"
     ],
-    "menu_image": "Web Crawler/ramin/images\\蒔桐日式拉_menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E8%92%94%E6%A1%90%E6%97%A5%E5%BC%8F%E6%8B%89_menu.jpg",
     "location": {
       "latitude": 25.019608,
       "longitude": 121.420568

@@ -13,7 +13,7 @@
       "雞白湯麵 $240\n味道標準，湯頭濃郁度ok\n硬麵的程度大概是7/10 …",
       "光華商圈松江路上的拉麵店\n用餐時段通常都需要排隊自助點餐\n對，有些顧客來說可能不太方便 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\麵屋雞金 _menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E9%BA%B5%E5%B1%8B%E9%9B%9E%E9%87%91%20_menu.jpg",
     "location": {
       "latitude": 25.0440359,
       "longitude": 121.5327103

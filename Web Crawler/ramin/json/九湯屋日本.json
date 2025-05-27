@@ -14,7 +14,7 @@
       "113.4.4.午餐\n🚗交通很方便。店址：臺北市大安區通化街38巷14號，距紅線信義安和捷運站4、5號出口，路程約4分鐘可到（多線公車到信義通化街口站，步行約4分鐘可達。\n🥢拉麵、小菜都很好吃。今天點了3道餐點，點餐後先付款，免收服務費，共358元: …",
       "內用東京醬油拉麵一碗要價新台幣139元、飲料可以無限暢飲。"
     ],
-    "menu_image": "Web Crawler/ramin/images\\九湯屋日本_menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E4%B9%9D%E6%B9%AF%E5%B1%8B%E6%97%A5%E6%9C%AC_menu.jpg",
     "location": {
       "latitude": 25.0308633,
       "longitude": 121.5537911

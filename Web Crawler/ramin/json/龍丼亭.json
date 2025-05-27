@@ -13,7 +13,7 @@
       "上菜有點久 但餐點好吃 肉很嫩",
       "店面很大,座位安排很寬敞,地下室也有座位.\n服務人員親切,有街口支付. …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\龍丼亭_menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E9%BE%8D%E4%B8%BC%E4%BA%AD_menu.jpg",
     "location": {
       "latitude": 25.0000627,
       "longitude": 121.5551828

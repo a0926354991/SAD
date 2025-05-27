@@ -15,7 +15,7 @@
       "用餐環境明亮寬敞舒適，一進店內就讓人感覺很舒適。門口用點餐機點餐，只收現金。\n特盛塩味雞清湯拉麵：湯頭鹹香清爽不油膩$，麵條爽口軟硬適中。叉燒不會太肥軟嫩中帶點黑胡椒的香氣。\n唐揚雞：酥脆鮮嫩多汁。",
       "特殊的拉麵有蠻多款的，會令人想要多來幾次收集各種口味。\n調味相當不錯，鴨肉清湯拉麵相當推薦。\n炸牡蠣沒有海腥味，喜歡吃的可以點。"
     ],
-    "menu_image": "Web Crawler/ramin/images\\麵屋倫太郎_menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E9%BA%B5%E5%B1%8B%E5%80%AB%E5%A4%AA%E9%83%8E_menu.jpg",
     "location": {
       "latitude": 25.0518274,
       "longitude": 121.4515413

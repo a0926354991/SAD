@@ -10,7 +10,7 @@
       "辣味"
     ],
     "reviews": [],
-    "menu_image": "Web Crawler/ramin/images\\京阪豚骨拉_menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E4%BA%AC%E9%98%AA%E8%B1%9A%E9%AA%A8%E6%8B%89_menu.jpg",
     "location": {
       "latitude": 25.0126402,
       "longitude": 121.5357009

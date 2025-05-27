@@ -15,7 +15,7 @@
       "主打櫻桃鴨拉麵的專賣店，\n但是湯其實都沒有鴨的元素在裡面。 …",
       "醬油湯頭十分甘醇，配上洋蔥與柚子味特別好\n這個價格稱得上台北前十拉麵\n喜歡肉肉的朋友推特盛，叉燒十分軟嫩，處理的十分優秀 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\醉心拉麵 _menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E9%86%89%E5%BF%83%E6%8B%89%E9%BA%B5%20_menu.jpg",
     "location": {
       "latitude": 25.0135769,
       "longitude": 121.5141602

@@ -14,7 +14,7 @@
       "中午用餐時間找地方吃飯。原本想去四平街吃腿庫飯的，來到那間店門口發現大排長龍。沒有時間在這裡排隊等，這時就想起不遠有間麵屋輝不太需要排隊。 …",
       "2025/4/8二訪\n麻辣魚介湯麵\n麵是細的，但不算會吸附湯汁 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\麵屋輝 台_menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E9%BA%B5%E5%B1%8B%E8%BC%9D%20%E5%8F%B0_menu.jpg",
     "location": {
       "latitude": 25.0495645,
       "longitude": 121.5346561

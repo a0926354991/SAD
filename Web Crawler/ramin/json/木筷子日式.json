@@ -14,7 +14,7 @@
       "餐點服務都一級棒\n推薦給大家👍 …",
       "公司附近開的新店，好吃的咖喱飯，服務人員親切有禮貌，環境乾淨整潔，又多了一個午餐的好去處"
     ],
-    "menu_image": "Web Crawler/ramin/images\\木筷子日式_menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E6%9C%A8%E7%AD%B7%E5%AD%90%E6%97%A5%E5%BC%8F_menu.jpg",
     "location": {
       "latitude": 25.0131186,
       "longitude": 121.474955

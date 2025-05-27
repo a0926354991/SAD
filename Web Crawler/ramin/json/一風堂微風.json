@@ -13,7 +13,7 @@
       "一風堂是榮獲三屆電視冠軍的人氣拉麵名店，服務人員很親切\n餐點選項也很多。\n不論是麵食，飯類，炸物，甜點選擇眾多。 …",
       "位於台北車站樓上（微風美食街）\n此次選：白丸拉麵。 …"
     ],
-    "menu_image": "Web Crawler/ramin/images\\一風堂微風_menu.jpg",
+    "menu_image": "https://storage.googleapis.com/la-king-man.firebasestorage.app/menu_images/%E4%B8%80%E9%A2%A8%E5%A0%82%E5%BE%AE%E9%A2%A8_menu.jpg",
     "location": {
       "latitude": 25.047749,
       "longitude": 121.517044
