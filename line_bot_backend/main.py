@@ -1,6 +1,6 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from dotenv import load_dotenv
-from line_bot_backend.db import add_user, get_all_ramen_shops  # render
+from line_bot_backend.db import add_user, get_all_ramen_shops, get_user_by_id  # render
 from line_bot_backend.db import update_user_location, get_user_location, search_ramen_nearby
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +40,15 @@ app.add_middleware(
 def read_all_ramen_shops():
     shops = get_all_ramen_shops()
     return {"ramen_stores": shops}
+
+# 新增：檢查使用者登入狀態
+@app.get("/users/{user_id}")
+def check_user(user_id: str):
+    user = get_user_by_id(user_id)
+    print(f"🔍 Retrieved user: {user}")
+    if user:
+        return {"status": "success", "user": user}
+    raise HTTPException(status_code=404, detail="User not found")
 
 @app.post("/webhook")
 async def webhook(req: Request):
