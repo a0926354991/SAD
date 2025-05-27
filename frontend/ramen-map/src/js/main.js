@@ -137,16 +137,16 @@ async function initMap() {
 
     // 讀取拉麵店資料
     // fetch('/data/ramen.json')
-    // fetch('/shops')
-    // fetch("http://localhost:8000/all_shops")   // 後端 FastAPI 服務的網址
-    fetch("https://linebot-fastapi-uhmi.onrender.com/all_shops")
+    // fetch('/all_shops')
+    fetch("http://localhost:8000/all_shops")   // 後端 FastAPI 服務的網址
+    // fetch("https://linebot-fastapi-uhmi.onrender.com/all_shops")
         .then(response => response.json())
         .then(data => {
             allStores = data.ramen_stores;
             data.ramen_stores.forEach(store => {
                 const position = {
-                    lat: store.latitude,
-                    lng: store.longitude
+                    lat: store.location.latitude,
+                    lng: store.location.longitude
                 };
 
                 // marker 內容只放圖片
@@ -684,7 +684,7 @@ function init() {
             alert('提交失敗，請稍後再試');
         }
     });
-    
+
     // 1. 網址參數檢查，進來就打開轉盤
     const urlParams = new URLSearchParams(window.location.search);
     const showWheel = urlParams.get("show_wheel");
