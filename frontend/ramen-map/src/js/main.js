@@ -138,8 +138,8 @@ async function initMap() {
     // 讀取拉麵店資料
     // fetch('/data/ramen.json')
     // fetch('/all_shops')
-    fetch("http://localhost:8000/all_shops")   // 後端 FastAPI 服務的網址
-    // fetch("https://linebot-fastapi-uhmi.onrender.com/all_shops")
+    // fetch("http://localhost:8000/all_shops")   // 後端 FastAPI 服務的網址
+    fetch("https://linebot-fastapi-uhmi.onrender.com/all_shops")
         .then(response => response.json())
         .then(data => {
             allStores = data.ramen_stores;
