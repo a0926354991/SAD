@@ -121,7 +121,7 @@ async def webhook(req: Request):
 
 #### Handle logic
 async def is_location_valid(user_id: str, threshold_minutes: int = 5):
-    latlng, last_updated = await get_user_location(user_id)
+    latlng, last_updated = get_user_location(user_id)
 
     if last_updated is None:
         return False, None  # 沒有傳過位置
