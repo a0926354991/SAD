@@ -17,7 +17,9 @@ def add_user(line_user_id, display_name):
     user_ref = db.collection("users").document(line_user_id)
     user_ref.set({
         "display_name": display_name,
-        "joined_at": datetime.utcnow()
+        "joined_at": datetime.utcnow(),
+        "latlng": GeoPoint(0, 0),
+        "last_updated": datetime.utcnow(),
     })
 
 def record_checkin(line_user_id, ramen_store):
@@ -49,7 +51,7 @@ def update_user_location(user_id: str, lat: float, lng: float):
     user_ref = db.collection("users").document(user_id)
     user_ref.update({
         "latlng": GeoPoint(lat, lng),
-        "last_updated": firestore.SERVER_TIMESTAMP
+        "last_updated": datetime.utcnow(),
     })
 
 def get_user_location(user_id: str):
