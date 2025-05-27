@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore, initialize_app
+from google.cloud.firestore_v1.base_document import DocumentSnapshot
 
 key_dict = json.loads(os.environ["FIREBASE_KEY_JSON"])
 cred = credentials.Certificate(key_dict)
@@ -15,12 +16,19 @@ GeoPoint = firestore.GeoPoint
 
 def add_user(line_user_id, display_name):
     user_ref = db.collection("users").document(line_user_id)
-    user_ref.set({
-        "display_name": display_name,
-        "joined_at": datetime.utcnow(),
-        "latlng": GeoPoint(0, 0),
-        "last_updated": datetime.utcnow(),
-    })
+    doc = user_ref.get()
+    if isinstance(doc, DocumentSnapshot) and doc.exists:
+        # 已存在就不處理
+        return False
+    else:
+        # 不存在才新增
+        user_ref.set({
+            "display_name": display_name,
+            "joined_at": datetime.utcnow(),
+            "latlng": GeoPoint(0, 0),
+            "last_updated": datetime.utcnow(),
+        })
+        return True
 
 def record_checkin(line_user_id, ramen_store):
     checkin_ref = db.collection("checkins").document()

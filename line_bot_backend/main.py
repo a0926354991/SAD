@@ -121,7 +121,7 @@ async def webhook(req: Request):
 
 #### Handle logic
 async def is_location_valid(user_id: str, threshold_minutes: int = 5):
-    latlng, last_updated = get_user_location(user_id)
+    latlng, last_updated = await get_user_location(user_id)
 
     if last_updated is None:
         return False, None  # 沒有傳過位置
@@ -149,7 +149,7 @@ async def reply_message(reply_token, text):
 
 ## 回覆拉麵推薦
 async def reply_recommend(reply_token, user_id):
-    is_valid, _ = is_location_valid(user_id)
+    is_valid, _ = await is_location_valid(user_id)
     if is_valid:
         await reply_message(reply_token, "測試成功")
         await reply_ramen_flavor_flex_menu(reply_token)
