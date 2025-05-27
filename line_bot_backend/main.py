@@ -10,6 +10,7 @@ import os
 import aiohttp
 import random
 import json
+import math
 from datetime import datetime, timezone, timedelta
 
 load_dotenv()
@@ -251,10 +252,6 @@ async def reply_ramen_carousel(reply_token, ramen_list):
     }
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
-
-import firebase_admin
-from firebase_admin import credentials, firestore
-import math
 
 def haversine(lat1, lng1, lat2, lng2):
     # Haversine formula
