@@ -114,7 +114,7 @@ async def webhook(req: Request):
                         if is_valid:
                             ramen_list = search_ramen_nearby(latlng.latitude, latlng.longitude, flavor)
                             # print("ramen_list：", ramen_list)
-                            await reply_ramen_flex_carousel(reply_token, ramen_list)
+                            await reply_ramen_carousel(reply_token, ramen_list)
 
                             # 取出 ramen_list 的 id 組合網址
                             shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
@@ -325,7 +325,7 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
                         "color": "#D5E3F7",
                         "action": {
                             "type": "uri",
-                            "label": "🗺️ 地圖導航",
+                            "label": "🗺️ 地圖查看",
                             "uri": f"https://frontend-7ivv.onrender.com/ramen-map/?store_id={ramen['id']}"
                         }
                     },
@@ -370,46 +370,47 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
 
 
 ## 多頁訊息：回傳推薦拉麵店
-# async def reply_ramen_carousel(reply_token, ramen_list):
-#     columns = []
-#     for ramen in ramen_list[:10]:
-#         dist = ramen['distance']
-#         if dist < 1:
-#             dist_str = f"{int(dist * 1000)} 公尺"
-#         else:
-#             dist_str = f"{dist:.2f} 公里"
-#         columns.append({
-#             "thumbnailImageUrl": ramen["image_url"],
-#             "title": ramen["name"][:40],
-#             "text": f"評價：{f'{ramen['rating']}⭐️' if ramen['rating'] is not None else '尚未有評分'}\n距離：{dist_str}",
-#             "actions": [
-#                 {
-#                     "type": "uri",
-#                     "label": "🗺️ 地圖導航",
-#                     "uri": f"https://frontend-7ivv.onrender.com/ramen-map/?store_id={ramen['id']}"
-#                 },
-#                 {"type": "message", "label": "📸 打卡上傳", "text": "打卡上傳"}
-#             ]
-#         })
+async def reply_ramen_carousel(reply_token, ramen_list):
+    columns = []
+    for ramen in ramen_list[:10]:
+        dist = ramen['distance']
+        if dist < 1:
+            dist_str = f"{int(dist * 1000)} 公尺"
+        else:
+            dist_str = f"{dist:.2f} 公里"
+        rating_text = f"{ramen['rating']} ⭐️" if ramen['rating'] is not None else "尚未有評分"
+        columns.append({
+            "thumbnailImageUrl": ramen["image_url"],
+            "title": ramen["name"][:40],
+            "text": f"評價：{rating_text}\n距離：{dist_str}",
+            "actions": [
+                {
+                    "type": "uri",
+                    "label": "🗺️ 地圖查看",
+                    "uri": f"https://frontend-7ivv.onrender.com/ramen-map/?store_id={ramen['id']}"
+                },
+                {"type": "message", "label": "📸 打卡上傳", "text": "打卡上傳"}
+            ]
+        })
 
-#     body = {
-#         "replyToken": reply_token,
-#         "messages": [{
-#             "type": "template",
-#             "altText": "拉麵推薦清單",
-#             "template": {
-#                 "type": "carousel",
-#                 "columns": columns
-#             }
-#         }]
-#     }
-#     url = "https://api.line.me/v2/bot/message/reply"
-#     headers = {
-#         "Authorization": f"Bearer {ACCESS_TOKEN}",
-#         "Content-Type": "application/json"
-#     }
-#     async with aiohttp.ClientSession() as session:
-#         await session.post(url, json=body, headers=headers)
+    body = {
+        "replyToken": reply_token,
+        "messages": [{
+            "type": "template",
+            "altText": "拉麵推薦清單",
+            "template": {
+                "type": "carousel",
+                "columns": columns
+            }
+        }]
+    }
+    url = "https://api.line.me/v2/bot/message/reply"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        await session.post(url, json=body, headers=headers)
 
 async def get_user_profile(user_id: str):
     url = f"https://api.line.me/v2/bot/profile/{user_id}"
