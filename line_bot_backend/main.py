@@ -96,7 +96,7 @@ async def webhook(req: Request):
                             # 取出 ramen_list 的 id 組合網址
                             shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
                             ids_str = ",".join(shop_ids)
-                            roulette_url = f"https://your-frontend-domain/roulette.html?ids={ids_str}"
+                            roulette_url = f"https://frontend-7ivv.onrender.com/ramen-map?ids={ids_str}"
 
                             # 傳一個訊息給使用者
                             reply_text = f"🎲 沒辦法抉擇要吃哪一家嗎？[點這裡進入轉盤]({roulette_url})"
@@ -252,7 +252,7 @@ async def reply_ramen_carousel(reply_token, ramen_list):
                     "type": "uri",
                     "label": "🗺️ 地圖導航",
                     # 在這裡組合 map_url，假設 id 已有
-                    "uri": f"https://yourmapsite.com/ramen_map?store_id={ramen['id']}"
+                    "uri": f"https://frontend-7ivv.onrender.com/ramen-map?store_id={ramen['id']}"
                 },
                 {"type": "message", "label": "📸 打卡上傳", "text": "打卡上傳"}
             ]
