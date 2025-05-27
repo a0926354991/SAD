@@ -248,12 +248,12 @@ async def reply_ramen_carousel(reply_token, ramen_list):
                 # {"type": "uri", "label": "🗺️ 地圖導航", "uri": ramen["map_url"]},
 
                 # 新加的
-                # {
-                #     "type": "uri",
-                #     "label": "🗺️ 地圖導航",
-                #     # 在這裡組合 map_url，假設 id 已有
-                #     "uri": f"https://yourmapsite.com/ramen_map?store_id={ramen['id']}"
-                # },
+                {
+                    "type": "uri",
+                    "label": "🗺️ 地圖導航",
+                    # 在這裡組合 map_url，假設 id 已有
+                    "uri": f"https://yourmapsite.com/ramen_map?store_id={ramen['id']}"
+                },
                 {"type": "message", "label": "📸 打卡上傳", "text": "打卡上傳"}
             ]
         })
