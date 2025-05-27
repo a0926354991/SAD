@@ -221,41 +221,51 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                 "body": {
                     "type": "box",
                     "layout": "vertical",
-                    "spacing": "md",
-                    "borderWidth": "2px",
-                    "borderColor": "#FFE175",  # 你可以調整顏色
-                    # "cornerRadius": "10px",    # 加一點圓角更好看（可選）
+                    "backgroudColor": "#FFE175",
+                    "paddingAll": "3px",
                     "contents": [
                         {
-                            "type": "text",
-                            "text": "今天想吃哪種拉麵？",
-                            "weight": "bold",
-                            "size": "lg",
-                            "wrap": True
+                            "type": "box",
+                            "layout": "vertical",
+                            "spacing": "md",
+                            "paddingAll": "12px",
+                            "backgroundColor": "#FCF9F4",
+                            # "borderWidth": "2px",
+                            # "borderColor": "#FFE175",  # 你可以調整顏色
+                            # "cornerRadius": "10px",    # 加一點圓角更好看（可選）
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": "今天想吃哪種拉麵？",
+                                    "weight": "bold",
+                                    "size": "lg",
+                                    "wrap": True
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "請選擇想吃的拉麵口味，我們為你推薦附近的拉麵店家🍜",
+                                    "size": "sm",
+                                    "color": "#888888",
+                                    "wrap": True
+                                },
+                                *[
+                                    {
+                                        "type": "button",
+                                        "action": { "type": "message", "label": f"{flavor}", "text": f"今天想吃的拉麵口味：{flavor}"},
+                                        "style": "secondary",
+                                        "height": "sm",
+                                        "margin": "md",
+                                        "color": "#FDEDC7"
+                                    }
+                                    for flavor in FLAVORS
+                                ]
+                            ]
                         },
-                        {
-                            "type": "text",
-                            "text": "請選擇想吃的拉麵口味，我們為你推薦附近的拉麵店家🍜",
-                            "size": "sm",
-                            "color": "#888888",
-                            "wrap": True
-                        },
-                        *[
-                            {
-                                "type": "button",
-                                "action": { "type": "message", "label": f"{flavor}", "text": f"今天想吃的拉麵口味：{flavor}"},
-                                "style": "secondary",
-                                "height": "sm",
-                                "margin": "md",
-                                "color": "#FDEDC7"
-                            }
-                            for flavor in FLAVORS
-                        ]
                     ]
-                },
-                "styles": {
-                    "body": { "backgroundColor": "#FCF9F4" }
                 }
+                # "styles": {
+                #     "body": { "backgroundColor": "#FCF9F4" }
+                # }
             }
         }]
     }
@@ -275,6 +285,18 @@ async def reply_ramen_flavor_flex_menu(reply_token):
 ## 多頁訊息：回傳推薦拉麵店 (flex message)
 async def reply_ramen_flex_carousel(reply_token, ramen_list):
     bubbles = []
+    # 左側大頭貼留白
+    space = {
+        "type": "bubble",
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "content": [],
+            "width": "14%"
+        }
+    }
+    bubbles.append(space)
+
     for ramen in ramen_list[:10]:
         dist = ramen['distance']
         if dist < 1:
