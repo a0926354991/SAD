@@ -158,6 +158,10 @@ function selectStore(store) {
     if (selectedMarker) {
         showOnlySelectedMarker(selectedMarker);
     }
+    // --------- 新增：自動修改網址 store_id 參數 ----------
+    const url = new URL(window.location);
+    url.searchParams.set('store_id', store.id);
+    window.history.replaceState({}, '', url);
 }
 
 // 新增：處理所有 URL 參數
