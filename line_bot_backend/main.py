@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
 from line_bot_backend.db import add_user, get_all_ramen_shops  # render
-from line_bot_backend.db import update_user_location, get_user_location
+from line_bot_backend.db import update_user_location, get_user_location, search_ramen_nearby
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore # 毛加的 測試中
@@ -89,7 +89,7 @@ async def webhook(req: Request):
                     if flavor in FLAVORS:
                         is_valid, latlng = await is_location_valid(user_id)
                         if is_valid:
-                            ramen_list = await search_ramen_nearby(latlng["lat"], latlng["lng"], flavor)
+                            ramen_list = search_ramen_nearby(latlng.latitude, latlng.longitude, flavor)
                             await reply_ramen_carousel(reply_token, ramen_list)
                         else:
                             await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
@@ -253,43 +253,43 @@ async def reply_ramen_carousel(reply_token, ramen_list):
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
 
-def haversine(lat1, lng1, lat2, lng2):
-    # Haversine formula
-    R = 6371
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lng2 - lng1)
-    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
-    return 2 * R * math.asin(math.sqrt(a))
+# def haversine(lat1, lng1, lat2, lng2):
+#     # Haversine formula
+#     R = 6371
+#     phi1 = math.radians(lat1)
+#     phi2 = math.radians(lat2)
+#     dphi = math.radians(lat2 - lat1)
+#     dlambda = math.radians(lng2 - lng1)
+#     a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+#     return 2 * R * math.asin(math.sqrt(a))
 
-async def search_ramen_nearby(lat, lng, flavor):
-    db = firestore.client()
-    # 取得所有有該 flavor 的拉麵店
-    docs = db.collection("ramen_shops").where("keywords", "array_contains", flavor).stream()
+# async def search_ramen_nearby(lat, lng, flavor):
+#     db = firestore.client()
+#     # 取得所有有該 flavor 的拉麵店
+#     docs = db.collection("ramen_shops").where("keywords", "array_contains", flavor).stream()
     
-    shops = []
-    async for doc in docs:
-        data = doc.to_dict()
-        shop_lat = data["location"]["latitude"]
-        shop_lng = data["location"]["longitude"]
-        dist = haversine(lat, lng, shop_lat, shop_lng)
-        shops.append({
-            "id": doc.id,
-            "name": data.get("name", ""),
-            "distance": dist,
-            "address": data.get("address", ""),
-            "image_url": data.get("menu_image", ""),
-            "rating": data.get("rating", 0),
-            "phone": data.get("phone", ""),
-            "lat": shop_lat,
-            "lng": shop_lng,
-            "keywords": data.get("keywords", []),
-            # 你可以加 rating, map_url, open_time, ...看你要回哪些
-        })
-    # 按照距離排序
-    shops.sort(key=lambda x: x["distance"])
-    return shops
+#     shops = []
+#     async for doc in docs:
+#         data = doc.to_dict()
+#         shop_lat = data["location"]["latitude"]
+#         shop_lng = data["location"]["longitude"]
+#         dist = haversine(lat, lng, shop_lat, shop_lng)
+#         shops.append({
+#             "id": doc.id,
+#             "name": data.get("name", ""),
+#             "distance": dist,
+#             "address": data.get("address", ""),
+#             "image_url": data.get("menu_image", ""),
+#             "rating": data.get("rating", 0),
+#             "phone": data.get("phone", ""),
+#             "lat": shop_lat,
+#             "lng": shop_lng,
+#             "keywords": data.get("keywords", []),
+#             # 你可以加 rating, map_url, open_time, ...看你要回哪些
+#         })
+#     # 按照距離排序
+#     shops.sort(key=lambda x: x["distance"])
+#     return shops
 
 
 # 假資料：搜尋附近的拉麵（你可以換成 Firebase 查詢）
