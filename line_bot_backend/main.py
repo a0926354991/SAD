@@ -5,6 +5,7 @@ from line_bot_backend.db import update_user_location, get_user_location, search_
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore # 毛加的 測試中
+from pydantic import BaseModel
 
 import os
 import aiohttp
@@ -50,12 +51,19 @@ def check_user(user_id: str):
         return {"status": "success", "user": user}
     raise HTTPException(status_code=404, detail="User not found")
 
+class CheckInRequest(BaseModel):
+    store_id: str
+    user_id: str
+    rating: float
+    comment: str = ""
+
 @app.post("/checkin")
-async def submit_checkin(store_id: str, user_id: str, rating: float, comment: str = None):
-    success, message = create_checkin(store_id, user_id, rating, comment)
-    if not success:
-        raise HTTPException(status_code=404 if message == "Store not found" else 500, detail=message)
-    return {"status": "success", "message": message}
+def checkin(data: CheckInRequest):
+    # ✅ 呼叫你的 Firestore 函數
+    success, message = create_checkin(data.dict())
+    if success:
+        return {"status": "success", "message": message}
+    raise HTTPException(status_code=400, detail=message)
 
 @app.post("/webhook")
 async def webhook(req: Request):
