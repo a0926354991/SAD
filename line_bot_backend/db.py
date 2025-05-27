@@ -51,7 +51,7 @@ def get_all_ramen_shops():
     result = []
     for doc in docs:
         shop = doc.to_dict()
-        shop["id"] = doc.id
+        # shop["id"] = doc.id
         result.append(shop)
     return result
 
