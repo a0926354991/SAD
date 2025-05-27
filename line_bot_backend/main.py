@@ -90,7 +90,7 @@ async def webhook(req: Request):
                         is_valid, latlng = await is_location_valid(user_id)
                         if is_valid:
                             ramen_list = search_ramen_nearby(latlng.latitude, latlng.longitude, flavor)
-                            print("ramen_list：", ramen_list)
+                            # print("ramen_list：", ramen_list)
                             await reply_ramen_carousel(reply_token, ramen_list)
                         else:
                             await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
@@ -225,12 +225,26 @@ async def reply_ramen_flavor_flex_menu(reply_token):
 async def reply_ramen_carousel(reply_token, ramen_list):
     columns = []
     for ramen in ramen_list[:10]:
+        dist = ramen['distance']
+        if dist < 1:
+            dist_str = f"{int(dist * 1000)} 公尺"
+        else:
+            dist_str = f"{dist:.2f} 公里"
         columns.append({
             "thumbnailImageUrl": ramen["image_url"],
             "title": ramen["name"][:40],
-            "text": f"評價：{ramen['rating']}，距離：{ramen['distance']} 公尺",
+            "text": f"評價：{ramen['rating']}，距離：{dist_str}",
             "actions": [
+                # 原本的
                 # {"type": "uri", "label": "🗺️ 地圖導航", "uri": ramen["map_url"]},
+
+                # 新加的
+                # {
+                #     "type": "uri",
+                #     "label": "🗺️ 地圖導航",
+                #     # 在這裡組合 map_url，假設 id 已有
+                #     "uri": f"https://yourmapsite.com/ramen_map?store_id={ramen['id']}"
+                # },
                 {"type": "message", "label": "📸 打卡上傳", "text": "打卡上傳"}
             ]
         })

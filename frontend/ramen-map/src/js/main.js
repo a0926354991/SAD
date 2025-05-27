@@ -696,6 +696,16 @@ function init() {
             if (typeof drawWheel === "function") drawWheel();
         }, 600); // 時間依你畫面複雜度調整，通常 500~1000ms 最穩
     }
+
+    // 2. 網址參數自動聚焦單一店家（加在 init 結尾）
+    const storeId = urlParams.get("store_id");
+    if (storeId && typeof selectStore === "function") {
+        // 可能要等 stores 載入完成才找得到
+        setTimeout(() => {
+            const store = allStores.find(s => s.id === storeId);
+            if (store) selectStore(store);
+        }, 300); // 視 stores 載入速度調整，通常 200~500ms 就夠
+    }
 }
 
 init();
