@@ -85,7 +85,6 @@ async def webhook(req: Request):
 
         if event_type == "message":
             msg_type = event["message"]["type"]
-            # print("📍 傳入訊息類型：", msg_type)
 
             # 1️⃣ 使用者傳文字訊息
             if msg_type == "text":
@@ -123,7 +122,7 @@ async def webhook(req: Request):
                             roulette_url = f"https://frontend-7ivv.onrender.com/ramen-map/?show_wheel=1&store_ids={ids_str}"
 
                             # 傳一個訊息給使用者
-                            reply_text = f"🎲 沒辦法抉擇要吃哪一家嗎？[點這裡進入轉盤]({roulette_url})"
+                            reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
                             await push_message(user_id, reply_text)
                         else:
                             await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
@@ -201,7 +200,7 @@ async def reply_message(reply_token, text):
 async def reply_recommend(reply_token, user_id):
     is_valid, _ = await is_location_valid(user_id)
     if is_valid:
-        await reply_message(reply_token, "測試成功")
+        # await reply_message(reply_token, "測試成功")
         await reply_ramen_flavor_flex_menu(reply_token)
     else:
         await reply_message(
@@ -223,6 +222,9 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                     "type": "box",
                     "layout": "vertical",
                     "spacing": "md",
+                    "borderWidth": "2px",
+                    "borderColor": "#FFE175",  # 你可以調整顏色
+                    # "cornerRadius": "10px",    # 加一點圓角更好看（可選）
                     "contents": [
                         {
                             "type": "text",
@@ -233,7 +235,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                         },
                         {
                             "type": "text",
-                            "text": "選擇想吃的拉麵口味，我們為你推薦附近的拉麵店家",
+                            "text": "請選擇想吃的拉麵口味，我們為你推薦附近的拉麵店家🍜",
                             "size": "sm",
                             "color": "#888888",
                             "wrap": True
@@ -241,18 +243,18 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                         *[
                             {
                                 "type": "button",
-                                "action": { "type": "message", "label": f"🍜 {flavor}", "text": f"今天想吃的拉麵口味：{flavor}"},
+                                "action": { "type": "message", "label": f"{flavor}", "text": f"今天想吃的拉麵口味：{flavor}"},
                                 "style": "secondary",
                                 "height": "sm",
                                 "margin": "md",
-                                "color": "#f0f0f0"
+                                "color": "#FDEDC7"
                             }
                             for flavor in FLAVORS
                         ]
                     ]
                 },
                 "styles": {
-                    "body": { "backgroundColor": "#ffffff" }
+                    "body": { "backgroundColor": "#FCF9F4" }
                 }
             }
         }]
