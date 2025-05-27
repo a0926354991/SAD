@@ -18,15 +18,13 @@ bucket = storage.bucket()
 count = 0
 
 for image_file in os.listdir(image_folder):
-    if image_file.endswith("_menu.jpg"):
-        # 去掉 _menu.jpg，找對應 json 檔案
-        shop_prefix = image_file.replace("_menu.jpg", "")
+    if image_file.endswith("_picture.jpg"):
+        shop_prefix = image_file.replace("_picture.jpg", "")
         json_file = shop_prefix + ".json"
 
         image_path = os.path.join(image_folder, image_file)
         json_path = os.path.join(json_folder, json_file)
 
-        # 如果 JSON 檔存在才處理
         if os.path.exists(json_path):
             print(f"🔄 處理 {image_file} -> {json_file}")
 
@@ -35,15 +33,22 @@ for image_file in os.listdir(image_folder):
             blob = bucket.blob(firebase_path)
             blob.upload_from_filename(image_path)
             blob.make_public()
-            image_url = blob.public_url
+            picture_url = blob.public_url
 
             # 更新 JSON
             with open(json_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             if "store_info" in data:
-                data["store_info"]["menu_image"] = image_url
+                # 插入 picture_image 在 menu_image 後面（保順序）
+                new_store_info = {}
+                for key, value in data["store_info"].items():
+                    new_store_info[key] = value
+                    if key == "menu_image":
+                        new_store_info["picture_image"] = picture_url
+                data["store_info"] = new_store_info
 
+                # 儲存更新後的 JSON
                 with open(json_path, "w", encoding="utf-8") as f:
                     json.dump(data, f, ensure_ascii=False, indent=2)
 
