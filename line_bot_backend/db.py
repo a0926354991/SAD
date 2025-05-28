@@ -28,6 +28,7 @@ def add_user(line_user_id, display_name):
             "joined_at": datetime.utcnow(),
             "latlng": GeoPoint(0, 0),
             "last_updated": datetime.utcnow(),
+            "selected_ramen_shops": list(),
         })
         return True
 
