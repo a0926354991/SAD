@@ -398,17 +398,6 @@ async def reply_ramen_new_flex_carousel(reply_token, ramen_list):
 ## 多頁訊息：回傳推薦拉麵店 (flex message)
 async def reply_ramen_flex_carousel(reply_token, ramen_list):
     bubbles = []
-    # 左側大頭貼留白
-    # space = {
-    #     "type": "bubble",
-    #     "body": {
-    #         "type": "box",
-    #         "layout": "vertical",
-    #         "content": [],
-    #         "width": "14%"
-    #     }
-    # }
-    # bubbles.append(space)
 
     for ramen in ramen_list[:10]:
         dist = ramen['distance']
@@ -451,7 +440,7 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
             },
             "footer": {
                 "type": "box",
-                "layout": "horizontal",
+                "layout": "vertical",
                 "spacing": "md",
                 "contents": [
                     {
