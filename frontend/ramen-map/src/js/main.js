@@ -848,7 +848,7 @@ async function init() {
         }
 
         const formData = {
-            store_id: currentStore.name,
+            store_id: currentStore.id,
             user_id: currentUser.id,
             rating: parseFloat(ratingInput.value),
             comment: document.getElementById('storeComment').value,
