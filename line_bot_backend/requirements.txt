@@ -4,3 +4,4 @@ aiohttp
 python-dotenv
 sqlalchemy
 firebase-admin
+python-multipart
