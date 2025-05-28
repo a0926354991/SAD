@@ -923,7 +923,7 @@ async function init() {
             }
 
             const formData = {
-                store_id: currentStore.id,
+                store_id: currentStore.name,
                 user_id: currentUser.id,
                 rating: parseFloat(ratingValue),
                 comment: commentValue,
