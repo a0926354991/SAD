@@ -11,53 +11,6 @@ let allMarkers = []; // 新增：儲存所有標記
 // 新增：登入相關變數
 let currentUser = null;
 
-// 從 LIFF 進來，辨別 user id
-async function initLIFFandRedirect() {
-    // 如果不是從 LIFF 啟動的就不用處理
-    if (!window.location.href.includes("liff.line.me")) return;
-
-    // 載入 LIFF SDK
-    await loadLiffScript();
-
-    // 初始化
-    await liff.init({ liffId: "2007489792-4popYn8a" });
-
-    // 判斷是不是在 LINE 裡面
-    if (!liff.isInClient()) {
-        alert("請從LINE圖文選單開啟哦！");
-        return;
-    }
-
-    // 拿到 userId
-    const profile = await liff.getProfile();
-    const userId = profile.userId;
-
-    // 取得當前網址參數
-    const params = new URLSearchParams(window.location.search);
-    // 如果已經有 user_id 就不用再導了
-    if (params.get("user_id") === userId) return;
-
-    // 加上 user_id 並 redirect
-    params.set("user_id", userId);
-
-    // 保持其他參數不變
-    const path = window.location.pathname;
-    window.location.replace(`${path}?${params.toString()}`);
-}
-
-// 動態載入 LIFF SDK
-function loadLiffScript() {
-    return new Promise((resolve) => {
-        if (window.liff) return resolve();
-        const script = document.createElement('script');
-        script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
-        script.onload = resolve;
-        document.head.appendChild(script);
-    });
-}
-
-initLIFFandRedirect();
-
 // 新增：自定義事件系統
 const storeEvents = {
     listeners: {},
@@ -222,24 +175,6 @@ function selectStore(store) {
 // 新增：處理所有 URL 參數
 function handleUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
-    
-    // 處理 liff.state 參數
-    if (urlParams.has('liff.state')) {
-        const state = decodeURIComponent(urlParams.get('liff.state'));
-        const stateParams = new URLSearchParams(state);
-        
-        // 將 state 中的參數複製到主要的 urlParams 中
-        for (const [key, value] of stateParams.entries()) {
-            urlParams.set(key, value);
-        }
-        
-        // 移除 liff.state 參數
-        urlParams.delete('liff.state');
-        
-        // 更新 URL，但不重新載入頁面
-        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-        window.history.replaceState({}, '', newUrl);
-    }
     
     // 1. 處理登入狀態 - 移到 checkLoginStatus 函式中
     
