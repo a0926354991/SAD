@@ -1,10 +1,9 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from dotenv import load_dotenv
-from line_bot_backend.db import add_user, get_all_ramen_shops, get_user_by_id  # render
-from line_bot_backend.db import update_user_location, get_user_location, search_ramen_nearby, create_checkin
+from line_bot_backend.db import add_user, get_all_ramen_shops, get_user_by_id, update_user_location, get_user_location, search_ramen_nearby, create_checkin, upload_photo
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
-from firebase_admin import firestore # 毛加的 測試中
+from firebase_admin import firestore, storage # 新增：storage
 from pydantic import BaseModel
 
 import os
@@ -13,6 +12,7 @@ import random
 import json
 import math
 from datetime import datetime, timezone, timedelta
+import uuid  # 新增：用於生成唯一檔名
 
 load_dotenv()
 app = FastAPI()
@@ -56,6 +56,7 @@ class CheckInRequest(BaseModel):
     user_id: str
     rating: float
     comment: str = ""
+    photo_url: str = ""  # 新增：照片 URL
 
 @app.post("/checkin")
 def checkin(data: CheckInRequest):
@@ -64,6 +65,31 @@ def checkin(data: CheckInRequest):
     if success:
         return {"status": "success", "message": message}
     raise HTTPException(status_code=400, detail=message)
+
+# 新增：照片上傳 endpoint
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    try:
+        # 檢查檔案類型
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="只能上傳圖片檔案")
+        
+        # 讀取檔案內容
+        content = await file.read()
+        
+        # 使用 db.py 中的函數上傳照片
+        success, result = upload_photo(content, file.content_type)
+        
+        if success:
+            return {
+                "status": "success",
+                "url": result
+            }
+        else:
+            raise HTTPException(status_code=500, detail=result)
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/webhook")
 async def webhook(req: Request):
@@ -567,4 +593,6 @@ async def reply_ramen_flavor_quick_reply(reply_token):
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
 '''
+
+
 

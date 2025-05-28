@@ -2,9 +2,10 @@ import os
 import json
 from datetime import datetime
 import firebase_admin
-from firebase_admin import credentials, firestore, initialize_app
+from firebase_admin import credentials, firestore, storage, initialize_app
 from google.cloud.firestore_v1.base_document import DocumentSnapshot
 import math
+import uuid
 
 key_dict = json.loads(os.environ["FIREBASE_KEY_JSON"])
 cred = credentials.Certificate(key_dict)
@@ -127,6 +128,7 @@ def create_checkin(data: dict):
         user_id = data.get("user_id")
         rating = data.get("rating")
         comment = data.get("comment", "")
+        photo_url = data.get("photo_url", "")
 
         # 檢查必要欄位
         if not store_id or not user_id or rating is None:
@@ -146,6 +148,7 @@ def create_checkin(data: dict):
             "user_id": user_id,
             "rating": rating,
             "comment": comment,
+            "photo_url": photo_url,
             "timestamp": datetime.now(datetime.UTC)
         }
 
@@ -153,6 +156,34 @@ def create_checkin(data: dict):
         checkin_ref.set(checkin_data)
 
         return True, "Check-in recorded successfully"
+    except Exception as e:
+        return False, str(e)
+
+def upload_photo(file_content: bytes, content_type: str) -> tuple[bool, str]:
+    """
+    上傳照片到 Firebase Storage
+    Returns:
+        tuple[bool, str]: (成功與否, URL或錯誤訊息)
+    """
+    try:
+        # 生成唯一檔名
+        file_extension = '.jpg' if 'jpeg' in content_type else '.png'
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        
+        # 設定 Firebase Storage 路徑
+        bucket = storage.bucket()
+        blob = bucket.blob(f"checkin_photos/{unique_filename}")
+        
+        # 上傳檔案到 Firebase Storage
+        blob.upload_from_string(
+            file_content,
+            content_type=content_type
+        )
+        
+        # 設定檔案為公開可讀
+        blob.make_public()
+        
+        return True, blob.public_url
     except Exception as e:
         return False, str(e)
 
