@@ -803,14 +803,7 @@ async function init() {
             
             const reader = new FileReader();
             reader.onload = function(e) {
-                photoPreview.innerHTML = `
-                    <div class="photo-preview-container">
-                        <img src="${e.target.result}" alt="預覽照片" class="photo-preview">
-                        <button type="button" class="remove-photo" onclick="removePhoto()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                `;
+                photoPreview.innerHTML = `<img src="${e.target.result}" alt="預覽照片">`;
             };
             reader.readAsDataURL(file);
         }

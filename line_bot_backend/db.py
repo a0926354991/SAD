@@ -171,7 +171,7 @@ def upload_photo(file_content: bytes, content_type: str) -> tuple[bool, str]:
         unique_filename = f"{uuid.uuid4()}{file_extension}"
         
         # 設定 Firebase Storage 路徑
-        bucket = storage.bucket()
+        bucket = storage.bucket('la-king-man.appspot.com')
         blob = bucket.blob(f"checkin_photos/{unique_filename}")
         
         # 上傳檔案到 Firebase Storage
