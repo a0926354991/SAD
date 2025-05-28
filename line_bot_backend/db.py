@@ -14,7 +14,7 @@ cred = credentials.Certificate(key_dict)
 # cred = credentials.Certificate("key.json")
 
 initialize_app(cred, {
-    "storageBucket": "la-king-man.appspot.com"
+    "storageBucket": "la-king-man.firebasestorage.app"
 })
 db = firestore.client()
 GeoPoint = firestore.GeoPoint
