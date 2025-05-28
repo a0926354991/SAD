@@ -522,7 +522,34 @@ function initWheel() {
     let isSpinning = false;
     let selectedStore = null;
 
-    // 將 drawWheel 函數移到外部，使其可以被全局訪問
+    // 修改：加入/移除轉盤的功能
+    addToWheelFab.addEventListener('click', () => {
+        if (currentStore) {
+            const isInWheel = isStoreInWheel(currentStore);
+            
+            if (!isInWheel) {
+                wheelStores.push(currentStore);
+                showToast('🎉已將店家加入轉盤🎉');
+            } else {
+                // 從轉盤中移除店家
+                wheelStores = wheelStores.filter(store => 
+                    !(store.name === currentStore.name && 
+                      store.address === currentStore.address)
+                );
+                showToast('🗑️已從轉盤移除店家🗑️');
+            }
+            
+            // 更新按鈕圖示
+            updateAddToWheelButton(currentStore);
+            
+            // 如果轉盤視窗是開啟的，重新繪製轉盤
+            if (wheelModal.classList.contains('active')) {
+                drawWheel();
+            }
+        }
+    });
+
+    // 將 drawWheel 函數設為全局可訪問
     window.drawWheel = function() {
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
@@ -592,7 +619,8 @@ function initWheel() {
         ctx.fill();
     };
 
-    function spinWheel() {
+    // 將 spinWheel 函數設為全局可訪問
+    window.spinWheel = function() {
         if (isSpinning || wheelStores.length === 0) return;
         
         isSpinning = true;
@@ -630,7 +658,7 @@ function initWheel() {
         }
         
         requestAnimationFrame(animate);
-    }
+    };
 
     wheelFab.addEventListener('click', () => {
         wheelModal.classList.add('active');
