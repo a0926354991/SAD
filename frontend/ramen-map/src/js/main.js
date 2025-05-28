@@ -20,7 +20,7 @@ async function initLIFFandRedirect() {
     await loadLiffScript();
 
     // 初始化
-    await liff.init({ liffId: "你的LIFF_ID" });
+    await liff.init({ liffId: "2007489792-4popYn8a" });
 
     // 判斷是不是在 LINE 裡面
     if (!liff.isInClient()) {
