@@ -144,11 +144,18 @@ def create_checkin(data: dict):
             return False, "Store not found"
         store_data = store_doc.to_dict()
 
+        user_ref = db.collection("users").document(user_id)
+        user_doc = user_ref.get()
+        if not user_doc.exists:
+            return False, "User not found"
+        user_data = user_doc.to_dict()
+
         # 建立打卡記錄
         checkin_data = {
             "store_id": store_id,
             "store_name": store_data.get("name", ""),
             "user_id": user_id,
+            "user_name": user_data.get("display_name", ""),
             "rating": rating,
             "comment": comment,
             "photo_url": photo_url,
