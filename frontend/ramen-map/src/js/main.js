@@ -462,6 +462,10 @@ function handleRatingClick(e) {
     const rating = parseInt(e.target.dataset.rating);
     ratingInput.value = rating;
     
+    // 隱藏錯誤訊息
+    const ratingError = document.querySelector('.rating-error');
+    ratingError.style.display = 'none';
+    
     ratingStars.forEach(star => {
         const starRating = parseInt(star.dataset.rating);
         star.classList.toggle('active', starRating <= rating);
@@ -714,115 +718,184 @@ function showAllMarkers() {
     });
 }
 
+// 新增：控制 loading 遮罩
+function showLoading() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'flex';
+    }
+}
+
+function hideLoading() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
+}
+
 // 初始化所有功能
 async function init() {
-    initMap();
-    initWheel();
+    showLoading();
+    
+    try {
+        await initMap();
+        initWheel();
 
-    // 檢查登入狀態
-    await checkLoginStatus();
+        // 檢查登入狀態
+        await checkLoginStatus();
 
-    // 新增：搜尋功能初始化
-    const searchInput = document.getElementById('searchInput');
-    const searchBox = document.querySelector('.search-box');
-    const searchToggle = document.querySelector('.search-toggle');
-    const searchResults = document.getElementById('searchResults');
+        // 新增：搜尋功能初始化
+        const searchInput = document.getElementById('searchInput');
+        const searchBox = document.querySelector('.search-box');
+        const searchToggle = document.querySelector('.search-toggle');
+        const searchResults = document.getElementById('searchResults');
 
-    // 切換搜尋欄顯示
-    searchToggle.addEventListener('click', () => {
-        searchBox.classList.toggle('active');
-        if (searchBox.classList.contains('active')) {
-            searchInput.focus();
-        }
-    });
+        // 切換搜尋欄顯示
+        searchToggle.addEventListener('click', () => {
+            searchBox.classList.toggle('active');
+            if (searchBox.classList.contains('active')) {
+                searchInput.focus();
+            }
+        });
 
-    // 點擊其他地方時隱藏搜尋欄
-    document.addEventListener('click', (e) => {
-        if (!searchBox.contains(e.target) && !searchToggle.contains(e.target)) {
-            searchBox.classList.remove('active');
-            searchResults.classList.remove('active');
-        }
-    });
+        // 點擊其他地方時隱藏搜尋欄
+        document.addEventListener('click', (e) => {
+            if (!searchBox.contains(e.target) && !searchToggle.contains(e.target)) {
+                searchBox.classList.remove('active');
+                searchResults.classList.remove('active');
+            }
+        });
 
-    // 執行搜尋的函數
-    const performSearch = () => {
-        searchStores(searchInput.value, true, true);
-    };
+        // 執行搜尋的函數
+        const performSearch = () => {
+            searchStores(searchInput.value, true, true);
+        };
 
-    // 按下 Enter 時搜尋
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            performSearch();
-        }
-    });
+        // 按下 Enter 時搜尋
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
 
-    // 即時搜尋，不顯示找不到的提示，不選中第一個
-    searchInput.addEventListener('input', (e) => {
-        searchStores(e.target.value, false, false);
-        if (e.target.value.trim() !== '') {
-            searchResults.classList.add('active');
-        } else {
-            searchResults.classList.remove('active');
-        }
-    });
+        // 即時搜尋，不顯示找不到的提示，不選中第一個
+        searchInput.addEventListener('input', (e) => {
+            searchStores(e.target.value, false, false);
+            if (e.target.value.trim() !== '') {
+                searchResults.classList.add('active');
+            } else {
+                searchResults.classList.remove('active');
+            }
+        });
 
-    // 打卡功能事件監聽
-    checkInFab.addEventListener('click', () => {
-        if (currentStore && canCheckIn()) {
-            openCheckInModal(currentStore);
-        }
-    });
+        // 打卡功能事件監聽
+        checkInFab.addEventListener('click', () => {
+            if (currentStore && canCheckIn()) {
+                openCheckInModal(currentStore);
+            }
+        });
 
-    closeModal.addEventListener('click', closeCheckInModal);
+        closeModal.addEventListener('click', closeCheckInModal);
 
-    checkInModal.addEventListener('click', (e) => {
-        if (e.target === checkInModal) {
-            closeCheckInModal();
-        }
-    });
+        checkInModal.addEventListener('click', (e) => {
+            if (e.target === checkInModal) {
+                closeCheckInModal();
+            }
+        });
 
-    ratingStars.forEach(star => {
-        star.addEventListener('click', handleRatingClick);
-    });
+        ratingStars.forEach(star => {
+            star.addEventListener('click', handleRatingClick);
+        });
 
-    photoInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            // 檢查檔案類型
-            if (!file.type.startsWith('image/')) {
-                showToast('請上傳圖片檔案');
-                photoInput.value = '';
+        photoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const errorElement = photoInput.nextElementSibling.nextElementSibling;
+            
+            if (file) {
+                // 檢查檔案類型
+                if (!file.type.startsWith('image/')) {
+                    showToast('請上傳圖片檔案');
+                    photoInput.value = '';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                // 檢查檔案大小（限制為 5MB）
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('圖片大小不能超過 5MB');
+                    photoInput.value = '';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                errorElement.style.display = 'none';
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    photoPreview.innerHTML = `<img src="${e.target.result}" alt="預覽照片">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        checkInForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!currentStore) {
+                alert('請先選擇一家拉麵店');
+                return;
+            }
+
+            // 驗證所有必填欄位
+            const ratingValue = ratingInput.value;
+            const commentValue = document.getElementById('storeComment').value.trim();
+            const photoFile = photoInput.files[0];
+            
+            let hasError = false;
+            
+            // 驗證評分
+            const ratingError = document.querySelector('.rating-error');
+            if (!ratingValue) {
+                ratingError.style.display = 'block';
+                hasError = true;
+            } else {
+                ratingError.style.display = 'none';
+            }
+            
+            // 驗證評論
+            const commentError = document.querySelector('#storeComment').nextElementSibling;
+            if (!commentValue) {
+                commentError.style.display = 'block';
+                hasError = true;
+            } else {
+                commentError.style.display = 'none';
+            }
+            
+            // 驗證照片
+            const photoError = document.querySelector('#checkInPhoto').nextElementSibling.nextElementSibling;
+            if (!photoFile) {
+                photoError.style.display = 'block';
+                hasError = true;
+            } else {
+                photoError.style.display = 'none';
+            }
+            
+            if (hasError) {
+                return;
+            }
+
+            // 防止重複提交
+            const submitBtn = checkInForm.querySelector('.submit-btn');
+            if (submitBtn.disabled) {
                 return;
             }
             
-            // 檢查檔案大小（限制為 5MB）
-            if (file.size > 5 * 1024 * 1024) {
-                showToast('圖片大小不能超過 5MB');
-                photoInput.value = '';
-                return;
-            }
+            // 設定 loading 狀態
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+            // 處理照片上傳
+            let photoUrl = '';
             
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                photoPreview.innerHTML = `<img src="${e.target.result}" alt="預覽照片">`;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    checkInForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        if (!currentStore) {
-            alert('請先選擇一家拉麵店');
-            return;
-        }
-
-        // 處理照片上傳
-        const photoFile = photoInput.files[0];
-        let photoUrl = '';
-        
-        if (photoFile) {
             try {
                 // 建立 FormData 物件
                 const formData = new FormData();
@@ -843,53 +916,72 @@ async function init() {
             } catch (error) {
                 console.error('Error uploading photo:', error);
                 showToast('照片上傳失敗，請稍後再試');
+                // 重置按鈕狀態
+                submitBtn.disabled = false;
+                submitBtn.textContent = '打卡';
                 return;
             }
-        }
 
-        const formData = {
-            store_id: currentStore.name,
-            user_id: currentUser.id,
-            rating: parseFloat(ratingInput.value),
-            comment: document.getElementById('storeComment').value,
-            photo_url: photoUrl
+            const formData = {
+                store_id: currentStore.name,
+                user_id: currentUser.id,
+                rating: parseFloat(ratingValue),
+                comment: commentValue,
+                photo_url: photoUrl
+            };
+
+            try {
+                const response = await fetch('https://linebot-fastapi-uhmi.onrender.com/checkin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showToast('打卡成功！');
+                    closeCheckInModal();
+                } else {
+                    const errorMessage = result.detail || '提交失敗';
+                    console.error('Error submitting form:', errorMessage);
+                    showToast(errorMessage);
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error.message || error);
+                showToast('提交失敗，請稍後再試');
+            } finally {
+                // 重置按鈕狀態
+                submitBtn.disabled = false;
+                submitBtn.textContent = '打卡';
+            }
+        });
+
+        // 新增：評論輸入處理
+        document.getElementById('storeComment').addEventListener('input', function(e) {
+            const errorElement = this.nextElementSibling;
+            if (e.target.value.trim()) {
+                errorElement.style.display = 'none';
+            }
+        });
+
+        // 移除照片
+        window.removePhoto = function() {
+            photoInput.value = '';
+            photoPreview.innerHTML = '';
         };
 
-        try {
-            const response = await fetch('https://linebot-fastapi-uhmi.onrender.com/checkin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
-
-            const result = await response.json();
-            
-            if (response.ok) {
-                showToast('打卡成功！');
-                closeCheckInModal();
-            } else {
-                const errorMessage = result.detail || '提交失敗';
-                console.error('Error submitting form:', errorMessage);
-                showToast(errorMessage);
-                closeCheckInModal();
-            }
-        } catch (error) {
-            console.error('Error submitting form:', error.message || error);
-            showToast('提交失敗，請稍後再試');
-            
-        }
-    });
-
-    // 移除照片
-    window.removePhoto = function() {
-        photoInput.value = '';
-        photoPreview.innerHTML = '';
-    };
-
-    // 處理所有 URL 參數
-    handleUrlParameters();
+        // 處理所有 URL 參數
+        handleUrlParameters();
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        showToast('載入失敗，請重新整理頁面');
+    } finally {
+        // 確保所有初始化完成後才隱藏 loading
+        setTimeout(hideLoading, 500); // 添加小延遲以確保平滑過渡
+    }
 }
 
 init();
