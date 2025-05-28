@@ -784,7 +784,37 @@ async function init() {
         star.addEventListener('click', handleRatingClick);
     });
 
-    photoInput.addEventListener('change', handlePhotoPreview);
+    photoInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // 檢查檔案類型
+            if (!file.type.startsWith('image/')) {
+                showToast('請上傳圖片檔案');
+                photoInput.value = '';
+                return;
+            }
+            
+            // 檢查檔案大小（限制為 5MB）
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('圖片大小不能超過 5MB');
+                photoInput.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoPreview.innerHTML = `
+                    <div class="photo-preview-container">
+                        <img src="${e.target.result}" alt="預覽照片" class="photo-preview">
+                        <button type="button" class="remove-photo" onclick="removePhoto()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 
     checkInForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -794,11 +824,41 @@ async function init() {
             return;
         }
 
+        // 處理照片上傳
+        const photoFile = photoInput.files[0];
+        let photoUrl = '';
+        
+        if (photoFile) {
+            try {
+                // 建立 FormData 物件
+                const formData = new FormData();
+                formData.append('file', photoFile);
+                
+                // 上傳照片到後端
+                const uploadResponse = await fetch('https://linebot-fastapi-uhmi.onrender.com/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!uploadResponse.ok) {
+                    throw new Error('照片上傳失敗');
+                }
+                
+                const uploadResult = await uploadResponse.json();
+                photoUrl = uploadResult.url;
+            } catch (error) {
+                console.error('Error uploading photo:', error);
+                showToast('照片上傳失敗，請稍後再試');
+                return;
+            }
+        }
+
         const formData = {
-            store_id: currentStore.name,
+            store_id: currentStore.id,
             user_id: currentUser,
             rating: parseFloat(ratingInput.value),
-            comment: document.getElementById('storeComment').value
+            comment: document.getElementById('storeComment').value,
+            photo_url: photoUrl
         };
 
         try {
@@ -816,17 +876,22 @@ async function init() {
                 showToast('打卡成功！');
                 closeCheckInModal();
             } else {
-                // 修改錯誤處理邏輯
                 const errorMessage = result.detail || '提交失敗';
-                showToast(errorMessage);
                 console.error('Error submitting form:', errorMessage);
-                
+                showToast(errorMessage);
             }
         } catch (error) {
             console.error('Error submitting form:', error.message || error);
             showToast('提交失敗，請稍後再試');
         }
     });
+
+    // 移除照片
+    window.removePhoto = function() {
+        photoInput.value = '';
+        photoPreview.innerHTML = '';
+    };
+
     // 處理所有 URL 參數
     handleUrlParameters();
 }
