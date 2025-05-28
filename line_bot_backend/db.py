@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore, storage, initialize_app
 from google.cloud.firestore_v1.base_document import DocumentSnapshot
@@ -29,9 +29,9 @@ def add_user(line_user_id, display_name):
         # 不存在才新增
         user_ref.set({
             "display_name": display_name,
-            "joined_at": datetime.now(datetime.UTC),
+            "joined_at": datetime.now(),
             "latlng": GeoPoint(0, 0),
-            "last_updated": datetime.now(datetime.UTC),
+            "last_updated": datetime.now(),
             "selected_ramen_shops": list(),
         })
         return True
@@ -41,7 +41,7 @@ def record_checkin(line_user_id, ramen_store):
     checkin_ref.set({
         "line_user_id": line_user_id,
         "ramen_store": ramen_store,
-        "timestamp": datetime.now(timezone.utc)
+        "timestamp": datetime.now()
     })
 
 def add_ramen_store(store_id, name, location):
@@ -65,7 +65,7 @@ def update_user_location(user_id: str, lat: float, lng: float):
     user_ref = db.collection("users").document(user_id)
     user_ref.update({
         "latlng": GeoPoint(lat, lng),
-        "last_updated": datetime.utcnow(),
+        "last_updated": datetime.now(),
     })
 
 def get_user_location(user_id: str):
@@ -152,7 +152,7 @@ def create_checkin(data: dict):
             "rating": rating,
             "comment": comment,
             "photo_url": photo_url,
-            "timestamp": datetime.now(datetime.UTC)
+            "timestamp": datetime.now()
         }
 
         checkin_ref = db.collection("checkins").document()
