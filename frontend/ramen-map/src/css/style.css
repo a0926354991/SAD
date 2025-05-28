@@ -562,8 +562,9 @@ input[type="text"]:focus {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 99999;
+    z-index: 2147483647;
     pointer-events: none;
+    isolation: isolate;
 }
 
 .toast {
@@ -578,6 +579,7 @@ input[type="text"]:focus {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     white-space: nowrap;
     position: relative;
+    z-index: 2147483647;
 }
 
 @keyframes fadeInOut {

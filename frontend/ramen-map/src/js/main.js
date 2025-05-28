@@ -873,10 +873,12 @@ async function init() {
                 const errorMessage = result.detail || '提交失敗';
                 console.error('Error submitting form:', errorMessage);
                 showToast(errorMessage);
+                closeCheckInModal();
             }
         } catch (error) {
             console.error('Error submitting form:', error.message || error);
             showToast('提交失敗，請稍後再試');
+            
         }
     });
 
