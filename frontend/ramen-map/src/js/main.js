@@ -223,6 +223,24 @@ function selectStore(store) {
 function handleUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
     
+    // 處理 liff.state 參數
+    if (urlParams.has('liff.state')) {
+        const state = decodeURIComponent(urlParams.get('liff.state'));
+        const stateParams = new URLSearchParams(state);
+        
+        // 將 state 中的參數複製到主要的 urlParams 中
+        for (const [key, value] of stateParams.entries()) {
+            urlParams.set(key, value);
+        }
+        
+        // 移除 liff.state 參數
+        urlParams.delete('liff.state');
+        
+        // 更新 URL，但不重新載入頁面
+        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+        window.history.replaceState({}, '', newUrl);
+    }
+    
     // 1. 處理登入狀態 - 移到 checkLoginStatus 函式中
     
     // 2. 處理轉盤店家列表
