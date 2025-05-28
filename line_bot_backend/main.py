@@ -139,8 +139,7 @@ async def webhook(req: Request):
                         is_valid, latlng = await is_location_valid(user_id)
                         if is_valid:
                             ramen_list = search_ramen_nearby(latlng.latitude, latlng.longitude, flavor)
-                            # print("ramen_list：", ramen_list)
-                            await reply_ramen_new_flex_carousel(reply_token, ramen_list)
+                            await reply_ramen_flex_carousel(reply_token, ramen_list)
 
                             # 取出 ramen_list 的 id 組合網址
                             shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
@@ -171,7 +170,6 @@ async def webhook(req: Request):
             elif msg_type == "location":
                 latitude = event["message"]["latitude"]
                 longitude = event["message"]["longitude"]
-                # user_locations[user_id] = {"lat": latitude, "lng": longitude}
                 update_user_location(user_id, latitude, longitude)
                 await reply_ramen_flavor_flex_menu(reply_token)
 
@@ -226,7 +224,6 @@ async def reply_message(reply_token, text):
 async def reply_recommend(reply_token, user_id):
     is_valid, _ = await is_location_valid(user_id)
     if is_valid:
-        # await reply_message(reply_token, "測試成功")
         await reply_ramen_flavor_flex_menu(reply_token)
     else:
         await reply_message(
@@ -402,16 +399,16 @@ async def reply_ramen_new_flex_carousel(reply_token, ramen_list):
 async def reply_ramen_flex_carousel(reply_token, ramen_list):
     bubbles = []
     # 左側大頭貼留白
-    space = {
-        "type": "bubble",
-        "body": {
-            "type": "box",
-            "layout": "vertical",
-            "content": [],
-            "width": "14%"
-        }
-    }
-    bubbles.append(space)
+    # space = {
+    #     "type": "bubble",
+    #     "body": {
+    #         "type": "box",
+    #         "layout": "vertical",
+    #         "content": [],
+    #         "width": "14%"
+    #     }
+    # }
+    # bubbles.append(space)
 
     for ramen in ramen_list[:10]:
         dist = ramen['distance']

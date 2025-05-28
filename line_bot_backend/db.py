@@ -91,7 +91,7 @@ def search_ramen_nearby(lat, lng, flavor):
             "name": data.get("name", ""),
             "distance": dist,
             "address": data.get("address", ""),
-            "image_url": data.get("menu_image", ""),
+            "image_url": data.get("picture_image", ""),
             "rating": data.get("rating", 0),
             "phone": data.get("phone", ""),
             "lat": shop_lat,
