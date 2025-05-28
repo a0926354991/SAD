@@ -145,7 +145,7 @@ def create_checkin(data: dict):
             "user_id": user_id,
             "rating": rating,
             "comment": comment,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.now(datetime.UTC)
         }
 
         checkin_ref = db.collection("checkins").document()

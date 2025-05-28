@@ -184,20 +184,19 @@ function handleUrlParameters() {
         storeEvents.on('storesLoaded', (stores) => {
             const ramenIds = idsParam.split(",");
             wheelStores = stores.filter(store => ramenIds.includes(String(store.id)));
+            // 如果有 show_wheel 參數，在設置完 wheelStores 後立即繪製轉盤
+            if (urlParams.get("show_wheel") === "1") {
+                const wheelModal = document.getElementById('wheelModal');
+                wheelModal.classList.add('active');
+                document.body.classList.add('modal-open');
+                window.drawWheel();
+            }
         });
     } else {
         wheelStores = [];
     }
     
-    // 3. 處理是否顯示轉盤
-    const showWheel = urlParams.get("show_wheel");
-    if (showWheel === "1") {
-        setTimeout(() => {
-            document.getElementById('wheelModal').classList.add('active');
-            document.body.classList.add('modal-open');
-            if (typeof drawWheel === "function") drawWheel();
-        }, 600);
-    }
+    // 3. 處理是否顯示轉盤 - 移到 store_ids 處理中
     
     // 4. 處理自動聚焦單一店家
     const storeId = urlParams.get("store_id");
@@ -523,34 +522,8 @@ function initWheel() {
     let isSpinning = false;
     let selectedStore = null;
 
-    // 修改：加入/移除轉盤的功能
-    addToWheelFab.addEventListener('click', () => {
-        if (currentStore) {
-            const isInWheel = isStoreInWheel(currentStore);
-            
-            if (!isInWheel) {
-                wheelStores.push(currentStore);
-                showToast('🎉已將店家加入轉盤🎉');
-            } else {
-                // 從轉盤中移除店家
-                wheelStores = wheelStores.filter(store => 
-                    !(store.name === currentStore.name && 
-                      store.address === currentStore.address)
-                );
-                showToast('🗑️已從轉盤移除店家🗑️');
-            }
-            
-            // 更新按鈕圖示
-            updateAddToWheelButton(currentStore);
-            
-            // 如果轉盤視窗是開啟的，重新繪製轉盤
-            if (wheelModal.classList.contains('active')) {
-                drawWheel();
-            }
-        }
-    });
-
-    function drawWheel() {
+    // 將 drawWheel 函數移到外部，使其可以被全局訪問
+    window.drawWheel = function() {
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = Math.min(centerX, centerY) - 10;
@@ -617,7 +590,7 @@ function initWheel() {
         ctx.closePath();
         ctx.fillStyle = '#2C3E50';
         ctx.fill();
-    }
+    };
 
     function spinWheel() {
         if (isSpinning || wheelStores.length === 0) return;
@@ -794,7 +767,7 @@ async function init() {
         }
 
         const formData = {
-            store_id: currentStore.id,
+            store_id: currentStore.name,
             user_id: currentUser,
             rating: parseFloat(ratingInput.value),
             comment: document.getElementById('storeComment').value
