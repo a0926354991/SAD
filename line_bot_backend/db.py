@@ -12,7 +12,10 @@ cred = credentials.Certificate(key_dict)
 
 # 本機跑要開這行
 # cred = credentials.Certificate("key.json")
-initialize_app(cred)
+
+initialize_app(cred, {
+    "storageBucket": "la-king-man.appspot.com"
+})
 db = firestore.client()
 GeoPoint = firestore.GeoPoint
 
@@ -171,7 +174,7 @@ def upload_photo(file_content: bytes, content_type: str) -> tuple[bool, str]:
         unique_filename = f"{uuid.uuid4()}{file_extension}"
         
         # 設定 Firebase Storage 路徑
-        bucket = storage.bucket('la-king-man.appspot.com')
+        bucket = storage.bucket()
         blob = bucket.blob(f"checkin_photos/{unique_filename}")
         
         # 上傳檔案到 Firebase Storage

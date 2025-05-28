@@ -70,6 +70,7 @@ function showToast(message) {
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.textContent = message;
+    toast.style.zIndex = '9999'; // 確保顯示在最上層
     toastContainer.appendChild(toast);
 
     // 3秒後移除提示訊息
