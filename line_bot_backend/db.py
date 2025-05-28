@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 import firebase_admin
 from firebase_admin import credentials, firestore, storage, initialize_app
 from google.cloud.firestore_v1.base_document import DocumentSnapshot
@@ -29,9 +29,9 @@ def add_user(line_user_id, display_name):
         # 不存在才新增
         user_ref.set({
             "display_name": display_name,
-            "joined_at": datetime.utcnow(),
+            "joined_at": datetime.now(datetime.UTC),
             "latlng": GeoPoint(0, 0),
-            "last_updated": datetime.utcnow(),
+            "last_updated": datetime.now(datetime.UTC),
             "selected_ramen_shops": list(),
         })
         return True
@@ -41,7 +41,7 @@ def record_checkin(line_user_id, ramen_store):
     checkin_ref.set({
         "line_user_id": line_user_id,
         "ramen_store": ramen_store,
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.now(timezone.utc)
     })
 
 def add_ramen_store(store_id, name, location):

@@ -559,25 +559,25 @@ input[type="text"]:focus {
 /* 提示訊息樣式 */
 .toast-container {
     position: fixed;
-    top: 50%;
+    top: 20px;
     left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9999;
+    transform: translateX(-50%);
+    z-index: 99999;
     pointer-events: none;
 }
 
 .toast {
-    background-color: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 12px 24px;
     border-radius: 8px;
+    margin-bottom: 10px;
     font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeInOut 1.5s ease-in-out forwards;
+    animation: fadeInOut 1.5s ease-in-out;
+    pointer-events: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     white-space: nowrap;
+    position: relative;
 }
 
 @keyframes fadeInOut {

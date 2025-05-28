@@ -38,7 +38,7 @@ async function checkLoginStatus() {
             const data = await response.json();
             
             if (data.status === "success") {
-                currentUser = data.user.display_name;
+                currentUser = data.user; // 存儲完整的用戶資料
                 updateLoginUI();
             } else {
                 console.error('User not found:', data.message);
@@ -57,7 +57,7 @@ function updateLoginUI() {
     if (currentUser) {
         loginButton.style.display = 'none';
         userInfo.style.display = 'flex';
-        userInfo.querySelector('.username').textContent = currentUser;
+        userInfo.querySelector('.username').textContent = currentUser.display_name;
     } else {
         loginButton.style.display = 'flex';
         userInfo.style.display = 'none';
@@ -848,8 +848,8 @@ async function init() {
         }
 
         const formData = {
-            store_id: currentStore.id,
-            user_id: currentUser,
+            store_id: currentStore.name,
+            user_id: currentUser.id,
             rating: parseFloat(ratingInput.value),
             comment: document.getElementById('storeComment').value,
             photo_url: photoUrl
