@@ -745,20 +745,33 @@ async function loadLiffScript() {
 }
 
 async function ensureUserIdParam() {
-    const urlParams = new URLSearchParams(window.location.search);
+    // 檢查 user_id，不要直接用 search，還要支援 hash
+    let urlParams = new URLSearchParams(window.location.search);
+
+    // 如果 search 沒參數、但 hash 有，就把 hash 拆成 query string
+    if (!window.location.search && window.location.hash) {
+        // 把 hash 開頭的 # 拿掉
+        const hashString = window.location.hash.substring(1);
+        urlParams = new URLSearchParams(hashString);
+        // 直接轉換成 ? 參數再 reload
+        window.location.search = '?' + hashString;
+        return;
+    }
+
+    // 以下維持你的 user_id 判斷流程
     if (!urlParams.has("user_id")) {
         await loadLiffScript();
-        await liff.init({ liffId: "2007489792-4popYn8a" }); // 這裡要填你的 liffId
+        await liff.init({ liffId: "2007489792-4popYn8a" });
         if (!liff.isInClient()) {
             alert("請從LINE圖文選單打開本頁！");
             return;
         }
         const profile = await liff.getProfile();
         const userId = profile.userId;
-        // 跳轉帶 user_id 的網址
-        window.location.search = window.location.search
-            ? window.location.search + `&user_id=${userId}`
-            : `?user_id=${userId}`;
+
+        urlParams.set('user_id', userId);
+        const searchString = urlParams.toString();
+        window.location.href = `https://frontend-7ivv.onrender.com/ramen-map/?${searchString}`;
     }
 }
 
