@@ -294,106 +294,6 @@ async def reply_ramen_flavor_flex_menu(reply_token):
             print("flex response status:", resp.status)
             print("response text:", await resp.text())
 
-async def reply_ramen_new_flex_carousel(reply_token, ramen_list):
-    bubbles = []
-
-    for ramen in ramen_list[:10]:
-        dist = ramen['distance']
-        dist_str = f"{int(dist * 1000)} 公尺" if dist < 1 else f"{dist:.2f} 公里"
-        rating_text = f"{ramen['rating']} ⭐️" if ramen['rating'] is not None else "尚未有評分"
-
-        bubble = {
-            "type": "bubble",
-            "body": {
-                "type": "box",
-                "layout": "vertical",
-                "paddingAll": "lg",  # 外層 padding，形成邊框感
-                "backgroundColor": "#A9C4EB",  # 外層底色（邊框視覺）
-                "contents": [
-                    {
-                        "type": "box",
-                        "layout": "vertical",
-                        "paddingAll": "md",
-                        "backgroundColor": "#FCF9F4",  # 內層卡片
-                        "cornerRadius": "md",
-                        "spacing": "sm",
-                        "contents": [
-                            {
-                                "type": "image",
-                                "url": ramen["image_url"],
-                                "size": "full",
-                                "aspectRatio": "20:13",
-                                "aspectMode": "cover"
-                            },
-                            {
-                                "type": "text",
-                                "text": ramen["name"][:40],
-                                "wrap": True,
-                                "weight": "bold",
-                                "size": "lg",
-                                "color": "#063D74"
-                            },
-                            {
-                                "type": "text",
-                                "text": f"評價：{rating_text}\n距離：{dist_str}",
-                                "wrap": True,
-                                "size": "sm"
-                            },
-                            {
-                                "type": "box",
-                                "layout": "horizontal",
-                                "spacing": "md",
-                                "margin": "md",
-                                "contents": [
-                                    {
-                                        "type": "button",
-                                        "style": "secondary",
-                                        "color": "#D5E3F7",
-                                        "action": {
-                                            "type": "uri",
-                                            "label": "🗺️ 地圖查看",
-                                            "uri": f"https://frontend-7ivv.onrender.com/ramen-map/?store_id={ramen['id']}"
-                                        }
-                                    },
-                                    {
-                                        "type": "button",
-                                        "style": "secondary",
-                                        "color": "#D5E3F7",
-                                        "action": {
-                                            "type": "message",
-                                            "label": "📸 打卡上傳",
-                                            "text": "打卡上傳"
-                                        }
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-        bubbles.append(bubble)
-
-    body = {
-        "replyToken": reply_token,
-        "messages": [{
-            "type": "flex",
-            "altText": "拉麵推薦清單",
-            "contents": {
-                "type": "carousel",
-                "contents": bubbles
-            }
-        }]
-    }
-
-    url = "https://api.line.me/v2/bot/message/reply"
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    async with aiohttp.ClientSession() as session:
-        await session.post(url, json=body, headers=headers)
-
 
 ## 多頁訊息：回傳推薦拉麵店 (flex message)
 async def reply_ramen_flex_carousel(reply_token, ramen_list):
@@ -433,8 +333,7 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
                         "type": "text",
                         "text": f"評價：{rating_text}\n距離：{dist_str}",
                         "wrap": True,
-                        "size": "sm",
-                        # "color": "#888888"
+                        "size": "sm"
                     }
                 ]
             },
@@ -492,49 +391,6 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
 
-
-## 多頁訊息：回傳推薦拉麵店
-# async def reply_ramen_carousel(reply_token, ramen_list):
-#     columns = []
-#     for ramen in ramen_list[:10]:
-#         dist = ramen['distance']
-#         if dist < 1:
-#             dist_str = f"{int(dist * 1000)} 公尺"
-#         else:
-#             dist_str = f"{dist:.2f} 公里"
-#         rating_text = f"{ramen['rating']} ⭐️" if ramen['rating'] is not None else "尚未有評分"
-#         columns.append({
-#             "thumbnailImageUrl": ramen["image_url"],
-#             "title": ramen["name"][:40],
-#             "text": f"評價：{rating_text}\n距離：{dist_str}",
-#             "actions": [
-#                 {
-#                     "type": "uri",
-#                     "label": "🗺️ 地圖查看",
-#                     "uri": f"https://frontend-7ivv.onrender.com/ramen-map/?store_id={ramen['id']}"
-#                 },
-#                 {"type": "message", "label": "📸 打卡上傳", "text": "打卡上傳"}
-#             ]
-#         })
-
-#     body = {
-#         "replyToken": reply_token,
-#         "messages": [{
-#             "type": "template",
-#             "altText": "拉麵推薦清單",
-#             "template": {
-#                 "type": "carousel",
-#                 "columns": columns
-#             }
-#         }]
-#     }
-#     url = "https://api.line.me/v2/bot/message/reply"
-#     headers = {
-#         "Authorization": f"Bearer {ACCESS_TOKEN}",
-#         "Content-Type": "application/json"
-#     }
-#     async with aiohttp.ClientSession() as session:
-#         await session.post(url, json=body, headers=headers)
 
 async def get_user_profile(user_id: str):
     url = f"https://api.line.me/v2/bot/profile/{user_id}"
