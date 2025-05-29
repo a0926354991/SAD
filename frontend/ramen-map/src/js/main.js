@@ -733,10 +733,41 @@ function hideLoading() {
     }
 }
 
+async function loadLiffScript() {
+    return new Promise((resolve, reject) => {
+        if (window.liff) return resolve();
+        const script = document.createElement("script");
+        script.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+async function ensureUserIdParam() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has("user_id")) {
+        await loadLiffScript();
+        await liff.init({ liffId: "2007489792-4popYn8a" }); // 這裡要填你的 liffId
+        if (!liff.isInClient()) {
+            alert("請從LINE圖文選單打開本頁！");
+            return;
+        }
+        const profile = await liff.getProfile();
+        const userId = profile.userId;
+        // 跳轉帶 user_id 的網址
+        window.location.search = window.location.search
+            ? window.location.search + `&user_id=${userId}`
+            : `?user_id=${userId}`;
+    }
+}
+
 // 初始化所有功能
 async function init() {
     showLoading();
     
+    await ensureUserIdParam();
+
     try {
         await initMap();
         initWheel();
