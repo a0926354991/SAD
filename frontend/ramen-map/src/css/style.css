@@ -946,11 +946,13 @@ input[type="text"]:focus {
 .checkin-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
 }
 
 .checkin-user {
     font-weight: bold;
+    color: #2C3E50;
 }
 
 .checkin-time {
@@ -963,24 +965,55 @@ input[type="text"]:focus {
 }
 
 .checkin-rating {
-    color: #F1C40F;
-    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.checkin-rating .stars {
+    color: #FFD700;
+    letter-spacing: 2px;
+}
+
+.checkin-rating .rating-value {
+    color: #666;
+    font-weight: 500;
 }
 
 .checkin-comment {
     margin: 10px 0;
     line-height: 1.4;
+    color: #2C3E50;
+}
+
+.checkin-photo {
+    margin: 10px 0;
 }
 
 .checkin-photo img {
     max-width: 100%;
     border-radius: 8px;
-    margin: 10px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .checkin-keyword {
-    color: #666;
+    display: inline-block;
+    background: white;
+    color: var(--primary-color);
+    padding: 4px 12px;
+    border-radius: 20px;
     font-size: 0.9em;
+    font-weight: 500;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    border: 1px solid var(--primary-color);
+}
+
+.checkin-keyword:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
 }
 
 .load-more-btn {
@@ -995,4 +1028,41 @@ input[type="text"]:focus {
 
 .load-more-btn:hover {
     background: #e9ecef;
+}
+
+/* 無打卡記錄和到底提示的樣式 */
+.no-checkins-message,
+.end-message {
+    text-align: center;
+    padding: 30px 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.no-checkins-message i,
+.end-message i {
+    font-size: 2em;
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.no-checkins-message p,
+.end-message p {
+    color: #666;
+    margin: 5px 0;
+}
+
+.no-checkins-message .sub-text {
+    font-size: 0.9em;
+    color: #999;
+}
+
+.end-message i {
+    color: #ff6b6b;
+}
+
+.end-message p {
+    color: #ff6b6b;
+    font-weight: 500;
 }

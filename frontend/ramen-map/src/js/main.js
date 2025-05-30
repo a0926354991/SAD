@@ -245,37 +245,6 @@ function closeQuickCheckInModal() {
     quickCheckInSearch.value = '';
 }
 
-// 新增：處理快速打卡搜尋
-function handleQuickCheckInSearch(e) {
-    const query = e.target.value.trim();
-    if (!query) {
-        quickCheckInResults.innerHTML = '';
-        return;
-    }
-
-    const results = allStores.filter(store => 
-        store.name.toLowerCase().includes(query.toLowerCase()) ||
-        store.address.toLowerCase().includes(query.toLowerCase()) ||
-        (store.keywords && store.keywords.some(keyword => 
-            keyword.toLowerCase().includes(query.toLowerCase())
-        ))
-    );
-
-    quickCheckInResults.innerHTML = '';
-    results.forEach(store => {
-        const resultItem = document.createElement('div');
-        resultItem.className = 'search-result-item';
-        resultItem.innerHTML = `
-            <div class="store-name">${store.name}</div>
-            <div class="store-address">${store.address}</div>
-        `;
-        resultItem.addEventListener('click', () => {
-            selectStoreForQuickCheckIn(store);
-        });
-        quickCheckInResults.appendChild(resultItem);
-    });
-}
-
 // 新增：選擇店家進行快速打卡
 function selectStoreForQuickCheckIn(store) {
     currentStore = store;
@@ -500,6 +469,12 @@ async function handleQuickCheckInSubmit(e) {
         if (response.ok) {
             showToast('打卡成功！');
             closeQuickCheckInModal();
+            // 重新載入打卡紀錄
+            const checkinsList = document.querySelector('.checkins-list');
+            if (checkinsList) {
+                checkinsList.innerHTML = ''; // 清空現有記錄
+                loadStoreCheckins(currentStore.id); // 重新載入
+            }
         } else {
             const errorMessage = result.detail || '提交失敗';
             console.error('Error submitting form:', errorMessage);
@@ -768,12 +743,26 @@ function renderStoreInfo(store) {
 // 新增：載入店家打卡紀錄
 async function loadStoreCheckins(storeId, lastId = null) {
     try {
-        const response = await fetch(`https://linebot-fastapi-uhmi.onrender.com/store_checkins/${storeId}?limit=5${lastId ? `&last_id=${lastId}` : ''}`);
+        const url = `https://linebot-fastapi-uhmi.onrender.com/store_checkins/${storeId}?limit=5` + (lastId ? `&last_id=${lastId}` : '');
+        const response = await fetch(url);
         const data = await response.json();
         
         if (data.status === "success") {
             const checkinsList = document.querySelector('.checkins-list');
             const loadMoreBtn = document.querySelector('.load-more-btn');
+            
+            // 如果是第一次載入且沒有打卡記錄
+            if (!lastId && data.checkins.length === 0) {
+                checkinsList.innerHTML = `
+                    <div class="no-checkins-message">
+                        <i class="fas fa-utensils"></i>
+                        <p>還沒有任何打卡記錄</p>
+                        <p class="sub-text">來當第一個打卡的人吧！</p>
+                    </div>
+                `;
+                loadMoreBtn.style.display = 'none';
+                return;
+            }
             
             // 渲染打卡紀錄
             data.checkins.forEach(checkin => {
@@ -781,13 +770,22 @@ async function loadStoreCheckins(storeId, lastId = null) {
                 checkinsList.appendChild(checkinElement);
             });
             
-            // 控制"顯示更多"按鈕
-            loadMoreBtn.style.display = data.has_more ? 'block' : 'none';
+            // 控制"顯示更多"按鈕和到底提示
             if (data.has_more) {
+                loadMoreBtn.style.display = 'block';
                 loadMoreBtn.onclick = () => {
                     const lastCheckin = data.checkins[data.checkins.length - 1];
                     loadStoreCheckins(storeId, lastCheckin.id);
                 };
+            } else {
+                const endMessage = document.createElement('div');
+                endMessage.className = 'end-message';
+                endMessage.innerHTML = `
+                    <i class="fas fa-flag-checkered"></i>
+                    <p>已經到底了！</p>
+                `;
+                checkinsList.appendChild(endMessage);
+                loadMoreBtn.style.display = 'none';
             }
         }
     } catch (error) {
@@ -806,8 +804,10 @@ function createCheckinElement(checkin) {
             <div class="checkin-time">${formatDate(checkin.timestamp)}</div>
         </div>
         <div class="checkin-content">
+            <div class="checkin-keyword">#${checkin.keyword}</div>
             <div class="checkin-rating">
-                ${'⭐'.repeat(Math.round(checkin.rating))} ${checkin.rating}
+                <div class="stars">${'★'.repeat(Math.round(checkin.rating))}${'☆'.repeat(5 - Math.round(checkin.rating))}</div>
+                <div class="rating-value">${checkin.rating}</div>
             </div>
             <div class="checkin-comment">${checkin.comment}</div>
             ${checkin.photo_url ? `
@@ -815,7 +815,6 @@ function createCheckinElement(checkin) {
                     <img src="${checkin.photo_url}" alt="打卡照片" />
                 </div>
             ` : ''}
-            <div class="checkin-keyword">#${checkin.keyword}</div>
         </div>
     `;
     return div;
@@ -1460,6 +1459,12 @@ async function handleCheckInSubmit(e) {
         if (response.ok) {
             showToast('打卡成功！');
             closeCheckInModal();
+            // 重新載入打卡紀錄
+            const checkinsList = document.querySelector('.checkins-list');
+            if (checkinsList) {
+                checkinsList.innerHTML = ''; // 清空現有記錄
+                loadStoreCheckins(currentStore.id); // 重新載入
+            }
         } else {
             const errorMessage = result.detail || '提交失敗';
             console.error('Error submitting form:', errorMessage);

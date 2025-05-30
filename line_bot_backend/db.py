@@ -254,7 +254,7 @@ def upload_photo(file_content: bytes, content_type: str) -> tuple[bool, str]:
     except Exception as e:
         return False, str(e)
 
-def get_store_checkins(id: str, limit: int = 5, last_id: str = None):
+def get_store_checkins(store_id: str, limit: int = 5, last_id: str = None):
     """
     獲取店家的打卡紀錄，支援分頁
     Args:
@@ -265,7 +265,7 @@ def get_store_checkins(id: str, limit: int = 5, last_id: str = None):
         tuple: (打卡紀錄列表, 是否有更多紀錄)
     """
     try:
-        query = db.collection("checkins").where("store_id", "==", id)
+        query = db.collection("checkins").where("store_id", "==", store_id)
         
         if last_id:
             last_doc = db.collection("checkins").document(last_id).get()
