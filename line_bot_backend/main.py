@@ -15,6 +15,7 @@ import json
 import math
 from datetime import datetime, timezone, timedelta
 import uuid  # 新增：用於生成唯一檔名
+import matplotlib
 import matplotlib.pyplot as plt
 
 
@@ -478,21 +479,16 @@ async def reply_analysis(reply_token: str):
 
 
 async def handle_analysis(reply_token: str, user_id: str, days: int):
-    """
-    根據 user_id 和 days，取得統計並回覆 Flex 格式統整分析結果，並內嵌圓餅圖。
-    圖片格式為 PNG，不需另存 jpg。
-    """
-    # 取得統計資料
     try:
         stats = analyze_checkins(user_id, days)
     except Exception:
         await reply_message(reply_token, "❌ 分析失敗，請稍後再試！")
         return
 
-    # 最常吃的店家
+    # 計算最常吃店家
     top_shop = stats.get('top_shop', '無資料')
 
-    # 產生圓餅圖 bytes，並上傳至 Storage
+    # 生成圓餅圖並上傳
     img_bytes = create_flavor_pie_chart(stats['flavor_pct'])
     filename = f"analysis/{user_id}_{days}d_pie.png"
     blob = storage.bucket().blob(filename)
@@ -500,7 +496,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     blob.make_public()
     img_url = blob.public_url
 
-    # 建立 Flex 氣泡，先放圖片
+    # 建立 Flex Bubble
     flavor_contents = []
     for flavor, pct in stats['flavor_pct'].items():
         flavor_contents.append({
@@ -512,13 +508,6 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
 
     bubble = {
         "type": "bubble",
-        "hero": {
-            "type": "image",
-            "url": img_url,
-            "size": "full",
-            "aspectRatio": "20:13",
-            "aspectMode": "cover"
-        },
         "body": {
             "type": "box",
             "layout": "vertical",
@@ -530,7 +519,15 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 {"type": "text", "text": f"🏠 造訪店家：{stats['shops']} 家", "size": "sm"},
                 {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
                 {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
-                {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents}
+                {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
+                {
+                    "type": "image",
+                    "url": img_url,
+                    "size": "full",
+                    "aspectRatio": "20:13",
+                    "aspectMode": "cover",
+                    "margin": "md"
+                }
             ]
         },
         "footer": {
@@ -603,11 +600,17 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 def create_flavor_pie_chart(flavor_pct: dict[str, str]) -> bytes:
     labels = list(flavor_pct.keys())
     sizes = [float(p.strip('%')) for p in flavor_pct.values()]
-    plt.figure()
-    plt.pie(sizes, labels=labels, autopct='%1.1f%%')
+    # 設定中文字型，請確保系統有安裝或放置對應 TTF
+    matplotlib.rcParams['font.sans-serif'] = ['Microsoft JhengHei','Arial Unicode MS']
+    matplotlib.rcParams['axes.unicode_minus'] = False
+    # 調整圖大小
+    plt.figure(figsize=(4,4))
+    wedges, texts = plt.pie(sizes, startangle=90)
+    # 在外側加上註解標籤
+    plt.legend(wedges, labels, title="口味", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
     plt.title('口味分布')
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format='png', bbox_inches='tight')
     plt.close()
     buf.seek(0)
     return buf.read()
