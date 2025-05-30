@@ -179,11 +179,11 @@ async def webhook(req: Request):
                     days = int(msg.replace("天", ""))
                     await handle_analysis(reply_token, user_id, days)
 
-                elif msg == "dump4":
+                elif msg == "生成 4 格 dump":
                     await handle_ramen_dump(reply_token, user_id, max_tiles=4)
-                elif msg == "dump6":
+                elif msg == "生成 6 格 dump":
                     await handle_ramen_dump(reply_token, user_id, max_tiles=6)
-                elif msg == "dump12":
+                elif msg == "生成 12 格 dump":
                     await handle_ramen_dump(reply_token, user_id, max_tiles=12)
                 
                 # 意見回饋
@@ -566,7 +566,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 },
                 {
                     "type": "button",
-                    "action": {"type": "message", "label": "4 格",  "text": "dump4"},
+                    "action": {"type": "message", "label": "生成 4 格 dump",  "text": "生成 4 格 dump"},
                     "style": "secondary",
                     "color": "#CCCCCC",
                     "height": "sm",
@@ -574,7 +574,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 },
                 {
                     "type": "button",
-                    "action": {"type": "message", "label": "6 格",  "text": "dump6"},
+                    "action": {"type": "message", "label": "生成 6 格 dump",  "text": "生成 6 格 dump"},
                     "style": "secondary",
                     "color": "#CCCCCC",
                     "height": "sm",
@@ -582,7 +582,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 },
                 {
                     "type": "button",
-                    "action": {"type": "message", "label": "12 格", "text": "dump12"},
+                    "action": {"type": "message", "label": "生成 12 格 dump", "text": "生成 12 格 dump"},
                     "style": "secondary",
                     "color": "#CCCCCC",
                     "height": "sm",
@@ -724,62 +724,54 @@ async def handle_ramen_dump(
     await reply_image(reply_token, public_url)
 
 
-# 你可以調整這個 mapping 以支援更多不同的格子配置
 GRID_LAYOUT = {
-    4:  (2, 2),
-    6:  (3, 2),
-    12: (4, 3),
+    4:  (2, 2),  # 2 列 × 2 排
+    6:  (2, 3),  # 2 列 × 3 排
+    12: (3, 4),  # 3 列 × 4 排
 }
 
-async def generate_ramen_dump(urls: list[str],
-                              tile_size: tuple[int,int] = (200,200),
-                              bg_color: tuple[int,int,int] = (0x33,0x33,0x33),
-                              max_tiles: int = 6
-                             ) -> BytesIO:
-    # 1) 先決定要用幾張圖
+async def generate_ramen_dump(
+    urls: list[str],
+    max_tiles: int,
+    tile_width: int = 300,
+    bg_color: tuple[int,int,int] = (0, 0, 0)
+) -> io.BytesIO:
+    """
+    根据 max_tiles 生成对应的网格：
+     - 4: 2×2
+     - 6: 2×3
+     - 12:3×4
+    tile_width 控制每张图的宽度，高度按行数自动算出 tile_height = tile_width * rows/cols
+    """
+    # 只取前 max_tiles 张
     urls = urls[:max_tiles]
-    n = len(urls)
+    cols, rows = GRID_LAYOUT.get(max_tiles, (int(math.sqrt(max_tiles)), 
+                                             math.ceil(max_tiles / int(math.sqrt(max_tiles)))))
+    
+    # 计算每个 tile 的高度，让整个画布保持竖屏
+    tile_height = int(tile_width * rows / cols)
+    W, H = cols * tile_width, rows * tile_height
 
-    # 2) 決定 cols, rows
-    if max_tiles in GRID_LAYOUT:
-        cols, rows = GRID_LAYOUT[max_tiles]
-    else:
-        # fallback: 最接近正方形
-        cols = int(math.sqrt(n))
-        rows = math.ceil(n / cols)
-
-    # 3) 準備畫布
-    W, H = cols * tile_size[0], rows * tile_size[1]
     canvas = Image.new("RGB", (W, H), bg_color)
 
-    # 4) Semaphore 控制並發
-    sem = asyncio.Semaphore(5)
-    async with aiohttp.ClientSession() as session:
-        for idx, url in enumerate(urls):
-            async with sem:
-                try:
-                    async with session.get(url, timeout=10) as resp:
-                        data = await resp.read()
-                except Exception:
-                    continue
+    for idx, url in enumerate(urls):
+        # 下载与方向校正
+        resp = requests.get(url, timeout=10)
+        img = Image.open(io.BytesIO(resp.content))
+        img = ImageOps.exif_transpose(img).convert("RGB")
+        # 裁切 & 填满
+        thumb = ImageOps.fit(img, (tile_width, tile_height), method=Image.LANCZOS)
 
-            # 5) 處理單張
-            img = Image.open(BytesIO(data))
-            img = ImageOps.exif_transpose(img).convert("RGB")
-            thumb = ImageOps.fit(img, tile_size, method=Image.LANCZOS)
+        # 贴到画布
+        x = (idx % cols) * tile_width
+        y = (idx // cols) * tile_height
+        canvas.paste(thumb, (x, y))
 
-            # 6) 貼到畫布
-            x = (idx % cols) * tile_size[0]
-            y = (idx // cols) * tile_size[1]
-            canvas.paste(thumb, (x, y))
+        img.close()
 
-            # 7) 釋放
-            img.close()
-            del thumb
-
-    # 8) 輸出
-    bio = BytesIO()
-    canvas.save(bio, format="JPEG", quality=85)
+    # 输出到 BytesIO
+    bio = io.BytesIO()
+    canvas.save(bio, format="JPEG", quality=90)
     bio.seek(0)
     return bio
 
