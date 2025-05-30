@@ -152,9 +152,25 @@ async def webhook(req: Request):
                             ids_str = ",".join(shop_ids)
                             roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={ids_str}"
 
+                            message = {
+                                "type": "template",
+                                "altText": "點擊「轉一下！」進入拉麵轉盤",
+                                "template": {
+                                    "type": "buttons",
+                                    "text": "🎲 沒辦法決定要吃哪一家嗎？",
+                                    "actions": [
+                                        {
+                                            "type": "uri",
+                                            "label": "轉一下！",      # 你要顯示的文字
+                                            "uri": roulette_url      # 你要跳的網址
+                                        }
+                                    ]
+                                }
+                            }
+
                             # 傳一個訊息給使用者
-                            reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
-                            await push_message(user_id, reply_text)
+                            # reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
+                            await push_message(user_id, message)
                         else:
                             await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
                     else:
@@ -181,7 +197,7 @@ async def webhook(req: Request):
 
     return {"status": "ok"}
 
-async def push_message(user_id, text):
+async def push_message(user_id, message):
     url = "https://api.line.me/v2/bot/message/push"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -191,7 +207,7 @@ async def push_message(user_id, text):
         "to": user_id,
         "messages": [{
             "type": "text",
-            "text": text
+            "message": [message]
         }]
     }
     async with aiohttp.ClientSession() as session:
