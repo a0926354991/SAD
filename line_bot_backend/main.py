@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, storage # 新增：storage
 from pydantic import BaseModel
 from collections import Counter
-from PIL import Image
+from PIL import Image, ImageOps
 
 import io
 import os
@@ -20,7 +20,6 @@ from datetime import datetime, timezone, timedelta
 import uuid  # 新增：用於生成唯一檔名
 import matplotlib
 import matplotlib.pyplot as plt
-
 
 load_dotenv()
 app = FastAPI()
@@ -686,28 +685,43 @@ async def handle_ramen_dump(reply_token: str, user_id: str):
     await reply_image(reply_token, public_url)
 
 
-async def generate_ramen_dump(urls: list[str]) -> io.BytesIO:
+async def generate_ramen_dump(urls: list[str],
+                              tile_size: tuple[int,int]=(200,200),
+                              bg_color: tuple[int,int,int]=(0x33,0x33,0x33)) -> io.BytesIO:
+    # 1) 下載並縮放 (用 fit 來裁切真的填滿)
     thumbs = []
-    thumb_size = (200, 200)
     for url in urls:
         resp = requests.get(url, timeout=10)
         img = Image.open(io.BytesIO(resp.content)).convert("RGB")
-        img.thumbnail(thumb_size)
-        thumbs.append(img)
+        thumb = ImageOps.fit(img, tile_size, method=Image.LANCZOS)
+        thumbs.append(thumb)
 
+    # 2) 計算網格
     n = len(thumbs)
     cols = int(math.sqrt(n))
     rows = math.ceil(n / cols)
-    canvas = Image.new("RGB", (cols * thumb_size[0], rows * thumb_size[1]), (255, 255, 255))
+    total = cols * rows
+
+    # 3) 補滿空格（複製最後一張）
+    while len(thumbs) < total:
+        thumbs.append(thumbs[-1])
+
+    # 4) 建畫布(深灰背景)
+    W, H = cols * tile_size[0], rows * tile_size[1]
+    canvas = Image.new("RGB", (W, H), bg_color)
+
+    # 5) 拼貼
     for idx, thumb in enumerate(thumbs):
-        x = (idx % cols) * thumb_size[0]
-        y = (idx // cols) * thumb_size[1]
+        x = (idx % cols) * tile_size[0]
+        y = (idx // cols) * tile_size[1]
         canvas.paste(thumb, (x, y))
 
+    # 6) 輸出 BytesIO
     bio = io.BytesIO()
-    canvas.save(bio, format="JPEG", quality=85)
+    canvas.save(bio, format="JPEG", quality=90)
     bio.seek(0)
     return bio
+
 
 
 async def reply_image(reply_token: str, image_url: str):
