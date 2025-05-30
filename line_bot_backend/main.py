@@ -553,5 +553,10 @@ async def reply_ramen_flavor_quick_reply(reply_token):
         await session.post(url, json=body, headers=headers)
 '''
 
+@app.get("/nearby_shops")
+def get_nearby_shops(lat: float, lng: float, limit: int = 6):
+    shops = get_nearby_shops(lat, lng, limit)
+    return {"status": "success", "shops": shops}
+
 
 

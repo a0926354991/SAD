@@ -784,3 +784,61 @@ input[type="text"]:focus {
     margin-top: 5px;
     display: none;
 }
+
+/* 用戶位置標記樣式 */
+.user-location-marker {
+    position: relative;
+    z-index: 1000;
+}
+
+.user-location-icon {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* 確保用戶位置標記在拉麵標記之上 */
+.user-location-marker .user-marker-img {
+    position: relative;
+    z-index: 1000;
+}
+
+/* 拉麵標記樣式 */
+.marker-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* 回到用戶位置按鈕 */
+.back-to-user-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    background: white;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.back-to-user-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.back-to-user-btn i {
+    color: var(--primary-color);
+    font-size: 20px;
+}
+
+.back-to-user-btn:active {
+    transform: scale(0.95);
+}
