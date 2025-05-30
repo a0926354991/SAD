@@ -555,7 +555,7 @@ def analyze_checkins(user_id: str, days: int) -> dict:
       'bowls': int,
       'shops': int,
       'top_shop': str,
-      'flavor_pct': {flavor: 'xx.x%', ...},
+      'flavor_pct': {keyword: 'xx.x%', ...},
       'records': [...]
     }
     """
@@ -568,6 +568,8 @@ def analyze_checkins(user_id: str, days: int) -> dict:
     )
     records = []
     shop_counter = Counter()
+    keyword_counter = Counter()
+
     for doc in docs:
         data = doc.to_dict()
         ts = data.get('timestamp')
@@ -575,15 +577,22 @@ def analyze_checkins(user_id: str, days: int) -> dict:
             ts = ts.to_datetime().replace(tzinfo=timezone.utc)
         if ts >= cutoff:
             records.append(data)
+            # 統計店家
             shop_counter[data.get('store_name', '未知商家')] += 1
+            # 統計關鍵字作為口味
+            kw = data.get('keyword', '其他')
+            keyword_counter[kw] += 1
 
     bowls = len(records)
     shops = len(shop_counter)
     top_shop = shop_counter.most_common(1)[0][0] if shop_counter else '無資料'
 
-    flavors = [r.get('flavor', '其他') for r in records]
-    cnt = Counter(flavors)
-    flavor_pct = {fl: f"{c/bowls*100:.1f}%" for fl, c in cnt.items()} if bowls else {}
+    # 使用打卡時傳入的 keyword 作為口味
+    flavor_pct = {}
+    if bowls:
+        for kw, cnt in keyword_counter.items():
+            pct = cnt / bowls * 100
+            flavor_pct[kw] = f"{pct:.1f}%"
 
     return {'bowls': bowls, 'shops': shops, 'top_shop': top_shop, 'flavor_pct': flavor_pct, 'records': records}
 
