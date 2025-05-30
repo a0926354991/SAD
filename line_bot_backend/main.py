@@ -14,6 +14,7 @@ import random
 import json
 import math
 import requests
+import urllib.parse
 from datetime import datetime, timezone, timedelta
 import uuid  # 新增：用於生成唯一檔名
 import matplotlib
@@ -609,65 +610,51 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     labels = list(flavor_pct.keys())
     sizes  = [float(p.strip('%')) for p in flavor_pct.values()]
 
-    chart_config = {
-        "type": "pie",
-        "data": {
-            "labels": labels,
-            "datasets": [{
-                "data": sizes,
-                "datalabels": {
-                    "formatter": "function(value, ctx) { return value.toFixed(1) + '%'; }",
-                    "color": "#ffffff",
-                    "font": {
-                        "size": 14,
-                        "weight": "bold"
-                    }
-                }
-            }]
-        },
-        "options": {
-            "plugins": {
-                "title": {
-                    "display": True,
-                    "text": "口味分布",
-                    "font": {
-                        "size": 18,
-                        "weight": "bold"
-                    }
-                },
-                "legend": {
-                    "position": "right",
-                    "labels": {
-                        "font": {
-                            "size": 14,
-                            "weight": "bold"
-                        }
-                    },
-                    "title": {
-                        "display": True,
-                        "text": "口味",
-                        "font": {
-                            "size": 16,
-                            "weight": "bold"
-                        }
-                    }
-                },
-                "tooltip": {
-                    "callbacks": {
-                        "label": "function(ctx) { return ctx.label + ': ' + ctx.parsed.toFixed(1) + '%'; }"
-                    }
-                }
+    chart = {
+      "type": "pie",
+      "data": {
+        "labels": labels,
+        "datasets": [{
+          "data": sizes
+        }]
+      },
+      "options": {
+        "plugins": {
+          # 1) 在这里配置 datalabels
+          "datalabels": {
+            "formatter": "function(value) { return value.toFixed(1) + '%'; }",
+            "color": "#fff",
+            "font": {
+              "size": 14,
+              "weight": "bold"
             }
-        },
-        "plugins": ["datalabels"]
+          },
+          "title": {
+            "display": True,
+            "text": "口味分布",
+            "font": { "size": 18, "weight": "bold" }
+          },
+          "legend": {
+            "position": "right",
+            "labels": { "font": { "size": 14, "weight": "bold" } },
+            "title": {
+              "display": True,
+              "text": "口味",
+              "font": { "size": 16, "weight": "bold" }
+            }
+          }
+        }
+      }
     }
 
-    res = requests.post(
-        "https://quickchart.io/chart/create",
-        json={"chart": chart_config}
-    )
-    res.raise_for_status()
-    return res.json()["url"]
+    # 2) URL API + 明确加载插件参数
+    base = "https://quickchart.io/chart"
+    params = {
+      "c": json.dumps(chart),
+      # 加载 DataLabels 插件
+      "plugins": "chartjs-plugin-datalabels"
+    }
+    return f"{base}?{urllib.parse.urlencode(params)}"
 
 
 '''
