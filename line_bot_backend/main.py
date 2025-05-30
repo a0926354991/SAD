@@ -13,6 +13,7 @@ import aiohttp
 import random
 import json
 import math
+import requests
 from datetime import datetime, timezone, timedelta
 import uuid  # 新增：用於生成唯一檔名
 import matplotlib
@@ -489,12 +490,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     top_shop = stats.get('top_shop', '無資料')
 
     # 生成圓餅圖並上傳
-    img_bytes = create_flavor_pie_chart(stats['flavor_pct'])
-    filename = f"analysis/{user_id}_{days}d_pie.png"
-    blob = storage.bucket().blob(filename)
-    blob.upload_from_string(img_bytes, content_type='image/png')
-    blob.make_public()
-    img_url = blob.public_url
+    img_url = create_quickchart_url(stats["flavor_pct"])
 
     # 建立 Flex Bubble
     flavor_contents = []
@@ -519,7 +515,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 {"type": "text", "text": f"🏠 造訪店家：{stats['shops']} 家", "size": "sm"},
                 {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
                 {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
-                {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
+                {"type":"box","layout":"vertical","spacing":"sm","contents": flavor_contents},
                 {
                     "type": "image",
                     "url": img_url,
@@ -597,23 +593,42 @@ def analyze_checkins(user_id: str, days: int) -> dict:
     return {'bowls': bowls, 'shops': shops, 'top_shop': top_shop, 'flavor_pct': flavor_pct, 'records': records}
 
 
-def create_flavor_pie_chart(flavor_pct: dict[str, str]) -> bytes:
+def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     labels = list(flavor_pct.keys())
     sizes = [float(p.strip('%')) for p in flavor_pct.values()]
-    # 設定中文字型，請確保系統有安裝或放置對應 TTF
-    matplotlib.rcParams['font.sans-serif'] = ['Microsoft JhengHei','Arial Unicode MS']
-    matplotlib.rcParams['axes.unicode_minus'] = False
-    # 調整圖大小
-    plt.figure(figsize=(4,4))
-    wedges, texts = plt.pie(sizes, startangle=90)
-    # 在外側加上註解標籤
-    plt.legend(wedges, labels, title="口味", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-    plt.title('口味分布')
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight')
-    plt.close()
-    buf.seek(0)
-    return buf.read()
+    # QuickChart 的 chart config
+    chart_config = {
+        "type": "pie",
+        "data": {
+            "labels": labels,
+            "datasets": [{
+                "data": sizes
+            }]
+        },
+        "options": {
+            "plugins": {
+                "legend": {
+                    "position": "right",
+                    "title": {
+                        "display": True,
+                        "text": "口味分布"
+                    }
+                },
+                "title": {
+                    "display": True,
+                    "text": "口味分布"
+                }
+            }
+        }
+    }
+    # 建立圖表並取得 URL
+    res = requests.post(
+        "https://quickchart.io/chart/create",
+        json={"chart": chart_config}
+    )
+    res.raise_for_status()
+    return res.json()["url"]
+
 
 '''
 ## 選單訊息：拉麵口味選單
