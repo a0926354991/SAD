@@ -17,6 +17,7 @@ initialize_app(cred, {
     "storageBucket": "la-king-man.firebasestorage.app"
 })
 db = firestore.client()
+bucket = storage.bucket()
 GeoPoint = firestore.GeoPoint
 
 def add_user(line_user_id, display_name):
