@@ -972,6 +972,7 @@ async function handleCheckInSubmit(e) {
     } else {
         keywordError.style.display = 'none';
     }
+
     
     if (hasError) {
         return;

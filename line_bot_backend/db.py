@@ -209,11 +209,15 @@ def create_checkin(data: dict):
             "timestamp": datetime.now()
         }
 
+        # 新增：印出打卡資料以便除錯
+        print("Creating check-in with data:", checkin_data)
+
         checkin_ref = db.collection("checkins").document()
         checkin_ref.set(checkin_data)
 
         return True, "Check-in recorded successfully"
     except Exception as e:
+        print("Error in create_checkin:", str(e))  # 新增：印出錯誤訊息
         return False, str(e)
 
 def upload_photo(file_content: bytes, content_type: str) -> tuple[bool, str]:
