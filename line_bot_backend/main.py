@@ -5,6 +5,7 @@ from line_bot_backend.db import db, add_user, get_all_ramen_shops, get_user_by_i
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, storage # 新增：storage
 from pydantic import BaseModel
+from urllib.parse import quote
 from collections import Counter
 from PIL import Image, ImageOps
 
@@ -205,29 +206,31 @@ async def webhook(req: Request):
 
                             # 取出 ramen_list 的 id 組合網址
                             shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
-                            ids_str = ",".join(shop_ids)
-                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={ids_str}"
+                            # ids_str = ",".join(shop_ids)
+                            encoded_store_ids = quote(",".join(shop_ids))
+                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a?show_wheel=1&store_ids={encoded_store_ids}"
 
-                            message = {
-                                "type": "template",
-                                "altText": "點擊「轉一下！」進入拉麵轉盤",
-                                "template": {
-                                    "type": "buttons",
-                                    "title": "拉麵轉盤",
-                                    "text": "🎲 沒辦法決定要吃哪一家嗎？",
-                                    "actions": [
-                                        {
-                                            "type": "uri",
-                                            "label": "轉一下！",   # 你要顯示的文字
-                                            "uri": roulette_url   # 你要跳的網址
-                                        }
-                                    ]
-                                }
-                            }
+                            # message = {
+                            #     "type": "template",
+                            #     "altText": "點擊「轉一下！」進入拉麵轉盤",
+                            #     "template": {
+                            #         "type": "buttons",
+                            #         "title": "拉麵轉盤",
+                            #         "text": "🎲 沒辦法決定要吃哪一家嗎？",
+                            #         "actions": [
+                            #             {
+                            #                 "type": "uri",
+                            #                 "label": "轉一下！",   # 你要顯示的文字
+                            #                 "uri": roulette_url   # 你要跳的網址
+                            #             }
+                            #         ]
+                            #     }
+                            # }
 
                             # 傳一個訊息給使用者
-                            # reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
-                            await push_message(user_id, message)
+                            reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
+                            await push_message(user_id, reply_text)
+                            # await push_template(user_id, message)
                         else:
                             await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
                     else:
@@ -284,6 +287,22 @@ async def reply_message(reply_token, text):
         await session.post(url, json=body, headers=headers)
 
 async def push_message(user_id, message):
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    body = {
+        "to": user_id,
+        "messages": [{"type": "text", "text": message}]
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=body, headers=headers) as resp:
+            print("Status:", resp.status)
+            print("Body:", json.dumps(body, indent=2))
+            print("Response:", await resp.text())
+
+async def push_template(user_id, message):
     url = "https://api.line.me/v2/bot/message/push"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -430,7 +449,7 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
                         "action": {
                             "type": "uri",
                             "label": "🗺️ 地圖查看",
-                            "uri": f"https://liff.line.me/2007489792-4popYn8a#store_id={ramen['id']}"
+                            "uri": f"https://liff.line.me/2007489792-4popYn8a?store_id={ramen['id']}"
                         }
                     },
                     {
