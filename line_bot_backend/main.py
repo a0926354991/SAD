@@ -721,8 +721,8 @@ async def handle_ramen_dump(
     # 撈資料
     stats = analyze_checkins(user_id, days)
     records = stats.get("records", [])
-    all_urls = [r["photo_url"] for r in records if r.get("photo_url")]
-    if not all_urls:
+    urls = [r["photo_url"] for r in records if r.get("photo_url")]
+    if not urls:
         return await reply_message(reply_token, f"❌ 近 {days} 天內沒有可用的打卡照片啦～")
 
     # 只取前 max_tiles 張
