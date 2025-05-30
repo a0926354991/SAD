@@ -288,10 +288,14 @@ async def push_message(user_id, message):
     }
     body = {
         "to": user_id,
-        "messages": [message]
+        "messages": message
     }
     async with aiohttp.ClientSession() as session:
-        await session.post(url, json=body, headers=headers)
+        async with session.post(url, json=body, headers=headers) as resp:
+            print("Status:", resp.status)
+            print("Body:", json.dumps(body, indent=2))
+            print("Response:", await resp.text())
+
 
 
 ## 回覆拉麵推薦
