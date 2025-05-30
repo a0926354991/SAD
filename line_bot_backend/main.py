@@ -432,34 +432,55 @@ async def reply_analysis(reply_token: str):
 
 async def handle_analysis(reply_token: str, user_id: str, days: int):
     """
-    根據 user_id 和 days，取得統計並以純文字回覆。
-    包含錯誤處理：索引尚未就緒或其他例外。
+    根據 user_id 和 days，取得統計並回覆 Flex 格式統整分析結果。
     """
+    # 取得統計資料
     try:
         stats = analyze_checkins(user_id, days)
-    except Exception as e:
-        err = str(e).lower()
-        if 'requires an index' in err or 'index is currently building' in err:
-            await reply_message(reply_token, "🔄 資料尚在索引中，請稍後再試！")
-        else:
-            await reply_message(reply_token, "❌ 分析失敗，請稍後再試！")
+    except Exception:
+        await reply_message(reply_token, "❌ 分析失敗，請稍後再試！")
         return
 
-    # 組合回覆文字
-    lines = [
-        f"📊 近 {days} 天統整分析：",
-        f"- 🍜 總碗數：{stats['bowls']} 碗",
-        f"- 🏠 造訪店家：{stats['shops']} 家",
-    ]
-    if stats['flavor_pct']:
-        lines.append("- 口味分布：")
-        for flavor, pct in stats['flavor_pct'].items():
-            lines.append(f"  • {flavor}：{pct}")
-    else:
-        lines.append("- 無口味資料可供分析。")
+    # 建立 Flex 氣泡
+    flavor_contents = []
+    for flavor, pct in stats['flavor_pct'].items():
+        flavor_contents.append({
+            "type": "box",
+            "layout": "baseline",
+            "spacing": "md",
+            "contents": [
+                {"type": "text", "text": flavor, "size": "sm", "weight": "bold", "flex": 1},
+                {"type": "text", "text": pct, "size": "sm", "align": "end"}
+            ]
+        })
 
-    message = "\n".join(lines)
-    await reply_message(reply_token, message)
+    bubble = {
+        "type": "bubble",
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "md",
+            "contents": [
+                {"type": "text", "text": f"近 {days} 天統整分析", "weight": "bold", "size": "lg"},
+                {"type": "separator", "margin": "sm"},
+                {"type": "text", "text": f"🍜 總碗數：{stats['bowls']} 碗", "size": "sm"},
+                {"type": "text", "text": f"🏠 造訪店家：{stats['shops']} 家", "size": "sm"},
+                {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
+                {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents}
+            ]
+        }
+    }
+    flex_message = {
+        "replyToken": reply_token,
+        "messages": [{
+            "type": "flex",
+            "altText": "統整分析結果",
+            "contents": bubble
+        }]
+    }
+    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}", "Content-Type": "application/json"}
+    async with aiohttp.ClientSession() as session:
+        await session.post("https://api.line.me/v2/bot/message/reply", json=flex_message, headers=headers)
 
 
 def analyze_checkins(user_id: str, days: int) -> dict:
