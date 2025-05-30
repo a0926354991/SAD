@@ -616,11 +616,8 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
             "datasets": [{
                 "data": sizes,
                 "datalabels": {
-                    "formatter": "function(value, ctx) {"
-                                 "  let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);"
-                                 "  return (value / sum * 100).toFixed(1) + '%';"
-                                 "}",
-                    "color": "#fff",
+                    "formatter": "function(value, ctx) { return value.toFixed(1) + '%'; }",
+                    "color": "#ffffff",
                     "font": {
                         "size": 14,
                         "weight": "bold"
@@ -653,6 +650,11 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
                             "size": 16,
                             "weight": "bold"
                         }
+                    }
+                },
+                "tooltip": {
+                    "callbacks": {
+                        "label": "function(ctx) { return ctx.label + ': ' + ctx.parsed.toFixed(1) + '%'; }"
                     }
                 }
             }
