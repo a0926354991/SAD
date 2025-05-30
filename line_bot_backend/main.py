@@ -31,10 +31,10 @@ ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 RECOMMEND_KEYWORDS = ["推薦", "推薦拉麵", "拉麵推薦"]
 UPLOAD_KEYWORDS = ["打卡","打卡上傳", "照片上傳"]
-ANALYSIS_KEYWORDS = ["分析", "統整", "統整分析", "拉麵 dump", "拉麵 Dump", "拉麵dump", "拉麵Dump", "dump", "Dump"]
+ANALYSIS_KEYWORDS = ["分析", "統整", "統整分析"]
 FEEDBACK_KEYWORDS = ["意見回饋", "回饋"]
 FLAVORS = ["豚骨", "醬油", "味噌", "鹽味", "辣味", "雞白湯", "海老", "魚介"]
-DUMP_KEYWORDS = ["生成我的拉麵 dump", "dump"]
+DUMP_KEYWORDS = ["生成我的拉麵 dump", "拉麵 dump", "拉麵 Dump", "拉麵dump", "拉麵Dump", "dump", "Dump"]
 
 # 儲存使用者位置（之後要改用 Firestore，現在先這樣）
 user_locations = {}
