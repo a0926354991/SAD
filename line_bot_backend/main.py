@@ -412,7 +412,7 @@ async def get_user_profile(user_id: str):
                 return None
 
 
-async def reply_analysis_menu(reply_token: str):
+async def reply_analysis(reply_token: str):
     items = [{
         "type": "action",
         "action": {"type": "message", "label": f"{d}天", "text": f"{d}天"}
