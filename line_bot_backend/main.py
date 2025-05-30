@@ -30,7 +30,7 @@ ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 RECOMMEND_KEYWORDS = ["推薦", "推薦拉麵", "拉麵推薦"]
 UPLOAD_KEYWORDS = ["打卡","打卡上傳", "照片上傳"]
-ANALYSIS_KEYWORDS = ["分析", "統整", "統整分析"]
+ANALYSIS_KEYWORDS = ["統整", "分析", "統整分析"]
 FEEDBACK_KEYWORDS = ["意見回饋", "回饋"]
 FLAVORS = ["豚骨", "醬油", "味噌", "鹽味", "辣味", "雞白湯", "海老", "魚介"]
 DUMP_KEYWORDS = ["生成我的拉麵 dump", "拉麵 dump", "拉麵 Dump", "拉麵dump", "拉麵Dump", "dump", "Dump"]
@@ -211,8 +211,8 @@ async def webhook(req: Request):
                                     "actions": [
                                         {
                                             "type": "uri",
-                                            "label": "轉一下！",      # 你要顯示的文字
-                                            "uri": roulette_url      # 你要跳的網址
+                                            "label": "轉一下！",   # 你要顯示的文字
+                                            "uri": roulette_url   # 你要跳的網址
                                         }
                                     ]
                                 }
@@ -247,21 +247,6 @@ async def webhook(req: Request):
 
     return {"status": "ok"}
 
-async def push_message(user_id, message):
-    url = "https://api.line.me/v2/bot/message/push"
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    body = {
-        "to": user_id,
-        "messages": [{
-            "type": "text",
-            "message": [message]
-        }]
-    }
-    async with aiohttp.ClientSession() as session:
-        await session.post(url, json=body, headers=headers)
 
 
 #### Handle logic
@@ -277,7 +262,7 @@ async def is_location_valid(user_id: str, threshold_minutes: int = 5):
     else:
         return False, None
 
-#### Reply message
+#### Reply message or push message
 async def reply_message(reply_token, text):
     url = "https://api.line.me/v2/bot/message/reply"
     headers = {
@@ -287,6 +272,19 @@ async def reply_message(reply_token, text):
     body = {
         "replyToken": reply_token,
         "messages": [{"type": "text", "text": text}]
+    }
+    async with aiohttp.ClientSession() as session:
+        await session.post(url, json=body, headers=headers)
+
+async def push_message(user_id, message):
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    body = {
+        "to": user_id,
+        "messages": [message]
     }
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
