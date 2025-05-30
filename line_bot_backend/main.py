@@ -210,6 +210,7 @@ async def webhook(req: Request):
                                 "altText": "點擊「轉一下！」進入拉麵轉盤",
                                 "template": {
                                     "type": "buttons",
+                                    "title": "拉麵轉盤",
                                     "text": "🎲 沒辦法決定要吃哪一家嗎？",
                                     "actions": [
                                         {
