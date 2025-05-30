@@ -46,7 +46,7 @@ async function checkLoginStatus() {
                     const { latitude, longitude } = data.user.latlng;
                     // 設置地圖中心為用戶位置
                     map.setCenter({ lat: latitude, lng: longitude });
-                    map.setZoom(15);
+                    map.setZoom(17);
                     
                     // 添加用戶位置標記
                     addUserLocationMarker(latitude, longitude);
@@ -73,8 +73,8 @@ function addUserLocationMarker(lat, lng) {
     
     // 添加用戶位置圖標
     const userIcon = document.createElement("img");
-    userIcon.src = "./src/assets/images/user-location.png"; // 請確保有這個圖片
-    userIcon.className = "user-marker-img";
+    userIcon.src = "./src/assets/images/user-location.png";
+    userIcon.className = "user-marker-img user-location-icon";
     markerContent.appendChild(userIcon);
 
     // 創建標記
@@ -82,7 +82,8 @@ function addUserLocationMarker(lat, lng) {
         map,
         position: { lat, lng },
         content: markerContent,
-        title: "您的位置"
+        title: "您的位置",
+        zIndex: 1000  // 確保用戶位置標記在最上層
     });
 }
 
@@ -298,7 +299,7 @@ async function initMap() {
 
                 // 圖片
                 const ramenImg = document.createElement("img");
-                ramenImg.src = "./src/assets/images/ramen-marker.png";
+                ramenImg.src = "./src/assets/images/ramen-marker.jpg";
                 ramenImg.className = "ramen-marker-img";
 
                 markerContent.appendChild(ramenImg);
@@ -545,8 +546,29 @@ function canCheckIn() {
     return true;
 }
 
+// 新增：獲取附近的拉麵店
+async function getNearbyShops(lat, lng, limit = 6) {
+    try {
+        const response = await fetch(`https://linebot-fastapi-uhmi.onrender.com/nearby_shops?lat=${lat}&lng=${lng}&limit=${limit}`);
+        const data = await response.json();
+        if (data.status === "success") {
+            return data.shops;
+        }
+        return [];
+    } catch (error) {
+        console.error('Error getting nearby shops:', error);
+        return [];
+    }
+}
+
+// 新增：隨機選擇拉麵店
+function getRandomShops(limit = 6) {
+    const shuffled = [...allStores].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, limit);
+}
+
 // 拉麵轉盤功能
-function initWheel() {
+async function initWheel() {
     const wheelFab = document.getElementById('wheelFab');
     const wheelModal = document.getElementById('wheelModal');
     const closeWheelModal = document.getElementById('closeWheelModal');
@@ -563,6 +585,19 @@ function initWheel() {
     let currentRotation = 0;
     let isSpinning = false;
     let selectedStore = null;
+
+    // 新增：初始化時加入附近的拉麵店
+    if (currentUser && currentUser.latlng) {
+        const { latitude, longitude } = currentUser.latlng;
+        const nearbyShops = await getNearbyShops(latitude, longitude);
+        if (nearbyShops.length > 0) {
+            wheelStores = nearbyShops;
+        } else {
+            wheelStores = getRandomShops();
+        }
+    } else {
+        wheelStores = getRandomShops();
+    }
 
     // 修改：加入/移除轉盤的功能
     addToWheelFab.addEventListener('click', () => {
@@ -812,20 +847,166 @@ async function ensureUserIdParam() {
     }
 }
 
+// 新增：回到用戶位置
+function centerOnUserLocation() {
+    if (currentUser && currentUser.latlng) {
+        const { latitude, longitude } = currentUser.latlng;
+        map.setCenter({ lat: latitude, lng: longitude });
+        map.setZoom(17);
+    } else {
+        showToast('無法獲取您的位置');
+    }
+}
+
+// 新增：處理打卡提交
+async function handleCheckInSubmit(e) {
+    e.preventDefault();
+    
+    if (!currentStore) {
+        alert('請先選擇一家拉麵店');
+        return;
+    }
+
+    // 驗證所有必填欄位
+    const ratingValue = ratingInput.value;
+    const commentValue = document.getElementById('storeComment').value.trim();
+    const photoFile = photoInput.files[0];
+    
+    let hasError = false;
+    
+    // 驗證評分
+    const ratingError = document.querySelector('.rating-error');
+    if (!ratingValue) {
+        ratingError.style.display = 'block';
+        hasError = true;
+    } else {
+        ratingError.style.display = 'none';
+    }
+    
+    // 驗證評論
+    const commentError = document.querySelector('#storeComment').nextElementSibling;
+    if (!commentValue) {
+        commentError.style.display = 'block';
+        hasError = true;
+    } else {
+        commentError.style.display = 'none';
+    }
+    
+    // 驗證照片
+    const photoError = document.querySelector('#checkInPhoto').nextElementSibling.nextElementSibling;
+    if (!photoFile) {
+        photoError.style.display = 'block';
+        hasError = true;
+    } else {
+        photoError.style.display = 'none';
+    }
+    
+    if (hasError) {
+        return;
+    }
+
+    // 防止重複提交
+    const submitBtn = checkInForm.querySelector('.submit-btn');
+    if (submitBtn.disabled) {
+        return;
+    }
+    
+    // 設定 loading 狀態
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+    // 處理照片上傳
+    let photoUrl = '';
+    
+    try {
+        // 建立 FormData 物件
+        const formData = new FormData();
+        formData.append('file', photoFile);
+        
+        // 上傳照片到後端
+        const uploadResponse = await fetch('https://linebot-fastapi-uhmi.onrender.com/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!uploadResponse.ok) {
+            throw new Error('照片上傳失敗');
+        }
+        
+        const uploadResult = await uploadResponse.json();
+        photoUrl = uploadResult.url;
+    } catch (error) {
+        console.error('Error uploading photo:', error);
+        showToast('照片上傳失敗，請稍後再試');
+        // 重置按鈕狀態
+        submitBtn.disabled = false;
+        submitBtn.textContent = '打卡';
+        return;
+    }
+
+    const formData = {
+        store_id: currentStore.name,
+        user_id: currentUser.id,
+        rating: parseFloat(ratingValue),
+        comment: commentValue,
+        photo_url: photoUrl
+    };
+
+    try {
+        const response = await fetch('https://linebot-fastapi-uhmi.onrender.com/checkin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            showToast('打卡成功！');
+            closeCheckInModal();
+        } else {
+            const errorMessage = result.detail || '提交失敗';
+            console.error('Error submitting form:', errorMessage);
+            showToast(errorMessage);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error.message || error);
+        showToast('提交失敗，請稍後再試');
+    } finally {
+        // 重置按鈕狀態
+        submitBtn.disabled = false;
+        submitBtn.textContent = '打卡';
+    }
+}
+
 // 初始化所有功能
 async function init() {
     showLoading();
     
-    await ensureUserIdParam();
-
     try {
-        await initMap();
-        initWheel();
+        // 1. 確保有 user_id
+        await ensureUserIdParam();
 
-        // 檢查登入狀態
+        // 2. 檢查登入狀態並獲取用戶資料
         await checkLoginStatus();
 
-        // 新增：搜尋功能初始化
+        // 3. 初始化地圖並獲取所有拉麵店資料
+        await initMap();
+
+        // 4. 初始化轉盤（需要 allStores 和 currentUser 數據）
+        await initWheel();
+
+        // 5. 新增：回到用戶位置按鈕
+        const backToUserBtn = document.createElement('button');
+        backToUserBtn.className = 'back-to-user-btn';
+        backToUserBtn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+        backToUserBtn.title = '回到我的位置';
+        backToUserBtn.addEventListener('click', centerOnUserLocation);
+        document.querySelector('.main-content').appendChild(backToUserBtn);
+
+        // 6. 初始化搜尋功能
         const searchInput = document.getElementById('searchInput');
         const searchBox = document.querySelector('.search-box');
         const searchToggle = document.querySelector('.search-toggle');
@@ -869,193 +1050,12 @@ async function init() {
             }
         });
 
-        // 打卡功能事件監聽
-        checkInFab.addEventListener('click', () => {
-            if (currentStore && canCheckIn()) {
-                openCheckInModal(currentStore);
-            }
-        });
+        // 7. 初始化打卡功能
+        initCheckIn();
 
-        closeModal.addEventListener('click', closeCheckInModal);
-
-        checkInModal.addEventListener('click', (e) => {
-            if (e.target === checkInModal) {
-                closeCheckInModal();
-            }
-        });
-
-        ratingStars.forEach(star => {
-            star.addEventListener('click', handleRatingClick);
-        });
-
-        photoInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            const errorElement = photoInput.nextElementSibling.nextElementSibling;
-            
-            if (file) {
-                // 檢查檔案類型
-                if (!file.type.startsWith('image/')) {
-                    showToast('請上傳圖片檔案');
-                    photoInput.value = '';
-                    errorElement.style.display = 'block';
-                    return;
-                }
-                
-                // 檢查檔案大小（限制為 5MB）
-                if (file.size > 5 * 1024 * 1024) {
-                    showToast('圖片大小不能超過 5MB');
-                    photoInput.value = '';
-                    errorElement.style.display = 'block';
-                    return;
-                }
-                
-                errorElement.style.display = 'none';
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    photoPreview.innerHTML = `<img src="${e.target.result}" alt="預覽照片">`;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        checkInForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!currentStore) {
-                alert('請先選擇一家拉麵店');
-                return;
-            }
-
-            // 驗證所有必填欄位
-            const ratingValue = ratingInput.value;
-            const commentValue = document.getElementById('storeComment').value.trim();
-            const photoFile = photoInput.files[0];
-            
-            let hasError = false;
-            
-            // 驗證評分
-            const ratingError = document.querySelector('.rating-error');
-            if (!ratingValue) {
-                ratingError.style.display = 'block';
-                hasError = true;
-            } else {
-                ratingError.style.display = 'none';
-            }
-            
-            // 驗證評論
-            const commentError = document.querySelector('#storeComment').nextElementSibling;
-            if (!commentValue) {
-                commentError.style.display = 'block';
-                hasError = true;
-            } else {
-                commentError.style.display = 'none';
-            }
-            
-            // 驗證照片
-            const photoError = document.querySelector('#checkInPhoto').nextElementSibling.nextElementSibling;
-            if (!photoFile) {
-                photoError.style.display = 'block';
-                hasError = true;
-            } else {
-                photoError.style.display = 'none';
-            }
-            
-            if (hasError) {
-                return;
-            }
-
-            // 防止重複提交
-            const submitBtn = checkInForm.querySelector('.submit-btn');
-            if (submitBtn.disabled) {
-                return;
-            }
-            
-            // 設定 loading 狀態
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-
-            // 處理照片上傳
-            let photoUrl = '';
-            
-            try {
-                // 建立 FormData 物件
-                const formData = new FormData();
-                formData.append('file', photoFile);
-                
-                // 上傳照片到後端
-                const uploadResponse = await fetch('https://linebot-fastapi-uhmi.onrender.com/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!uploadResponse.ok) {
-                    throw new Error('照片上傳失敗');
-                }
-                
-                const uploadResult = await uploadResponse.json();
-                photoUrl = uploadResult.url;
-            } catch (error) {
-                console.error('Error uploading photo:', error);
-                showToast('照片上傳失敗，請稍後再試');
-                // 重置按鈕狀態
-                submitBtn.disabled = false;
-                submitBtn.textContent = '打卡';
-                return;
-            }
-
-            const formData = {
-                store_id: currentStore.name,
-                user_id: currentUser.id,
-                rating: parseFloat(ratingValue),
-                comment: commentValue,
-                photo_url: photoUrl
-            };
-
-            try {
-                const response = await fetch('https://linebot-fastapi-uhmi.onrender.com/checkin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showToast('打卡成功！');
-                    closeCheckInModal();
-                } else {
-                    const errorMessage = result.detail || '提交失敗';
-                    console.error('Error submitting form:', errorMessage);
-                    showToast(errorMessage);
-                }
-            } catch (error) {
-                console.error('Error submitting form:', error.message || error);
-                showToast('提交失敗，請稍後再試');
-            } finally {
-                // 重置按鈕狀態
-                submitBtn.disabled = false;
-                submitBtn.textContent = '打卡';
-            }
-        });
-
-        // 新增：評論輸入處理
-        document.getElementById('storeComment').addEventListener('input', function(e) {
-            const errorElement = this.nextElementSibling;
-            if (e.target.value.trim()) {
-                errorElement.style.display = 'none';
-            }
-        });
-
-        // 移除照片
-        window.removePhoto = function() {
-            photoInput.value = '';
-            photoPreview.innerHTML = '';
-        };
-
-        // 處理所有 URL 參數
+        // 8. 處理所有 URL 參數
         handleUrlParameters();
+
     } catch (error) {
         console.error('Error during initialization:', error);
         showToast('載入失敗，請重新整理頁面');
@@ -1063,6 +1063,43 @@ async function init() {
         // 確保所有初始化完成後才隱藏 loading
         setTimeout(hideLoading, 500); // 添加小延遲以確保平滑過渡
     }
+}
+
+// 新增：初始化打卡功能
+function initCheckIn() {
+    const checkInFab = document.getElementById('checkInFab');
+    const checkInModal = document.getElementById('checkInModal');
+    const closeModal = document.querySelector('.close-modal');
+    const checkInForm = document.getElementById('checkInForm');
+    const storeNameElement = document.getElementById('checkInStoreName');
+    const storeAddressElement = document.getElementById('checkInStoreAddress');
+    const ratingInput = document.getElementById('storeRating');
+    const ratingStars = document.querySelectorAll('.rating-input i');
+    const photoInput = document.getElementById('checkInPhoto');
+    const photoPreview = document.getElementById('photoPreview');
+
+    // 打卡功能事件監聽
+    checkInFab.addEventListener('click', () => {
+        if (currentStore && canCheckIn()) {
+            openCheckInModal(currentStore);
+        }
+    });
+
+    closeModal.addEventListener('click', closeCheckInModal);
+
+    checkInModal.addEventListener('click', (e) => {
+        if (e.target === checkInModal) {
+            closeCheckInModal();
+        }
+    });
+
+    ratingStars.forEach(star => {
+        star.addEventListener('click', handleRatingClick);
+    });
+
+    photoInput.addEventListener('change', handlePhotoPreview);
+
+    checkInForm.addEventListener('submit', handleCheckInSubmit);
 }
 
 init();

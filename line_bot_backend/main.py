@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from dotenv import load_dotenv
-from line_bot_backend.db import db, add_user, get_all_ramen_shops, get_user_by_id, update_user_location, get_user_location, search_ramen_nearby, create_checkin, upload_photo
+from line_bot_backend.db import db, add_user, get_all_ramen_shops, get_user_by_id, update_user_location, get_user_location, search_ramen_nearby, create_checkin, upload_photo, find_nearby_shops
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, storage # 新增：storage
@@ -573,6 +573,11 @@ async def reply_ramen_flavor_quick_reply(reply_token):
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
 '''
+
+@app.get("/nearby_shops")
+def get_nearby_shops(lat: float, lng: float, limit: int = 6):
+    shops = find_nearby_shops(lat, lng, limit)
+    return {"status": "success", "shops": shops}
 
 
 
