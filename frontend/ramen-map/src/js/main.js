@@ -40,17 +40,6 @@ async function checkLoginStatus() {
             if (data.status === "success") {
                 currentUser = data.user; // 存儲完整的用戶資料
                 updateLoginUI();
-
-                // 檢查用戶是否有位置資料
-                if (data.user.latlng) {
-                    const { latitude, longitude } = data.user.latlng;
-                    // 設置地圖中心為用戶位置
-                    map.setCenter({ lat: latitude, lng: longitude });
-                    map.setZoom(17);
-                    
-                    // 添加用戶位置標記
-                    addUserLocationMarker(latitude, longitude);
-                }
             } else {
                 console.error('User not found:', data.message);
             }
@@ -231,9 +220,7 @@ function handleUrlParameters() {
                 window.drawWheel();
             }
         });
-    } else {
-        wheelStores = [];
-    }
+    } 
     
     // 3. 處理是否顯示轉盤 - 移到 store_ids 處理中
     
@@ -275,8 +262,17 @@ async function initMap() {
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
-        zoomControl: true,
+        zoomControl: false,
+
     });
+
+    // 如果有用戶位置，設置地圖中心和標記
+    if (currentUser && currentUser.latlng) {
+        const { latitude, longitude } = currentUser.latlng;
+        map.setCenter({ lat: latitude, lng: longitude });
+        map.setZoom(17);
+        addUserLocationMarker(latitude, longitude);
+    }
 
     // 讀取拉麵店資料
     fetch("https://linebot-fastapi-uhmi.onrender.com/all_shops")
@@ -598,6 +594,7 @@ async function initWheel() {
     } else {
         wheelStores = getRandomShops();
     }
+    console.log(wheelStores);
 
     // 修改：加入/移除轉盤的功能
     addToWheelFab.addEventListener('click', () => {
@@ -628,6 +625,7 @@ async function initWheel() {
 
     // 將 drawWheel 函數設為全局可訪問
     window.drawWheel = function() {
+        console.log('drawWheel called, wheelStores:', wheelStores);
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = Math.min(centerX, centerY) - 10;
@@ -635,6 +633,7 @@ async function initWheel() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         if (wheelStores.length === 0) {
+            console.log('wheelStores is empty in drawWheel');
             // 如果轉盤為空，顯示提示文字
             ctx.fillStyle = '#f8f9fa';
             ctx.beginPath();
@@ -738,6 +737,7 @@ async function initWheel() {
     };
 
     wheelFab.addEventListener('click', () => {
+        console.log('wheelFab clicked, wheelStores:', wheelStores);
         wheelModal.classList.add('active');
         document.body.classList.add('modal-open');
         drawWheel();
@@ -989,11 +989,13 @@ async function init() {
         // 1. 確保有 user_id
         await ensureUserIdParam();
 
-        // 2. 檢查登入狀態並獲取用戶資料
         await checkLoginStatus();
 
-        // 3. 初始化地圖並獲取所有拉麵店資料
+        // 2. 初始化地圖並獲取所有拉麵店資料
         await initMap();
+
+        // 3. 檢查登入狀態並獲取用戶資料
+        
 
         // 4. 初始化轉盤（需要 allStores 和 currentUser 數據）
         await initWheel();
