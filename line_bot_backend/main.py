@@ -715,27 +715,19 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
 async def handle_ramen_dump(
     reply_token: str,
     user_id: str,
-    max_tiles: int | None = None
+    max_tiles: int
 ):
     days = user_last_days.get(user_id, 90)
-
-    # 撈資料
     stats = analyze_checkins(user_id, days)
-    records = stats.get("records", [])
-    all_urls = [r["photo_url"] for r in records if r.get("photo_url")]
-    if not all_urls:
-        return await reply_message(reply_token, f"❌ 近 {days} 天內沒有可用的打卡照片啦～")
+    urls = [r["photo_url"] for r in stats["records"] if r.get("photo_url")]
+    if not urls:
+        return await reply_message(reply_token, f"❌ 近 {days} 天內沒有打卡照片～")
 
-    # 只取前 max_tiles 張（None 就取全部）
-    image_urls = all_urls if max_tiles is None else all_urls[:max_tiles]
+    # 直接傳入 max_tiles
+    dump_bytes = await generate_ramen_dump(urls, max_tiles)
 
-    # 生成拼圖
-    dump_bytes = await generate_ramen_dump(image_urls)
-
-    # 上傳並回傳
     bucket = storage.bucket()
-    suffix = f"_{max_tiles}tiles" if max_tiles else "_all"
-    file_name = f"ramen_dump/{user_id}{suffix}_{uuid.uuid4().hex}.jpg"
+    file_name = f"ramen_dump/{user_id}_{max_tiles}tiles_{uuid.uuid4().hex}.jpg"
     blob = bucket.blob(file_name)
     blob.upload_from_string(dump_bytes.getvalue(), content_type="image/jpeg")
     blob.make_public()
@@ -752,44 +744,37 @@ GRID_LAYOUT = {
 
 async def generate_ramen_dump(
     urls: list[str],
-    max_tiles: int | None = None,  
+    max_tiles: int,                # 必填，不再接受 None
     tile_width: int = 300,
     bg_color: tuple[int,int,int] = (0, 0, 0)
 ) -> io.BytesIO:
-    """
-    根据 max_tiles 生成对应的网格：
-     - 4: 2×2
-     - 6: 2×3
-     - 12:3×4
-    tile_width 控制每张图的宽度，高度按行数自动算出 tile_height = tile_width * rows/cols
-    """
-    # 只取前 max_tiles 张
+    # 1) 只取前 max_tiles 張
     urls = urls[:max_tiles]
-    cols, rows = GRID_LAYOUT.get(max_tiles, (int(math.sqrt(max_tiles)), 
-                                             math.ceil(max_tiles / int(math.sqrt(max_tiles)))))
-    
-    # 计算每个 tile 的高度，让整个画布保持竖屏
+
+    # 2) 取行列配置
+    cols, rows = GRID_LAYOUT.get(max_tiles, (
+        int(math.sqrt(max_tiles)),
+        math.ceil(max_tiles / int(math.sqrt(max_tiles)))
+    ))
+
+    # 3) 計算 tile_height、畫布尺寸
     tile_height = int(tile_width * rows / cols)
     W, H = cols * tile_width, rows * tile_height
-
     canvas = Image.new("RGB", (W, H), bg_color)
 
+    # 4) 下載、轉正、裁切並貼圖
     for idx, url in enumerate(urls):
-        # 下载与方向校正
         resp = requests.get(url, timeout=10)
         img = Image.open(io.BytesIO(resp.content))
         img = ImageOps.exif_transpose(img).convert("RGB")
-        # 裁切 & 填满
         thumb = ImageOps.fit(img, (tile_width, tile_height), method=Image.LANCZOS)
 
-        # 贴到画布
         x = (idx % cols) * tile_width
         y = (idx // cols) * tile_height
         canvas.paste(thumb, (x, y))
-
         img.close()
 
-    # 输出到 BytesIO
+    # 5) 輸出 BytesIO
     bio = io.BytesIO()
     canvas.save(bio, format="JPEG", quality=90)
     bio.seek(0)
