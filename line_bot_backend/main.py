@@ -723,8 +723,11 @@ async def handle_ramen_dump(
     if not urls:
         return await reply_message(reply_token, f"❌ 近 {days} 天內沒有打卡照片～")
 
-    # 直接傳入 max_tiles
-    dump_bytes = await generate_ramen_dump(urls, max_tiles)
+    # 只取前 max_tiles 張
+    sliced = urls[:max_tiles]
+
+    # 呼叫不變的 generate_ramen_dump
+    dump_bytes = await generate_ramen_dump(sliced)
 
     bucket = storage.bucket()
     file_name = f"ramen_dump/{user_id}_{max_tiles}tiles_{uuid.uuid4().hex}.jpg"
@@ -735,7 +738,6 @@ async def handle_ramen_dump(
 
     await reply_image(reply_token, public_url)
 
-
 GRID_LAYOUT = {
     4:  (2, 2),  # 2 列 × 2 排
     6:  (2, 3),  # 2 列 × 3 排
@@ -744,43 +746,34 @@ GRID_LAYOUT = {
 
 async def generate_ramen_dump(
     urls: list[str],
-    max_tiles: int,
-    tile_width: int = 300,              # 每格寬度（像素）
+    canvas_height: int = 1600,               # 直向畫布總高
     bg_color: tuple[int,int,int] = (0, 0, 0)  # 背景色
 ) -> io.BytesIO:
-    # 只取前 max_tiles 張
-    urls = urls[:max_tiles]
-
-    # 取得列數、排數
-    cols, rows = GRID_LAYOUT.get(max_tiles, (
-        int(math.sqrt(max_tiles)),
-        math.ceil(max_tiles / int(math.sqrt(max_tiles)))
+    # 這裡根據 urls 長度自动推 cols, rows （用 GRID_LAYOUT 或正方形 fallback）
+    total = len(urls)
+    cols, rows = GRID_LAYOUT.get(total, (
+        int(math.sqrt(total)),
+        math.ceil(total / int(math.sqrt(total)))
     ))
 
-    # 先計算總畫布寬度 (cols * tile_width)
-    canvas_w = cols * tile_width
-    # 依 16:9 比例算出畫布高度
-    canvas_h = int(canvas_w * 9 / 16)
-    # 再算出每格高度
-    tile_height = int(canvas_h / rows)
-
-    # 建立 16:9 畫布
+    # 建立 9:16 直向畫布
+    canvas_h = canvas_height
+    canvas_w = int(canvas_h * 9 / 16)
+    tile_w = canvas_w // cols
+    tile_h = canvas_h // rows
     canvas = Image.new("RGB", (canvas_w, canvas_h), bg_color)
 
     for idx, url in enumerate(urls):
         resp = requests.get(url, timeout=10)
         img = Image.open(io.BytesIO(resp.content))
         img = ImageOps.exif_transpose(img).convert("RGB")
-        # 裁切並填滿每格 (tile_width × tile_height)
-        thumb = ImageOps.fit(img, (tile_width, tile_height), method=Image.LANCZOS)
+        thumb = ImageOps.fit(img, (tile_w, tile_h), method=Image.LANCZOS)
 
-        # 計算貼圖座標
-        x = (idx % cols) * tile_width
-        y = (idx // cols) * tile_height
+        x = (idx % cols) * tile_w
+        y = (idx // cols) * tile_h
         canvas.paste(thumb, (x, y))
         img.close()
 
-    # 輸出至 BytesIO
     bio = io.BytesIO()
     canvas.save(bio, format="JPEG", quality=90)
     bio.seek(0)
