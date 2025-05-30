@@ -484,12 +484,25 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
 
 
 def analyze_checkins(user_id: str, days: int) -> dict:
+    """
+    讀取 user_id 過去 days 天的 checkins，回傳統計：
+    {
+      'bowls': int,
+      'shops': int,
+      'top_shop': str,
+      'flavor_pct': {flavor: 'xx.x%', ...},
+      'records': [...]
+    }
+    """
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-    docs = db.collection('checkins') \
-             .where('user_id', '==', user_id) \
-             .order_by('timestamp', direction=firestore.Query.DESCENDING) \
-             .stream()
+    docs = (
+        db.collection('checkins')
+          .where('user_id', '==', user_id)
+          .order_by('timestamp', direction=firestore.Query.DESCENDING)
+          .stream()
+    )
     records = []
+    shop_counter = Counter()
     for doc in docs:
         data = doc.to_dict()
         ts = data.get('timestamp')
@@ -497,12 +510,17 @@ def analyze_checkins(user_id: str, days: int) -> dict:
             ts = ts.to_datetime().replace(tzinfo=timezone.utc)
         if ts >= cutoff:
             records.append(data)
+            shop_counter[data.get('store_name', '未知商家')] += 1
+
     bowls = len(records)
-    shops = len({r['store_id'] for r in records})
+    shops = len(shop_counter)
+    top_shop = shop_counter.most_common(1)[0][0] if shop_counter else '無資料'
+
     flavors = [r.get('flavor', '其他') for r in records]
     cnt = Counter(flavors)
     flavor_pct = {fl: f"{c/bowls*100:.1f}%" for fl, c in cnt.items()} if bowls else {}
-    return {'bowls': bowls, 'shops': shops, 'flavor_pct': flavor_pct, 'records': records}
+
+    return {'bowls': bowls, 'shops': shops, 'top_shop': top_shop, 'flavor_pct': flavor_pct, 'records': records}
 
 
 '''
