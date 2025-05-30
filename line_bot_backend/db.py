@@ -174,7 +174,6 @@ def create_checkin(data: dict):
         photo_url = data.get("photo_url", "")
         keyword = data.get("keyword", "")
 
-        print(f"Received data: {data}")
 
         # 檢查必要欄位
         if not store_id or not user_id or rating is None or not keyword:
