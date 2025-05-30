@@ -662,64 +662,51 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
 def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     labels = list(flavor_pct.keys())
-    sizes = [float(p.strip('%')) for p in flavor_pct.values()]
+    sizes  = [float(p.strip('%')) for p in flavor_pct.values()]
 
-    # 一组自订色板，你可以换成自己喜欢的颜色（十六进位）
-    colors = [
-        "#4E79A7",  # 蓝 – 豚骨
-        "#F28E2B",  # 橙 – 醬油
-        "#E15759",  # 红 – 雞白湯
-        "#76B7B2",  # 青 – 辣味
-        "#59A14F",  # 绿 – 其他
-    ]
-    # 如果 flavor 数量超过颜色数，可以循环使用
+    # 自定义配色
+    colors = ["#4E79A7","#F28E2B","#E15759","#76B7B2","#59A14F"]
     bg_colors = [colors[i % len(colors)] for i in range(len(labels))]
 
     chart = {
         "type": "pie",
         "data": {
-            "labels": labels,
+            "labels": labels,  # 只是给插件取标签用
             "datasets": [{
                 "data": sizes,
-                "backgroundColor": bg_colors,  # 填充色
-                "borderColor": "#ffffff",      # 扇形边框白色
+                "backgroundColor": bg_colors,
+                "borderColor": "#ffffff",
                 "borderWidth": 2
             }]
         },
         "options": {
             "plugins": {
                 "datalabels": {
-                    # 直接显示标签文字
+                    # 直接拿标签文字，不显示百分比
                     "formatter": "(ctx) => ctx.chart.data.labels[ctx.dataIndex]",
                     "color": "#ffffff",
-                    "font": {"size": 14, "weight": "bold"}
+                    "font": {"size": 16, "weight": "bold"}
                 },
-                "title": {
-                    "display": True,
-                    "text": "口味分布",
-                    "font": {"size": 18, "weight": "bold"}
-                },
-                "legend": {
-                    "position": "right",
-                    "labels": {"font": {"size": 14, "weight": "bold"}},
-                    "title": {
-                        "display": True,
-                        "text": "口味",
-                        "font": {"size": 16, "weight": "bold"}
-                    }
-                }
+                # 关闭默认 Legend
+                "legend": {"display": False},
+                # 关闭 Title
+                "title":  {"display": False}
             }
         }
     }
 
+    # 转成字符串，替换 formatter 占位符
     json_str = json.dumps(chart, ensure_ascii=False)
+    json_str = json_str.replace(
+        "\"(ctx) => ctx.chart.data.labels[ctx.dataIndex]\"",
+        "(ctx) => ctx.chart.data.labels[ctx.dataIndex]"
+    )
 
-    # 先 URL encode 主配置 c 参数
     base = "https://quickchart.io/chart"
+    # 主配置参数
     url = f"{base}?{urllib.parse.urlencode({'c': json_str})}"
-    # 再加上 plugin 参数，指定 datalabels 插件版本
+    # 加载 datalabels 插件
     url += "&plugin=chartjs-plugin-datalabels@2.0.0"
-
     return url
 
 
