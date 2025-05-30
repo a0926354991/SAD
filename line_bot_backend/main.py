@@ -84,6 +84,7 @@ class CheckInRequest(BaseModel):
     store_id: str
     user_id: str
     rating: float
+    keyword: str
     comment: str = ""
     photo_url: str = ""  # 新增：照片 URL
 
