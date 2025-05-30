@@ -595,33 +595,59 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
 def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     labels = list(flavor_pct.keys())
-    sizes = [float(p.strip('%')) for p in flavor_pct.values()]
-    # QuickChart 的 chart config
+    sizes  = [float(p.strip('%')) for p in flavor_pct.values()]
+
     chart_config = {
         "type": "pie",
         "data": {
             "labels": labels,
             "datasets": [{
-                "data": sizes
+                "data": sizes,
+                "datalabels": {
+                    "formatter": "function(value, ctx) {"
+                                 "  let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);"
+                                 "  return (value / sum * 100).toFixed(1) + '%';"
+                                 "}",
+                    "color": "#fff",
+                    "font": {
+                        "size": 14,
+                        "weight": "bold"
+                    }
+                }
             }]
         },
         "options": {
             "plugins": {
-                "legend": {
-                    "position": "right",
-                    "title": {
-                        "display": True,
-                        "text": "口味分布"
-                    }
-                },
                 "title": {
                     "display": True,
-                    "text": "口味分布"
+                    "text": "口味分布",
+                    "font": {
+                        "size": 18,
+                        "weight": "bold"
+                    }
+                },
+                "legend": {
+                    "position": "right",
+                    "labels": {
+                        "font": {
+                            "size": 14,
+                            "weight": "bold"
+                        }
+                    },
+                    "title": {
+                        "display": True,
+                        "text": "口味",
+                        "font": {
+                            "size": 16,
+                            "weight": "bold"
+                        }
+                    }
                 }
             }
-        }
+        },
+        "plugins": ["datalabels"]
     }
-    # 建立圖表並取得 URL
+
     res = requests.post(
         "https://quickchart.io/chart/create",
         json={"chart": chart_config}
