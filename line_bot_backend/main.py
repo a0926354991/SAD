@@ -712,22 +712,15 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
         }
     }
 
-    # 把 formatter 函数插回 JSON
     json_str = json.dumps(chart, ensure_ascii=False)
-    # 上面 formatter 用了占位符，替换它
-    json_str = json_str.replace(
-        "\"(ctx) => ctx.chart.data.labels[ctx.dataIndex]\"",
-        "(ctx) => ctx.chart.data.labels[ctx.dataIndex]"
-    )
 
+    # 先 URL encode 主配置 c 参数
     base = "https://quickchart.io/chart"
-    params = {
-        "c": json_str,
-        # 這裡如果有用到 datalabels plugin 才需要
-        "plugins": "chartjs-plugin-datalabels"
-    }
-    return f"{base}?{urllib.parse.urlencode(params)}"
+    url = f"{base}?{urllib.parse.urlencode({'c': json_str})}"
+    # 再加上 plugin 参数，指定 datalabels 插件版本
+    url += "&plugin=chartjs-plugin-datalabels@2.0.0"
 
+    return url
 
 
 async def handle_ramen_dump(
