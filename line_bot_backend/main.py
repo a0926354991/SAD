@@ -661,17 +661,20 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
 
 def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
+    if not flavor_pct:
+        raise ValueError("flavor_pct is empty or None")
+
     labels = list(flavor_pct.keys())
     sizes  = [float(p.strip('%')) for p in flavor_pct.values()]
 
-    # 自定义配色
-    colors = ["#4E79A7","#F28E2B","#E15759","#76B7B2","#59A14F"]
+    # 自訂配色
+    colors = ["#4E79A7", "#F28E2B", "#E15759", "#76B7B2", "#59A14F"]
     bg_colors = [colors[i % len(colors)] for i in range(len(labels))]
 
     chart = {
         "type": "pie",
         "data": {
-            "labels": labels,  # 只是给插件取标签用
+            "labels": labels,
             "datasets": [{
                 "data": sizes,
                 "backgroundColor": bg_colors,
@@ -682,32 +685,24 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
         "options": {
             "plugins": {
                 "datalabels": {
-                    # 直接拿标签文字，不显示百分比
-                    "formatter": "(ctx) => ctx.chart.data.labels[ctx.dataIndex]",
+                    "formatter": {
+                        "raw": "function(ctx) { return ctx.chart.data.labels[ctx.dataIndex]; }"
+                    },
                     "color": "#ffffff",
                     "font": {"size": 16, "weight": "bold"}
                 },
-                # 关闭默认 Legend
                 "legend": {"display": False},
-                # 关闭 Title
                 "title":  {"display": False}
             }
         }
     }
 
-    json_str = json.dumps(chart, ensure_ascii=False)
-    json_str = json_str.replace(
-        "\"(ctx) => ctx.chart.data.labels[ctx.dataIndex]\"",
-        "(ctx) => ctx.chart.data.labels[ctx.dataIndex]"
-    )
-
     base = "https://quickchart.io/chart"
     params = {
-        "c": json_str,
-        "plugins": "chartjs-plugin-datalabels"   
+        "c": json.dumps(chart, ensure_ascii=False),
+        "plugins": "chartjs-plugin-datalabels"
     }
     return f"{base}?{urllib.parse.urlencode(params)}"
-
 
 
 async def handle_ramen_dump(
