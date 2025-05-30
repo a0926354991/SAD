@@ -7,13 +7,10 @@ from firebase_admin import firestore, storage # 新增：storage
 from pydantic import BaseModel
 from collections import Counter
 from PIL import Image, ImageOps
-from io import BytesIO
-
 
 import io
 import os
 import aiohttp
-import asyncio
 import random
 import json
 import math
@@ -23,6 +20,8 @@ from datetime import datetime, timezone, timedelta
 import uuid  # 新增：用於生成唯一檔名
 import matplotlib
 import matplotlib.pyplot as plt
+import asyncio
+from io import BytesIO
 
 load_dotenv()
 app = FastAPI()
@@ -36,7 +35,7 @@ UPLOAD_KEYWORDS = ["打卡","打卡上傳", "照片上傳"]
 ANALYSIS_KEYWORDS = ["分析", "統整", "統整分析"]
 FEEDBACK_KEYWORDS = ["意見回饋", "回饋"]
 FLAVORS = ["豚骨", "醬油", "味噌", "鹽味", "辣味", "雞白湯", "海老", "魚介"]
-DUMP_KEYWORDS = ["生成我的拉麵 dump", "拉麵 dump", "拉麵 Dump", "拉麵dump", "拉麵Dump", "dump", "Dump"]
+# DUMP_KEYWORDS = ["生成我的拉麵 dump", "拉麵 dump", "拉麵 Dump", "拉麵dump", "拉麵Dump", "dump", "Dump"]
 
 # 儲存使用者位置（之後要改用 Firestore，現在先這樣）
 user_locations = {}
@@ -180,8 +179,12 @@ async def webhook(req: Request):
                     days = int(msg.replace("天", ""))
                     await handle_analysis(reply_token, user_id, days)
 
-                elif any(keyword in msg for keyword in DUMP_KEYWORDS):
-                    await handle_ramen_dump(reply_token, user_id)
+                elif msg == "dump4":
+                    await handle_ramen_dump(reply_token, user_id, max_tiles=4)
+                elif msg == "dump6":
+                    await handle_ramen_dump(reply_token, user_id, max_tiles=6)
+                elif msg == "dump12":
+                    await handle_ramen_dump(reply_token, user_id, max_tiles=12)
                 
                 # 意見回饋
                 elif any(keyword in msg for keyword in FEEDBACK_KEYWORDS):
@@ -537,7 +540,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 {"type": "text", "text": f"🏠 造訪店家：{stats['shops']} 家", "size": "sm"},
                 {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
                 {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
-                {"type":"box","layout":"vertical","spacing":"sm","contents": flavor_contents},
+                {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
                 {
                     "type": "image",
                     "url": img_url,
@@ -552,7 +555,38 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "type": "box",
             "layout": "vertical",
             "contents": [
-                {"type": "button", "action": {"type": "message", "label": "生成我的拉麵 dump","text": "生成我的拉麵 dump"},"style": "primary","color": "#905C44"}
+                {
+                    "type": "text",
+                    "text": "生成我的拉麵 dump",
+                    "weight": "bold",
+                    "size": "sm",
+                    "align": "center",
+                    "margin": "md"
+                },
+                {
+                    "type": "button",
+                    "action": {"type": "message", "label": "4 格",  "text": "dump4"},
+                    "style": "secondary",
+                    "color": "#CCCCCC",
+                    "height": "sm",
+                    "margin": "sm"
+                },
+                {
+                    "type": "button",
+                    "action": {"type": "message", "label": "6 格",  "text": "dump6"},
+                    "style": "secondary",
+                    "color": "#CCCCCC",
+                    "height": "sm",
+                    "margin": "sm"
+                },
+                {
+                    "type": "button",
+                    "action": {"type": "message", "label": "12 格", "text": "dump12"},
+                    "style": "secondary",
+                    "color": "#CCCCCC",
+                    "height": "sm",
+                    "margin": "sm"
+                }
             ]
         }
     }
@@ -657,58 +691,94 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     return f"{base}?{urllib.parse.urlencode(params)}"
 
 
-async def handle_ramen_dump(reply_token: str, user_id: str):
-    # 1) 先撈出過去 90 天的 records（也可改成分析時長）
+async def handle_ramen_dump(
+    reply_token: str,
+    user_id: str,
+    max_tiles: int | None = None
+):
     days = user_last_days.get(user_id, 90)
 
+    # 撈資料
     stats = analyze_checkins(user_id, days)
     records = stats.get("records", [])
-    image_urls = [r["photo_url"] for r in records if r.get("photo_url")]
-    if not image_urls:
-        return await reply_message(reply_token, "❌ 目前沒有可用的打卡照片啦～")
+    all_urls = [r["photo_url"] for r in records if r.get("photo_url")]
+    if not all_urls:
+        return await reply_message(reply_token, f"❌ 近 {days} 天內沒有可用的打卡照片啦～")
 
-    # 2) 生成拼圖
+    # 只取前 max_tiles 張（None 就取全部）
+    image_urls = all_urls if max_tiles is None else all_urls[:max_tiles]
+
+    # 生成拼圖
     dump_bytes = await generate_ramen_dump(image_urls)
 
-    # 3) 上傳到 Firebase Storage
+    # 上傳並回傳
     bucket = storage.bucket()
-    file_name = f"ramen_dump/{user_id}_{uuid.uuid4().hex}.jpg"
+    suffix = f"_{max_tiles}tiles" if max_tiles else "_all"
+    file_name = f"ramen_dump/{user_id}{suffix}_{uuid.uuid4().hex}.jpg"
     blob = bucket.blob(file_name)
     blob.upload_from_string(dump_bytes.getvalue(), content_type="image/jpeg")
     blob.make_public()
     public_url = blob.public_url
 
-    # 4) 回傳圖片訊息
     await reply_image(reply_token, public_url)
 
 
+# 你可以調整這個 mapping 以支援更多不同的格子配置
+GRID_LAYOUT = {
+    4:  (2, 2),
+    6:  (3, 2),
+    12: (4, 3),
+}
+
 async def generate_ramen_dump(urls: list[str],
-                              tile_size: tuple[int,int]=(200,200),
-                              bg_color: tuple[int,int,int]=(0x33,0x33,0x33)) -> io.BytesIO:
-    thumbs = []
-    for url in urls:
-        resp = requests.get(url, timeout=10)
-        img = Image.open(io.BytesIO(resp.content))
-        img = ImageOps.exif_transpose(img).convert("RGB")
-        thumb = ImageOps.fit(img, tile_size, method=Image.LANCZOS)
-        thumbs.append(thumb)
+                              tile_size: tuple[int,int] = (200,200),
+                              bg_color: tuple[int,int,int] = (0x33,0x33,0x33),
+                              max_tiles: int = 6
+                             ) -> BytesIO:
+    # 1) 先決定要用幾張圖
+    urls = urls[:max_tiles]
+    n = len(urls)
 
-    n = len(thumbs)
-    cols = int(math.sqrt(n))
-    rows = math.ceil(n / cols)
-    total = cols * rows
-    while len(thumbs) < total:
-        thumbs.append(thumbs[-1])
+    # 2) 決定 cols, rows
+    if max_tiles in GRID_LAYOUT:
+        cols, rows = GRID_LAYOUT[max_tiles]
+    else:
+        # fallback: 最接近正方形
+        cols = int(math.sqrt(n))
+        rows = math.ceil(n / cols)
 
+    # 3) 準備畫布
     W, H = cols * tile_size[0], rows * tile_size[1]
     canvas = Image.new("RGB", (W, H), bg_color)
-    for idx, thumb in enumerate(thumbs):
-        x = (idx % cols) * tile_size[0]
-        y = (idx // cols) * tile_size[1]
-        canvas.paste(thumb, (x, y))
 
-    bio = io.BytesIO()
-    canvas.save(bio, format="JPEG", quality=90)
+    # 4) Semaphore 控制並發
+    sem = asyncio.Semaphore(5)
+    async with aiohttp.ClientSession() as session:
+        for idx, url in enumerate(urls):
+            async with sem:
+                try:
+                    async with session.get(url, timeout=10) as resp:
+                        data = await resp.read()
+                except Exception:
+                    continue
+
+            # 5) 處理單張
+            img = Image.open(BytesIO(data))
+            img = ImageOps.exif_transpose(img).convert("RGB")
+            thumb = ImageOps.fit(img, tile_size, method=Image.LANCZOS)
+
+            # 6) 貼到畫布
+            x = (idx % cols) * tile_size[0]
+            y = (idx // cols) * tile_size[1]
+            canvas.paste(thumb, (x, y))
+
+            # 7) 釋放
+            img.close()
+            del thumb
+
+    # 8) 輸出
+    bio = BytesIO()
+    canvas.save(bio, format="JPEG", quality=85)
     bio.seek(0)
     return bio
 
