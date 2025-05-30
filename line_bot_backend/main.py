@@ -291,7 +291,7 @@ async def push_message(user_id, message):
     }
     body = {
         "to": user_id,
-        "messages": message
+        "messages": [message]
     }
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=body, headers=headers) as resp:
