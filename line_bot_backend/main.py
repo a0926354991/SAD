@@ -206,11 +206,10 @@ async def webhook(req: Request):
 
                             # 取出 ramen_list 的 id 組合網址
                             shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
-                            ids_str = ",".join(shop_ids)
-                            # encoded_store_ids = quote(",".join(shop_ids))
-                            # roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={encoded_store_ids}"
-                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={ids_str}"
-
+                            # ids_str = ",".join(shop_ids)
+                            encoded_store_ids = quote(",".join(shop_ids))
+                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={encoded_store_ids}"
+                            
                             # message = {
                             #     "type": "template",
                             #     "altText": "點擊「轉一下！」進入拉麵轉盤",
@@ -715,13 +714,16 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
 async def handle_ramen_dump(
     reply_token: str,
     user_id: str,
-    max_tiles: int
+    max_tiles: int | None = None
 ):
     days = user_last_days.get(user_id, 90)
+
+    # 撈資料
     stats = analyze_checkins(user_id, days)
-    urls = [r["photo_url"] for r in stats["records"] if r.get("photo_url")]
-    if not urls:
-        return await reply_message(reply_token, f"❌ 近 {days} 天內沒有打卡照片～")
+    records = stats.get("records", [])
+    all_urls = [r["photo_url"] for r in records if r.get("photo_url")]
+    if not all_urls:
+        return await reply_message(reply_token, f"❌ 近 {days} 天內沒有可用的打卡照片啦～")
 
     # 只取前 max_tiles 張
     sliced = urls[:max_tiles]
@@ -729,8 +731,10 @@ async def handle_ramen_dump(
     # 呼叫不變的 generate_ramen_dump
     dump_bytes = await generate_ramen_dump(sliced)
 
+    # 上傳並回傳
     bucket = storage.bucket()
-    file_name = f"ramen_dump/{user_id}_{max_tiles}tiles_{uuid.uuid4().hex}.jpg"
+    suffix = f"_{max_tiles}tiles" if max_tiles else "_all"
+    file_name = f"ramen_dump/{user_id}{suffix}_{uuid.uuid4().hex}.jpg"
     blob = bucket.blob(file_name)
     blob.upload_from_string(dump_bytes.getvalue(), content_type="image/jpeg")
     blob.make_public()
@@ -764,6 +768,7 @@ async def generate_ramen_dump(
     canvas = Image.new("RGB", (canvas_w, canvas_h), bg_color)
 
     for idx, url in enumerate(urls):
+        # 下载与方向校正
         resp = requests.get(url, timeout=10)
         img = Image.open(io.BytesIO(resp.content))
         img = ImageOps.exif_transpose(img).convert("RGB")
@@ -772,6 +777,7 @@ async def generate_ramen_dump(
         x = (idx % cols) * tile_w
         y = (idx // cols) * tile_h
         canvas.paste(thumb, (x, y))
+
         img.close()
 
     bio = io.BytesIO()
