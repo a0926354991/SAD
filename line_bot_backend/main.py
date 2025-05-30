@@ -433,6 +433,7 @@ async def reply_analysis(reply_token: str):
 async def handle_analysis(reply_token: str, user_id: str, days: int):
     """
     根據 user_id 和 days，取得統計並回覆 Flex 格式統整分析結果。
+    包含最常吃的店家資訊。
     """
     # 取得統計資料
     try:
@@ -440,6 +441,9 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     except Exception:
         await reply_message(reply_token, "❌ 分析失敗，請稍後再試！")
         return
+
+    # 最常吃的店家
+    top_shop = stats.get('top_shop', '無資料')
 
     # 建立 Flex 氣泡
     flavor_contents = []
@@ -465,8 +469,25 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 {"type": "separator", "margin": "sm"},
                 {"type": "text", "text": f"🍜 總碗數：{stats['bowls']} 碗", "size": "sm"},
                 {"type": "text", "text": f"🏠 造訪店家：{stats['shops']} 家", "size": "sm"},
+                {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
                 {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
                 {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents}
+            ]
+        },
+        "footer": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "button",
+                    "action": {
+                        "type": "message",
+                        "label": "生成我的拉麵 dump",
+                        "text": "生成我的拉麵 dump"
+                    },
+                    "style": "primary",
+                    "color": "#905C44"
+                }
             ]
         }
     }
