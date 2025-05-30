@@ -624,7 +624,7 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
             "formatter": "(value) => value.toFixed(1) + '%'",
             "color": "#fff",
             "font": {
-              "size": 14,
+              "size": 18,
               "weight": "bold"
             }
           },
@@ -646,13 +646,21 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
       }
     }
 
+    # 先轉成 JSON 字串
+    json_str = json.dumps(chart)
+
+    # 用 replace 把 formatter 的 JS function 從字串轉成 raw JS（避免被加雙引號）
+    json_str = json_str.replace(
+        '"formatter": "(val) => val.toFixed(1) + \'%\'"',
+        '"formatter": (val) => val.toFixed(1) + \'%\'"'
+    )
+
     base = "https://quickchart.io/chart"
     params = {
-      "c": json.dumps(chart),
+      "c": json_str,
       "plugins": "chartjs-plugin-datalabels"
     }
     return f"{base}?{urllib.parse.urlencode(params)}"
-
 
 '''
 ## 選單訊息：拉麵口味選單
