@@ -431,13 +431,35 @@ async def reply_analysis(reply_token: str):
 
 
 async def handle_analysis(reply_token: str, user_id: str, days: int):
-    stats = analyze_checkins(user_id, days)
-    text = (
-        f"近{days}天分析：\n"
-        f"共吃了{stats['bowls']}碗，造訪{stats['shops']}店。\n"
-        f"口味分布：" + ", ".join(f"{k}{v}" for k, v in stats['flavor_pct'].items())
-    )
-    await reply_message(reply_token, text)
+    """
+    根據 user_id 和 days，取得統計並以純文字回覆。
+    包含錯誤處理：索引尚未就緒或其他例外。
+    """
+    try:
+        stats = analyze_checkins(user_id, days)
+    except Exception as e:
+        err = str(e).lower()
+        if 'requires an index' in err or 'index is currently building' in err:
+            await reply_message(reply_token, "🔄 資料尚在索引中，請稍後再試！")
+        else:
+            await reply_message(reply_token, "❌ 分析失敗，請稍後再試！")
+        return
+
+    # 組合回覆文字
+    lines = [
+        f"📊 近 {days} 天統整分析：",
+        f"- 🍜 總碗數：{stats['bowls']} 碗",
+        f"- 🏠 造訪店家：{stats['shops']} 家",
+    ]
+    if stats['flavor_pct']:
+        lines.append("- 口味分布：")
+        for flavor, pct in stats['flavor_pct'].items():
+            lines.append(f"  • {flavor}：{pct}")
+    else:
+        lines.append("- 無口味資料可供分析。")
+
+    message = "\n".join(lines)
+    await reply_message(reply_token, message)
 
 
 def analyze_checkins(user_id: str, days: int) -> dict:
