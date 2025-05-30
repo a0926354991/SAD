@@ -340,4 +340,149 @@ body.modal-open .container {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 600;
+}
+
+/* Quick Check-in Modal Specific Styles */
+#quickCheckInModal .search-box {
+    position: relative;
+    margin-bottom: 16px;
+    max-width: 500px;
+    margin-left: 0;
+    margin-right: auto;
+}
+
+#quickCheckInModal .search-box input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+    text-align: left;
+}
+
+#quickCheckInModal .search-box input::placeholder {
+    text-align: left;
+}
+
+#quickCheckInModal .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-top: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1002;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#quickCheckInModal .search-result-item {
+    padding: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#quickCheckInModal .search-result-item:hover {
+    background-color: #f8f9fa;
+}
+
+#quickCheckInModal .search-result-item .store-name {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+#quickCheckInModal .search-result-item .store-address {
+    font-size: 0.9em;
+    color: #666;
+}
+
+#quickCheckInModal .store-info {
+    background-color: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+#quickCheckInModal .store-info h3 {
+    margin: 0 0 4px 0;
+    color: #333;
+    font-size: 1.1em;
+}
+
+#quickCheckInModal .store-info p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+#quickCheckInModal .keyword-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+#quickCheckInModal .keyword-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 16px;
+    background: white;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#quickCheckInModal .keyword-btn:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+#quickCheckInModal .keyword-btn.selected {
+    background: #ff6b6b;
+    border-color: #ff6b6b;
+    color: white;
+}
+
+#quickCheckInModal #quickCheckInOtherKeywordInput {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-top: 8px;
+}
+
+#quickCheckInModal .photo-preview {
+    margin-top: 8px;
+}
+
+#quickCheckInModal .photo-preview img {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#quickCheckInModal .submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#quickCheckInModal .submit-btn:hover {
+    background: #ff5252;
+}
+
+#quickCheckInModal .submit-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
 } 

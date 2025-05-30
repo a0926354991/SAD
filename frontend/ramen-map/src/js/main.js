@@ -125,7 +125,7 @@ function updateAddToWheelButton(store) {
 }
 
 // 新增：即時搜尋功能
-function searchStores(query, showToast = false, selectFirst = false) {
+function searchStores(query, showToast = false, selectFirst = false, isQuickCheckIn = false) {
     const searchResults = allStores.filter(store => 
         store.name.toLowerCase().includes(query.toLowerCase()) ||
         store.address.toLowerCase().includes(query.toLowerCase()) ||
@@ -134,7 +134,10 @@ function searchStores(query, showToast = false, selectFirst = false) {
         ))
     );
 
-    const searchResultsList = document.getElementById('searchResults');
+    const searchResultsList = isQuickCheckIn ? 
+        document.getElementById('quickCheckInResults') : 
+        document.getElementById('searchResults');
+    
     searchResultsList.innerHTML = '';
 
     if (query.trim() === '') {
@@ -151,14 +154,22 @@ function searchStores(query, showToast = false, selectFirst = false) {
                 <div class="store-address">${store.address}</div>
             `;
             resultItem.addEventListener('click', () => {
-                selectStore(store);
+                if (isQuickCheckIn) {
+                    selectStoreForQuickCheckIn(store);
+                } else {
+                    selectStore(store);
+                }
                 searchResultsList.style.display = 'none';
             });
             searchResultsList.appendChild(resultItem);
 
             // 如果是第一個結果且需要選中，則選中它
             if (index === 0 && selectFirst) {
-                selectStore(store);
+                if (isQuickCheckIn) {
+                    selectStoreForQuickCheckIn(store);
+                } else {
+                    selectStore(store);
+                }
                 searchResultsList.style.display = 'none';
             }
         });
@@ -200,7 +211,310 @@ function selectStore(store) {
     }
 }
 
-// 新增：處理所有 URL 參數
+// 新增：快速打卡相關的 DOM 元素
+const quickCheckInModal = document.getElementById('quickCheckInModal');
+const quickCheckInSearch = document.getElementById('quickCheckInSearch');
+const quickCheckInResults = document.getElementById('quickCheckInResults');
+const quickCheckInForm = document.getElementById('quickCheckInForm');
+const quickCheckInStoreInfo = document.querySelector('#quickCheckInModal .store-info');
+const quickCheckInStoreName = document.getElementById('quickCheckInStoreName');
+const quickCheckInStoreAddress = document.getElementById('quickCheckInStoreAddress');
+const quickCheckInRating = document.getElementById('quickCheckInRating');
+const quickCheckInRatingStars = document.querySelectorAll('#quickCheckInModal .rating-input i');
+const quickCheckInPhoto = document.getElementById('quickCheckInPhoto');
+const quickCheckInPhotoPreview = document.getElementById('quickCheckInPhotoPreview');
+
+// 新增：開啟快速打卡頁面
+function openQuickCheckInModal() {
+    if (!canCheckIn()) return;
+    
+    quickCheckInModal.classList.add('active');
+    document.body.classList.add('modal-open');
+    quickCheckInSearch.focus();
+}
+
+// 新增：關閉快速打卡頁面
+function closeQuickCheckInModal() {
+    quickCheckInModal.classList.remove('active');
+    document.body.classList.remove('modal-open');
+    quickCheckInForm.reset();
+    quickCheckInPhotoPreview.innerHTML = '';
+    quickCheckInRatingStars.forEach(star => star.classList.remove('active'));
+    quickCheckInStoreInfo.style.display = 'none';
+    quickCheckInResults.innerHTML = '';
+    quickCheckInSearch.value = '';
+}
+
+// 新增：處理快速打卡搜尋
+function handleQuickCheckInSearch(e) {
+    const query = e.target.value.trim();
+    if (!query) {
+        quickCheckInResults.innerHTML = '';
+        return;
+    }
+
+    const results = allStores.filter(store => 
+        store.name.toLowerCase().includes(query.toLowerCase()) ||
+        store.address.toLowerCase().includes(query.toLowerCase()) ||
+        (store.keywords && store.keywords.some(keyword => 
+            keyword.toLowerCase().includes(query.toLowerCase())
+        ))
+    );
+
+    quickCheckInResults.innerHTML = '';
+    results.forEach(store => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'search-result-item';
+        resultItem.innerHTML = `
+            <div class="store-name">${store.name}</div>
+            <div class="store-address">${store.address}</div>
+        `;
+        resultItem.addEventListener('click', () => {
+            selectStoreForQuickCheckIn(store);
+        });
+        quickCheckInResults.appendChild(resultItem);
+    });
+}
+
+// 新增：選擇店家進行快速打卡
+function selectStoreForQuickCheckIn(store) {
+    currentStore = store;
+    quickCheckInStoreName.textContent = store.name;
+    quickCheckInStoreAddress.textContent = store.address;
+    quickCheckInStoreInfo.style.display = 'block';
+    quickCheckInResults.innerHTML = '';
+    quickCheckInSearch.value = store.name;
+
+    // 更新關鍵字選擇區域
+    const keywordContainer = document.getElementById('quickCheckInKeywordContainer');
+    keywordContainer.innerHTML = '';
+    
+    if (store.keywords && store.keywords.length > 0) {
+        store.keywords.forEach(keyword => {
+            const keywordBtn = document.createElement('button');
+            keywordBtn.type = 'button';
+            keywordBtn.className = 'keyword-btn';
+            keywordBtn.textContent = `#${keyword}`;
+            keywordBtn.dataset.keyword = keyword;
+            keywordBtn.addEventListener('click', () => {
+                document.querySelectorAll('#quickCheckInModal .keyword-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                keywordBtn.classList.add('selected');
+                document.getElementById('quickCheckInSelectedKeyword').value = keyword;
+                document.getElementById('quickCheckInOtherKeywordInput').style.display = 'none';
+                document.getElementById('quickCheckInOtherKeywordInput').value = '';
+            });
+            keywordContainer.appendChild(keywordBtn);
+        });
+    }
+    
+    // 添加"其他"選項
+    const otherBtn = document.createElement('button');
+    otherBtn.type = 'button';
+    otherBtn.className = 'keyword-btn';
+    otherBtn.textContent = '#其他';
+    otherBtn.dataset.keyword = 'other';
+    otherBtn.addEventListener('click', () => {
+        document.querySelectorAll('#quickCheckInModal .keyword-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        otherBtn.classList.add('selected');
+        document.getElementById('quickCheckInOtherKeywordInput').style.display = 'block';
+        document.getElementById('quickCheckInOtherKeywordInput').focus();
+    });
+    keywordContainer.appendChild(otherBtn);
+    
+    // 其他關鍵字輸入框
+    const otherInput = document.createElement('input');
+    otherInput.type = 'text';
+    otherInput.id = 'quickCheckInOtherKeywordInput';
+    otherInput.placeholder = '請輸入其他關鍵字';
+    otherInput.style.display = 'none';
+    otherInput.addEventListener('input', (e) => {
+        document.getElementById('quickCheckInSelectedKeyword').value = e.target.value;
+    });
+    keywordContainer.appendChild(otherInput);
+}
+
+// 新增：處理快速打卡評分點擊
+function handleQuickCheckInRatingClick(e) {
+    const rating = parseInt(e.target.dataset.rating);
+    quickCheckInRating.value = rating;
+    
+    const ratingError = document.querySelector('#quickCheckInModal .rating-error');
+    ratingError.style.display = 'none';
+    
+    quickCheckInRatingStars.forEach(star => {
+        const starRating = parseInt(star.dataset.rating);
+        star.classList.toggle('active', starRating <= rating);
+    });
+}
+
+// 新增：處理快速打卡照片預覽
+function handleQuickCheckInPhotoPreview(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            quickCheckInPhotoPreview.innerHTML = `<img src="${e.target.result}" alt="預覽照片">`;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// 新增：處理快速打卡提交
+async function handleQuickCheckInSubmit(e) {
+    e.preventDefault();
+    
+    // 驗證所有必填欄位
+    const ratingValue = quickCheckInRating.value;
+    const commentValue = document.getElementById('quickCheckInComment').value.trim();
+    const photoFile = quickCheckInPhoto.files[0];
+    const selectedKeyword = document.getElementById('quickCheckInSelectedKeyword').value;
+    const otherKeywordInput = document.getElementById('quickCheckInOtherKeywordInput');
+    
+    let hasError = false;
+    
+    // 驗證店家選擇
+    const storeError = document.createElement('div');
+    storeError.className = 'field-error';
+    storeError.style.display = 'none';
+    storeError.style.color = '#ff6b6b';
+    storeError.style.fontSize = '0.9em';
+    storeError.style.marginTop = '5px';
+    storeError.textContent = '請選擇一家拉麵店';
+    
+    const searchBox = document.querySelector('#quickCheckInModal .search-box');
+    if (!searchBox.querySelector('.field-error')) {
+        searchBox.appendChild(storeError);
+    }
+    
+    if (!currentStore) {
+        storeError.style.display = 'block';
+        hasError = true;
+    } else {
+        storeError.style.display = 'none';
+    }
+    
+    // 驗證評分
+    const ratingError = document.querySelector('#quickCheckInModal .rating-error');
+    if (!ratingValue) {
+        ratingError.style.display = 'block';
+        hasError = true;
+    } else {
+        ratingError.style.display = 'none';
+    }
+    
+    // 驗證評論
+    const commentError = document.querySelector('#quickCheckInComment').nextElementSibling;
+    if (!commentValue) {
+        commentError.style.display = 'block';
+        hasError = true;
+    } else {
+        commentError.style.display = 'none';
+    }
+    
+    // 驗證照片
+    const photoError = document.querySelector('#quickCheckInPhoto').nextElementSibling.nextElementSibling;
+    if (!photoFile) {
+        photoError.style.display = 'block';
+        hasError = true;
+    } else {
+        photoError.style.display = 'none';
+    }
+    
+    // 驗證關鍵字
+    const keywordError = document.querySelector('#quickCheckInModal .keyword-error');
+    if (!selectedKeyword) {
+        keywordError.style.display = 'block';
+        hasError = true;
+    } else if (selectedKeyword === 'other' && !otherKeywordInput.value.trim()) {
+        keywordError.textContent = '請輸入其他關鍵字';
+        keywordError.style.display = 'block';
+        hasError = true;
+    } else {
+        keywordError.style.display = 'none';
+    }
+    
+    if (hasError) {
+        return;
+    }
+
+    // 防止重複提交
+    const submitBtn = quickCheckInForm.querySelector('.submit-btn');
+    if (submitBtn.disabled) {
+        return;
+    }
+    
+    // 設定 loading 狀態
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+    // 處理照片上傳
+    let photoUrl = '';
+    
+    try {
+        const formData = new FormData();
+        formData.append('file', photoFile);
+        
+        const uploadResponse = await fetch('https://linebot-fastapi-uhmi.onrender.com/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!uploadResponse.ok) {
+            throw new Error('照片上傳失敗');
+        }
+        
+        const uploadResult = await uploadResponse.json();
+        photoUrl = uploadResult.url;
+    } catch (error) {
+        console.error('Error uploading photo:', error);
+        showToast('照片上傳失敗，請稍後再試');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '打卡';
+        return;
+    }
+
+    const formData = {
+        store_id: currentStore.name,
+        user_id: currentUser.id,
+        rating: parseFloat(ratingValue),
+        comment: commentValue,
+        photo_url: photoUrl,
+        keyword: selectedKeyword
+    };
+
+    try {
+        const response = await fetch('https://linebot-fastapi-uhmi.onrender.com/checkin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            showToast('打卡成功！');
+            closeQuickCheckInModal();
+        } else {
+            const errorMessage = result.detail || '提交失敗';
+            console.error('Error submitting form:', errorMessage);
+            showToast(errorMessage);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error.message || error);
+        showToast('提交失敗，請稍後再試');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '打卡';
+    }
+}
+
+// 修改：處理所有 URL 參數
 function handleUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
     
@@ -243,6 +557,14 @@ function handleUrlParameters() {
             } else {
                 console.error('Store not found with id/name:', storeId);
             }
+        });
+    }
+
+    // 5. 處理快速打卡
+    if (urlParams.get("quick_checkin") === "1") {
+        storeEvents.on('storesLoaded', () => {
+            initQuickCheckIn();
+            openQuickCheckInModal();
         });
     }
 }
@@ -1055,7 +1377,63 @@ async function handleCheckInSubmit(e) {
     }
 }
 
-// 初始化所有功能
+// 新增：初始化快速打卡功能
+function initQuickCheckIn() {
+    const quickCheckInModal = document.getElementById('quickCheckInModal');
+    const quickCheckInSearch = document.getElementById('quickCheckInSearch');
+    const quickCheckInResults = document.getElementById('quickCheckInResults');
+    const quickCheckInForm = document.getElementById('quickCheckInForm');
+    const quickCheckInStoreInfo = document.querySelector('#quickCheckInModal .store-info');
+    const quickCheckInStoreName = document.getElementById('quickCheckInStoreName');
+    const quickCheckInStoreAddress = document.getElementById('quickCheckInStoreAddress');
+    const quickCheckInRating = document.getElementById('quickCheckInRating');
+    const quickCheckInRatingStars = document.querySelectorAll('#quickCheckInModal .rating-input i');
+    const quickCheckInPhoto = document.getElementById('quickCheckInPhoto');
+    const quickCheckInPhotoPreview = document.getElementById('quickCheckInPhotoPreview');
+
+    // 快速打卡功能事件監聽
+    const quickCheckInCloseModal = document.querySelector('#quickCheckInModal .close-modal');
+    
+    quickCheckInCloseModal.addEventListener('click', closeQuickCheckInModal);
+
+    quickCheckInModal.addEventListener('click', (e) => {
+        if (e.target === quickCheckInModal) {
+            closeQuickCheckInModal();
+        }
+    });
+
+    // 修改：執行快速打卡搜尋的函數
+    const performQuickCheckInSearch = () => {
+        searchStores(quickCheckInSearch.value, true, true, true);
+    };
+
+    // 按下 Enter 時搜尋
+    quickCheckInSearch.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            performQuickCheckInSearch();
+        }
+    });
+
+    // 即時搜尋，不顯示找不到的提示，不選中第一個
+    quickCheckInSearch.addEventListener('input', (e) => {
+        searchStores(e.target.value, false, false, true);
+        if (e.target.value.trim() !== '') {
+            quickCheckInResults.classList.add('active');
+        } else {
+            quickCheckInResults.classList.remove('active');
+        }
+    });
+
+    quickCheckInRatingStars.forEach(star => {
+        star.addEventListener('click', handleQuickCheckInRatingClick);
+    });
+
+    quickCheckInPhoto.addEventListener('change', handleQuickCheckInPhotoPreview);
+
+    quickCheckInForm.addEventListener('submit', handleQuickCheckInSubmit);
+}
+
+// 修改：初始化所有功能
 async function init() {
     showLoading();
     
@@ -1129,7 +1507,8 @@ async function init() {
         // 7. 初始化打卡功能
         initCheckIn();
 
-        // 8. 處理所有 URL 參數
+
+        // 9. 處理所有 URL 參數
         handleUrlParameters();
 
     } catch (error) {

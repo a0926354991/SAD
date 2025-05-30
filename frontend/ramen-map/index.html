@@ -144,6 +144,63 @@
     </div>
   </div>
 
+  <!-- 快速打卡模態框 -->
+  <div id="quickCheckInModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>快速打卡</h2>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>搜尋店家</label>
+          <div class="search-box active">
+            <input type="text" id="quickCheckInSearch" placeholder="輸入店名或地址...">
+            <div id="quickCheckInResults" class="search-results"></div>
+          </div>
+        </div>
+        <div class="store-info" style="display: none;">
+          <h3 id="quickCheckInStoreName"></h3>
+          <p id="quickCheckInStoreAddress"></p>
+        </div>
+        <form id="quickCheckInForm">
+          <div class="form-group">
+            <label>評分</label>
+            <div class="rating-input">
+                <i class="fas fa-star" data-rating="1"></i>
+                <i class="fas fa-star" data-rating="2"></i>
+                <i class="fas fa-star" data-rating="3"></i>
+                <i class="fas fa-star" data-rating="4"></i>
+                <i class="fas fa-star" data-rating="5"></i>
+            </div>
+            <input type="hidden" id="quickCheckInRating" name="rating" required>
+            <div class="rating-error">請選擇評分</div>
+          </div>
+
+          <div class="form-group">
+            <label>選擇關鍵字</label>
+            <div id="quickCheckInKeywordContainer" class="keyword-container"></div>
+            <input type="hidden" id="quickCheckInSelectedKeyword" name="keyword" required>
+            <div class="keyword-error">請選擇一個關鍵字</div>
+          </div>
+
+          <div class="form-group">
+            <label>評論</label>
+            <textarea id="quickCheckInComment" name="comment" required></textarea>
+            <div class="error-message">請輸入評論</div>
+          </div>
+          <div class="form-group">
+            <label for="quickCheckInPhoto">打卡照片 <span class="required">*</span></label>
+            <input type="file" id="quickCheckInPhoto" name="checkInPhoto" accept="image/*" >
+            <div id="quickCheckInPhotoPreview" class="photo-preview"></div>
+            <div class="field-error" style="display: none; color: #ff6b6b; font-size: 0.9em; margin-top: 5px;">請上傳照片</div>
+          </div>
+          <button type="submit" class="submit-btn">打卡</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- 拉麵轉盤模態框 -->
   <div id="wheelModal" class="modal">
     <div class="modal-content wheel-modal-content">
