@@ -14,6 +14,8 @@ import json
 import math
 from datetime import datetime, timezone, timedelta
 import uuid  # 新增：用於生成唯一檔名
+import matplotlib.pyplot as plt
+
 
 load_dotenv()
 app = FastAPI()
@@ -596,6 +598,24 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
     return {'bowls': bowls, 'shops': shops, 'top_shop': top_shop, 'flavor_pct': flavor_pct, 'records': records}
 
+
+def create_flavor_pie_chart(flavor_pct: dict[str, str]) -> bytes:
+    # 轉成 float
+    labels = list(flavor_pct.keys())
+    sizes = [float(pct.strip('%')) for pct in flavor_pct.values()]
+
+    # 畫圖
+    plt.figure()
+    plt.pie(sizes, labels=labels, autopct='%1.1f%%')
+    plt.title('口味分布圓餅圖')
+
+    # 存到 buffer
+    import io
+    buf = io.BytesIO()
+    plt.savefig(buf, format='jpeg')
+    plt.close()
+    buf.seek(0)
+    return buf.read()
 
 '''
 ## 選單訊息：拉麵口味選單
