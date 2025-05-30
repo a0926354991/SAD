@@ -751,26 +751,22 @@ GRID_LAYOUT = {
 
 async def generate_ramen_dump(
     urls: list[str],
-    max_tiles: int | None = None,  
-    tile_width: int = 300,
-    bg_color: tuple[int,int,int] = (0, 0, 0)
+    max_tiles: int,
+    tile_width: int = 300,              # 每格寬度（像素）
+    bg_color: tuple[int,int,int] = (0, 0, 0)  # 背景色
 ) -> io.BytesIO:
-    """
-    根据 max_tiles 生成对应的网格：
-     - 4: 2×2
-     - 6: 2×3
-     - 12:3×4
-    tile_width 控制每张图的宽度，高度按行数自动算出 tile_height = tile_width * rows/cols
-    """
-    # 只取前 max_tiles 张
+    # 1) 只取前 max_tiles 張
     urls = urls[:max_tiles]
-    cols, rows = GRID_LAYOUT.get(max_tiles, (int(math.sqrt(max_tiles)), 
-                                             math.ceil(max_tiles / int(math.sqrt(max_tiles)))))
-    
-    # 计算每个 tile 的高度，让整个画布保持竖屏
+
+    # 2) 取行列配置
+    cols, rows = GRID_LAYOUT.get(max_tiles, (
+        int(math.sqrt(max_tiles)),
+        math.ceil(max_tiles / int(math.sqrt(max_tiles)))
+    ))
+
+    # 3) 計算 tile_height、畫布尺寸
     tile_height = int(tile_width * rows / cols)
     W, H = cols * tile_width, rows * tile_height
-
     canvas = Image.new("RGB", (W, H), bg_color)
 
     for idx, url in enumerate(urls):
@@ -778,17 +774,15 @@ async def generate_ramen_dump(
         resp = requests.get(url, timeout=10)
         img = Image.open(io.BytesIO(resp.content))
         img = ImageOps.exif_transpose(img).convert("RGB")
-        # 裁切 & 填满
         thumb = ImageOps.fit(img, (tile_width, tile_height), method=Image.LANCZOS)
 
-        # 贴到画布
         x = (idx % cols) * tile_width
         y = (idx // cols) * tile_height
         canvas.paste(thumb, (x, y))
 
         img.close()
 
-    # 输出到 BytesIO
+    # 5) 輸出 BytesIO
     bio = io.BytesIO()
     canvas.save(bio, format="JPEG", quality=90)
     bio.seek(0)
