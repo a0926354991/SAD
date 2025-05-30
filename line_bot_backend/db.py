@@ -117,11 +117,16 @@ def get_user_by_id(user_id: str):
     doc = user_ref.get()
     if doc.exists:
         data = doc.to_dict()
+        latlng = data.get("latlng")
         return {
             "id": doc.id,
             "display_name": data.get("display_name", ""),
             "joined_at": data.get("joined_at", ""),
-            "last_updated": data.get("last_updated", "")
+            "last_updated": data.get("last_updated", ""),
+            "latlng": {
+                "latitude": round(latlng.latitude, 6) if latlng else None,
+                "longitude": round(latlng.longitude, 6) if latlng else None
+            } if latlng else None
         }
     return None
 

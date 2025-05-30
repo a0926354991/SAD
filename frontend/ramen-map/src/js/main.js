@@ -40,6 +40,17 @@ async function checkLoginStatus() {
             if (data.status === "success") {
                 currentUser = data.user; // 存儲完整的用戶資料
                 updateLoginUI();
+
+                // 檢查用戶是否有位置資料
+                if (data.user.latlng) {
+                    const { latitude, longitude } = data.user.latlng;
+                    // 設置地圖中心為用戶位置
+                    map.setCenter({ lat: latitude, lng: longitude });
+                    map.setZoom(15);
+                    
+                    // 添加用戶位置標記
+                    addUserLocationMarker(latitude, longitude);
+                }
             } else {
                 console.error('User not found:', data.message);
             }
@@ -47,6 +58,32 @@ async function checkLoginStatus() {
             console.error('Error checking login status:', error);
         }
     }
+}
+
+// 新增：添加用戶位置標記
+function addUserLocationMarker(lat, lng) {
+    // 移除舊的用戶位置標記（如果存在）
+    if (window.userLocationMarker) {
+        window.userLocationMarker.setMap(null);
+    }
+
+    // 創建新的標記
+    const markerContent = document.createElement("div");
+    markerContent.className = "marker-content user-location-marker";
+    
+    // 添加用戶位置圖標
+    const userIcon = document.createElement("img");
+    userIcon.src = "./src/assets/images/user-location.png"; // 請確保有這個圖片
+    userIcon.className = "user-marker-img";
+    markerContent.appendChild(userIcon);
+
+    // 創建標記
+    window.userLocationMarker = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: { lat, lng },
+        content: markerContent,
+        title: "您的位置"
+    });
 }
 
 // 新增：更新登入UI
