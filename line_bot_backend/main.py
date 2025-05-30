@@ -226,8 +226,9 @@ async def webhook(req: Request):
                             }
 
                             # 傳一個訊息給使用者
-                            # reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
-                            await push_message(user_id, message)
+                            reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
+                            await push_message(user_id, reply_text)
+                            # await push_template(user_id, message)
                         else:
                             await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
                     else:
@@ -284,6 +285,22 @@ async def reply_message(reply_token, text):
         await session.post(url, json=body, headers=headers)
 
 async def push_message(user_id, message):
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    body = {
+        "to": user_id,
+        "messages": [{"type": "text", "text": message}]
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=body, headers=headers) as resp:
+            print("Status:", resp.status)
+            print("Body:", json.dumps(body, indent=2))
+            print("Response:", await resp.text())
+
+async def push_template(user_id, message):
     url = "https://api.line.me/v2/bot/message/push"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
