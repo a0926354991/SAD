@@ -732,7 +732,7 @@ GRID_LAYOUT = {
 
 async def generate_ramen_dump(
     urls: list[str],
-    max_tiles: int,
+    max_tiles: int | None = None,  
     tile_width: int = 300,
     bg_color: tuple[int,int,int] = (0, 0, 0)
 ) -> io.BytesIO:
