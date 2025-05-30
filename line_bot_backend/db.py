@@ -188,12 +188,6 @@ def create_checkin(data: dict):
             return False, "Store not found"
         store_data = store_doc.to_dict()
 
-        # 驗證關鍵字是否屬於該店家（如果不是"其他"選項）
-        store_keywords = store_data.get("keywords", [])
-        if keyword != "other" and keyword not in store_keywords:
-            print(f"Invalid keyword: {keyword} for store: {store_id}")
-            return False, "Invalid keyword for this store"
-
         user_ref = db.collection("users").document(user_id)
         user_doc = user_ref.get()
         if not user_doc.exists:

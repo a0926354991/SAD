@@ -344,6 +344,7 @@ async function handleQuickCheckInSubmit(e) {
     const otherKeywordInput = document.getElementById('quickCheckInOtherKeywordInput');
     
     let hasError = false;
+    let finalKeyword = selectedKeyword;
     
     // 驗證店家選擇
     const storeError = document.createElement('div');
@@ -398,10 +399,16 @@ async function handleQuickCheckInSubmit(e) {
     if (!selectedKeyword) {
         keywordError.style.display = 'block';
         hasError = true;
-    } else if (selectedKeyword === 'other' && !otherKeywordInput.value.trim()) {
-        keywordError.textContent = '請輸入其他關鍵字';
-        keywordError.style.display = 'block';
-        hasError = true;
+    } else if (selectedKeyword === 'other') {
+        const customKeyword = otherKeywordInput.value.trim();
+        if (!customKeyword) {
+            keywordError.textContent = '請輸入其他關鍵字';
+            keywordError.style.display = 'block';
+            hasError = true;
+        } else {
+            finalKeyword = customKeyword;
+            keywordError.style.display = 'none';
+        }
     } else {
         keywordError.style.display = 'none';
     }
@@ -452,8 +459,9 @@ async function handleQuickCheckInSubmit(e) {
         rating: parseFloat(ratingValue),
         comment: commentValue,
         photo_url: photoUrl,
-        keyword: selectedKeyword
+        keyword: finalKeyword  // 使用最終確定的關鍵字
     };
+    console.log('Submitting form data:', formData);
 
     try {
         const response = await fetch('https://linebot-fastapi-uhmi.onrender.com/checkin', {
@@ -804,7 +812,7 @@ function createCheckinElement(checkin) {
             <div class="checkin-time">${formatDate(checkin.timestamp)}</div>
         </div>
         <div class="checkin-content">
-            <div class="checkin-keyword">#${checkin.keyword}</div>
+            <div class="checkin-keyword">#${checkin.keyword || '其他'}</div>
             <div class="checkin-rating">
                 <div class="stars">${'★'.repeat(Math.round(checkin.rating))}${'☆'.repeat(5 - Math.round(checkin.rating))}</div>
                 <div class="rating-value">${checkin.rating}</div>
@@ -1350,6 +1358,7 @@ async function handleCheckInSubmit(e) {
     const otherKeywordInput = document.getElementById('otherKeywordInput');
     
     let hasError = false;
+    let finalKeyword = selectedKeyword;
     
     // 驗證評分
     const ratingError = document.querySelector('.rating-error');
@@ -1383,15 +1392,20 @@ async function handleCheckInSubmit(e) {
     if (!selectedKeyword) {
         keywordError.style.display = 'block';
         hasError = true;
-    } else if (selectedKeyword === 'other' && !otherKeywordInput.value.trim()) {
-        keywordError.textContent = '請輸入其他關鍵字';
-        keywordError.style.display = 'block';
-        hasError = true;
+    } else if (selectedKeyword === 'other') {
+        const customKeyword = otherKeywordInput.value.trim();
+        if (!customKeyword) {
+            keywordError.textContent = '請輸入其他關鍵字';
+            keywordError.style.display = 'block';
+            hasError = true;
+        } else {
+            finalKeyword = customKeyword;
+            keywordError.style.display = 'none';
+        }
     } else {
         keywordError.style.display = 'none';
     }
 
-    
     if (hasError) {
         return;
     }
@@ -1441,9 +1455,9 @@ async function handleCheckInSubmit(e) {
         rating: parseFloat(ratingValue),
         comment: commentValue,
         photo_url: photoUrl,
-        keyword: selectedKeyword  // 新增：提交選擇的關鍵字
+        keyword: finalKeyword  // 使用最終確定的關鍵字
     };
-    console.log(formData);
+    console.log('Submitting form data:', formData);
 
     try {
         const response = await fetch('https://linebot-fastapi-uhmi.onrender.com/checkin', {
