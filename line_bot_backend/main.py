@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, storage # 新增：storage
 from pydantic import BaseModel
 from collections import Counter
+from PIL import Image
 
 import io
 import os
@@ -33,6 +34,7 @@ UPLOAD_KEYWORDS = ["打卡","打卡上傳", "照片上傳"]
 ANALYSIS_KEYWORDS = ["分析", "統整", "統整分析", "拉麵 dump", "拉麵 Dump", "拉麵dump", "拉麵Dump", "dump", "Dump"]
 FEEDBACK_KEYWORDS = ["意見回饋", "回饋"]
 FLAVORS = ["豚骨", "醬油", "味噌", "鹽味", "辣味", "雞白湯", "海老", "魚介"]
+DUMP_KEYWORDS = ["生成我的拉麵 dump", "dump"]
 
 # 儲存使用者位置（之後要改用 Firestore，現在先這樣）
 user_locations = {}
@@ -175,6 +177,9 @@ async def webhook(req: Request):
                 elif msg in ["7天", "30天", "90天"]:
                     days = int(msg.replace("天", ""))
                     await handle_analysis(reply_token, user_id, days)
+
+                elif msg == DUMP_KEYWORDS:
+                    await handle_ramen_dump(reply_token, user_id)
                 
                 # 意見回饋
                 elif any(keyword in msg for keyword in FEEDBACK_KEYWORDS):
@@ -656,6 +661,70 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
         "plugins": "chartjs-plugin-datalabels"
     }
     return f"{base}?{urllib.parse.urlencode(params)}"
+
+
+async def handle_ramen_dump(reply_token: str, user_id: str):
+    # 1) 先撈出過去 90 天的 records（也可改成分析時長）
+    stats = analyze_checkins(user_id, 90)
+    records = stats.get("records", [])
+    image_urls = [r["photo_url"] for r in records if r.get("photo_url")]
+    if not image_urls:
+        return await reply_message(reply_token, "❌ 目前沒有可用的打卡照片啦～")
+
+    # 2) 生成拼圖
+    dump_bytes = await generate_ramen_dump(image_urls)
+
+    # 3) 上傳到 Firebase Storage
+    bucket = storage.bucket()
+    file_name = f"ramen_dump/{user_id}_{uuid.uuid4().hex}.jpg"
+    blob = bucket.blob(file_name)
+    blob.upload_from_string(dump_bytes.getvalue(), content_type="image/jpeg")
+    blob.make_public()
+    public_url = blob.public_url
+
+    # 4) 回傳圖片訊息
+    await reply_image(reply_token, public_url)
+
+
+async def generate_ramen_dump(urls: list[str]) -> io.BytesIO:
+    thumbs = []
+    thumb_size = (200, 200)
+    for url in urls:
+        resp = requests.get(url, timeout=10)
+        img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+        img.thumbnail(thumb_size)
+        thumbs.append(img)
+
+    n = len(thumbs)
+    cols = int(math.sqrt(n))
+    rows = math.ceil(n / cols)
+    canvas = Image.new("RGB", (cols * thumb_size[0], rows * thumb_size[1]), (255, 255, 255))
+    for idx, thumb in enumerate(thumbs):
+        x = (idx % cols) * thumb_size[0]
+        y = (idx // cols) * thumb_size[1]
+        canvas.paste(thumb, (x, y))
+
+    bio = io.BytesIO()
+    canvas.save(bio, format="JPEG", quality=85)
+    bio.seek(0)
+    return bio
+
+
+async def reply_image(reply_token: str, image_url: str):
+    body = {
+        "replyToken": reply_token,
+        "messages": [{
+            "type": "image",
+            "originalContentUrl": image_url,
+            "previewImageUrl": image_url
+        }]
+    }
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        await session.post("https://api.line.me/v2/bot/message/reply", json=body, headers=headers)
 
 
 '''
