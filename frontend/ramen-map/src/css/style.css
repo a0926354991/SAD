@@ -435,7 +435,7 @@ input[type="text"]:focus {
 
 .marker-store-name {
   font-weight: bold;
-  font-size: 10px;
+  font-size: 7px;
   color: #c0392b;
   margin-top: 2px;
   background: rgba(255,255,255,0.9);
@@ -813,7 +813,7 @@ input[type="text"]:focus {
 /* 回到用戶位置按鈕 */
 .back-to-user-btn {
     position: absolute;
-    bottom: 20px;
+    bottom: 30px;
     right: 20px;
     width: 50px;
     height: 50px;
@@ -841,4 +841,66 @@ input[type="text"]:focus {
 
 .back-to-user-btn:active {
     transform: scale(0.95);
+}
+
+/* 手機直式樣式 */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+    .back-to-user-btn {
+        bottom: 135px; /* 調整位置，避免被底部面板遮擋 */
+        right: 20px;
+        width: 45px;
+        height: 45px;
+    }
+}
+
+.keyword-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.keyword-btn {
+    padding: 8px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 20px;
+    background: white;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.keyword-btn:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+.keyword-btn.selected {
+    background: #ff6b6b;
+    border-color: #ff6b6b;
+    color: white;
+}
+
+#otherKeywordInput {
+    width: 100%;
+    padding: 8px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 20px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+}
+
+#otherKeywordInput:focus {
+    outline: none;
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+}
+
+.keyword-error {
+    display: none;
+    color: #ff6b6b;
+    font-size: 0.9em;
+    margin-top: 5px;
 }

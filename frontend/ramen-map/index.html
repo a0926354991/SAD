@@ -107,21 +107,30 @@
         </div>
         <form id="checkInForm">
           <div class="form-group">
-            <label for="storeRating">評分 <span class="required">*</span></label>
+            <label>評分</label>
             <div class="rating-input">
-              <i class="fas fa-star" data-rating="1"></i>
-              <i class="fas fa-star" data-rating="2"></i>
-              <i class="fas fa-star" data-rating="3"></i>
-              <i class="fas fa-star" data-rating="4"></i>
-              <i class="fas fa-star" data-rating="5"></i>
+                <i class="fas fa-star" data-rating="1"></i>
+                <i class="fas fa-star" data-rating="2"></i>
+                <i class="fas fa-star" data-rating="3"></i>
+                <i class="fas fa-star" data-rating="4"></i>
+                <i class="fas fa-star" data-rating="5"></i>
             </div>
-            <input type="hidden" id="storeRating" name="storeRating" required>
-            <div class="rating-error" style="display: none; color: #ff6b6b; font-size: 0.9em; margin-top: 5px;">請選擇評分</div>
+            <input type="hidden" id="storeRating" name="rating" required>
+            <div class="rating-error">請選擇評分</div>
           </div>
+
+          <!-- 新增：關鍵字選擇區域 -->
           <div class="form-group">
-            <label for="storeComment">評論 <span class="required">*</span></label>
-            <textarea id="storeComment" name="storeComment" rows="4" placeholder="分享你的用餐體驗..." ></textarea>
-            <div class="field-error" style="display: none; color: #ff6b6b; font-size: 0.9em; margin-top: 5px;">請填寫評論</div>
+            <label>選擇關鍵字</label>
+            <div id="keywordContainer" class="keyword-container"></div>
+            <input type="hidden" id="selectedKeyword" name="keyword" required>
+            <div class="keyword-error">請選擇一個關鍵字</div>
+          </div>
+
+          <div class="form-group">
+            <label>評論</label>
+            <textarea id="storeComment" name="comment" required></textarea>
+            <div class="error-message">請輸入評論</div>
           </div>
           <div class="form-group">
             <label for="checkInPhoto">打卡照片 <span class="required">*</span></label>

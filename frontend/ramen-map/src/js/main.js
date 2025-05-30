@@ -259,15 +259,13 @@ async function initMap() {
         zoom: 13,
         center: taipei,
         mapId: GOOGLE_MAPS_MAP_ID,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        zoomControl: false,
-
+        disableDefaultUI: true
+        
     });
 
     // 如果有用戶位置，設置地圖中心和標記
     if (currentUser && currentUser.latlng) {
+        
         const { latitude, longitude } = currentUser.latlng;
         map.setCenter({ lat: latitude, lng: longitude });
         map.setZoom(17);
@@ -478,6 +476,65 @@ function openCheckInModal(store) {
     currentStore = store;
     storeNameElement.textContent = store.name;
     storeAddressElement.textContent = store.address;
+    
+    // 新增：更新關鍵字選擇區域
+    const keywordContainer = document.getElementById('keywordContainer');
+    keywordContainer.innerHTML = ''; // 清空現有關鍵字
+    
+    if (store.keywords && store.keywords.length > 0) {
+        store.keywords.forEach(keyword => {
+            const keywordBtn = document.createElement('button');
+            keywordBtn.type = 'button';
+            keywordBtn.className = 'keyword-btn';
+            keywordBtn.textContent = `#${keyword}`;
+            keywordBtn.dataset.keyword = keyword;
+            keywordBtn.addEventListener('click', () => {
+                // 移除其他按鈕的選中狀態
+                document.querySelectorAll('.keyword-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                // 選中當前按鈕
+                keywordBtn.classList.add('selected');
+                // 更新隱藏的輸入欄位
+                document.getElementById('selectedKeyword').value = keyword;
+                // 隱藏其他關鍵字輸入框
+                document.getElementById('otherKeywordInput').style.display = 'none';
+                document.getElementById('otherKeywordInput').value = '';
+            });
+            keywordContainer.appendChild(keywordBtn);
+        });
+    }
+    
+    // 新增：添加"其他"選項
+    const otherBtn = document.createElement('button');
+    otherBtn.type = 'button';
+    otherBtn.className = 'keyword-btn';
+    otherBtn.textContent = '#其他';
+    otherBtn.dataset.keyword = 'other';
+    otherBtn.addEventListener('click', () => {
+        // 移除其他按鈕的選中狀態
+        document.querySelectorAll('.keyword-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        // 選中當前按鈕
+        otherBtn.classList.add('selected');
+        // 顯示其他關鍵字輸入框
+        document.getElementById('otherKeywordInput').style.display = 'block';
+        document.getElementById('otherKeywordInput').focus();
+    });
+    keywordContainer.appendChild(otherBtn);
+    
+    // 新增：其他關鍵字輸入框
+    const otherInput = document.createElement('input');
+    otherInput.type = 'text';
+    otherInput.id = 'otherKeywordInput';
+    otherInput.placeholder = '請輸入其他關鍵字';
+    otherInput.style.display = 'none';
+    otherInput.addEventListener('input', (e) => {
+        document.getElementById('selectedKeyword').value = e.target.value;
+    });
+    keywordContainer.appendChild(otherInput);
+    
     checkInModal.classList.add('active');
     document.body.classList.add('modal-open');
 }
@@ -871,6 +928,8 @@ async function handleCheckInSubmit(e) {
     const ratingValue = ratingInput.value;
     const commentValue = document.getElementById('storeComment').value.trim();
     const photoFile = photoInput.files[0];
+    const selectedKeyword = document.getElementById('selectedKeyword').value;
+    const otherKeywordInput = document.getElementById('otherKeywordInput');
     
     let hasError = false;
     
@@ -899,6 +958,19 @@ async function handleCheckInSubmit(e) {
         hasError = true;
     } else {
         photoError.style.display = 'none';
+    }
+    
+    // 驗證關鍵字
+    const keywordError = document.querySelector('.keyword-error');
+    if (!selectedKeyword) {
+        keywordError.style.display = 'block';
+        hasError = true;
+    } else if (selectedKeyword === 'other' && !otherKeywordInput.value.trim()) {
+        keywordError.textContent = '請輸入其他關鍵字';
+        keywordError.style.display = 'block';
+        hasError = true;
+    } else {
+        keywordError.style.display = 'none';
     }
     
     if (hasError) {
@@ -949,7 +1021,8 @@ async function handleCheckInSubmit(e) {
         user_id: currentUser.id,
         rating: parseFloat(ratingValue),
         comment: commentValue,
-        photo_url: photoUrl
+        photo_url: photoUrl,
+        keyword: selectedKeyword  // 新增：提交選擇的關鍵字
     };
 
     try {

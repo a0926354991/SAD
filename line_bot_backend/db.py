@@ -172,9 +172,10 @@ def create_checkin(data: dict):
         rating = data.get("rating")
         comment = data.get("comment", "")
         photo_url = data.get("photo_url", "")
+        keyword = data.get("keyword", "")
 
         # 檢查必要欄位
-        if not store_id or not user_id or rating is None:
+        if not store_id or not user_id or rating is None or not keyword:
             return False, "Missing required field(s)"
 
         # 取得店家資訊
@@ -183,6 +184,11 @@ def create_checkin(data: dict):
         if not store_doc.exists:
             return False, "Store not found"
         store_data = store_doc.to_dict()
+
+        # 驗證關鍵字是否屬於該店家（如果不是"其他"選項）
+        store_keywords = store_data.get("keywords", [])
+        if keyword != "other" and keyword not in store_keywords:
+            return False, "Invalid keyword for this store"
 
         user_ref = db.collection("users").document(user_id)
         user_doc = user_ref.get()
@@ -199,6 +205,7 @@ def create_checkin(data: dict):
             "rating": rating,
             "comment": comment,
             "photo_url": photo_url,
+            "keyword": keyword,
             "timestamp": datetime.now()
         }
 
