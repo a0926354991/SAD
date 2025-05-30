@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from dotenv import load_dotenv
-from line_bot_backend.db import add_user, get_all_ramen_shops, get_user_by_id, update_user_location, get_user_location, search_ramen_nearby, create_checkin, upload_photo
+from line_bot_backend.db import db, bucket, add_user, get_all_ramen_shops, get_user_by_id, update_user_location, get_user_location, search_ramen_nearby, create_checkin, upload_photo
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, storage # 新增：storage
 from pydantic import BaseModel
+from collections import Counter
 
 import os
 import aiohttp
@@ -17,6 +18,8 @@ import uuid  # 新增：用於生成唯一檔名
 load_dotenv()
 app = FastAPI()
 GeoPoint = firestore.GeoPoint
+db = firestore.client()
+bucket = storage.bucket()
 
 ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
@@ -122,7 +125,11 @@ async def webhook(req: Request):
                 
                 # 統整分析
                 elif any(keyword in msg for keyword in ANALYSIS_KEYWORDS):
-                    await reply_message(reply_token, "【 統整分析 】\n功能實作中，敬請期待更多功能✨")
+                    await reply_analysis(reply_token)
+
+                elif msg in ["7天", "30天", "90天"]:
+                    days = int(msg.replace("天", ""))
+                    await handle_analysis(reply_token, user_id, days)
                 
                 # 意見回饋
                 elif any(keyword in msg for keyword in FEEDBACK_KEYWORDS):
@@ -405,6 +412,203 @@ async def get_user_profile(user_id: str):
             else:
                 return None
 
+
+async def reply_analysis(reply_token: str):
+    items = []
+    for d in [7, 30, 90]:
+        items.append({
+            "type":"action",
+            "action":{
+                "type":"message",
+                "label":f"{d}天",
+                "text":f"{d}天"
+            }
+        })
+    body = {
+        "replyToken": reply_token,
+        "messages":[{
+            "type":"text",
+            "text":"請選擇統整分析的時間範圍：",
+            "quickReply":{"items": items}
+        }]
+    }
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        await session.post("https://api.line.me/v2/bot/message/reply", json=body, headers=headers)
+
+
+async def handle_analysis(reply_token: str, user_id: str, days: int):
+    # 1) 呼叫 analyze_checkins 拿統計
+    stats = analyze_checkins(user_id, days)
+    text = (
+        f"近{days}天統整分析：\n"
+        f"共吃了 {stats['bowls']} 碗，造訪 {stats['shops']} 間店。\n"
+        f"口味分布："
+        + ", ".join(f"{k}{v}" for k, v in stats['flavor_pct'].items())
+    )
+    # 2) 先回文字
+    await reply_message(reply_token, text)
+
+    # 3) 再回拼圖
+    url = generate_collage(user_id, days)
+    if url:
+        img_body = {
+            "replyToken": reply_token,
+            "messages": [{
+                "type": "image",
+                "originalContentUrl": url,
+                "previewImageUrl": url
+            }]
+        }
+        headers = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}",
+            "Content-Type": "application/json"
+        }
+        async with aiohttp.ClientSession() as s:
+            await s.post(
+                "https://api.line.me/v2/bot/message/reply",
+                json=img_body,
+                headers=headers
+            )
+    else:
+        await reply_message(reply_token, "無法生成拼圖：近期沒有打卡照片。")
+
+
+from PIL import Image, ImageDraw, ImageFont
+from datetime import datetime
+import io
+
+def generate_analysis_card(stats):
+    """
+    stats = {
+        'bowls': int,
+        'shops': int,
+        'top_shop': str,
+        'flavor_pct': dict[str,str]  # ex: {'豚骨':'50.0%', ...}
+    }
+    """
+    width, height = 600, 400
+    card = Image.new('RGB', (width, height), 'white')
+    draw = ImageDraw.Draw(card)
+
+    # 使用預設字型
+    font_bold = ImageFont.load_default()
+    font_reg  = ImageFont.load_default()
+
+    x, y = 20, 20
+    draw.text((x, y), "統整分析結果", font=font_bold, fill='black')
+    y += 40
+
+    draw.text((x, y), f"🍜 共吃了 {stats['bowls']} 碗拉麵", font=font_reg, fill='black')
+    y += 30
+    draw.text((x, y), f"🏠 造訪了 {stats['shops']} 間店", font=font_reg, fill='black')
+    y += 30
+
+    draw.text((x, y), f"⭐️ 最常吃的店家：{stats['top_shop']}", font=font_reg, fill='black')
+    y += 40
+
+    draw.text((x, y), "口味分布：", font=font_reg, fill='black')
+    y += 30
+    for flavor, pct in stats['flavor_pct'].items():
+        draw.text((x + 20, y), f"{flavor}：{pct}", font=font_reg, fill='black')
+        y += 25
+
+    # 時間戳記
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
+    draw.text((20, height - 30), f"分析時間：{ts}", font=font_reg, fill='gray')
+
+    return card
+
+def analyze_checkins(user_id: str, days: int) -> dict:
+    """
+    讀取 user_id 過去 days 天的 checkins，回傳統計：
+    {
+      'bowls': int,
+      'shops': int,
+      'flavor_pct': {flavor: 'xx.x%', ...},
+      'records': [...list of checkin dicts...]
+    }
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    # 1) 從 Firestore 取 record
+    docs = (
+        db.collection('checkins')
+          .where('user_id', '==', user_id)
+          .order_by('timestamp', direction=firestore.Query.DESCENDING)
+          .stream()
+    )
+    records = []
+    for doc in docs:
+        data = doc.to_dict()
+        ts = data.get('timestamp')
+        # Firestore Timestamp 轉 datetime
+        if hasattr(ts, 'to_datetime'):
+            ts = ts.to_datetime().replace(tzinfo=timezone.utc)
+        if ts >= cutoff:
+            records.append(data)
+
+    bowls = len(records)
+    shops = len({r['store_id'] for r in records})
+    # 假設每筆 record 有 flavor 欄位
+    flavors = [r.get('flavor', '其他') for r in records]
+    cnt = Counter(flavors)
+    flavor_pct = {}
+    for fl, c in cnt.items():
+        pct = c / bowls * 100 if bowls else 0
+        flavor_pct[fl] = f"{pct:.1f}%"
+
+    return {
+        'bowls': bowls,
+        'shops': shops,
+        'flavor_pct': flavor_pct,
+        'records': records
+    }
+
+
+def generate_collage(user_id: str, days: int, cols: int = 5, thumb_size=(120,120)) -> str:
+    """
+    從最近 days 天的 checkin records 拿 photo_url 生成拼圖，
+    上傳到 Firebase Storage 並回傳 public_url
+    """
+    stats = analyze_checkins(user_id, days)
+    images = []
+    for rec in stats['records']:
+        url = rec.get('photo_url')
+        if not url:
+            continue
+        # 下載雲端圖片
+        blob = bucket.blob_from_url(url)  # 或者自行 parse path 再用 bucket.blob(path)
+        data = blob.download_as_bytes()
+        img = Image.open(io.BytesIO(data)).convert('RGB')
+        img.thumbnail(thumb_size)
+        images.append(img)
+
+    if not images:
+        return None
+
+    rows = (len(images) + cols - 1) // cols
+    w, h = cols * thumb_size[0], rows * thumb_size[1]
+    canvas = Image.new('RGB', (w, h), 'white')
+    for i, img in enumerate(images):
+        x = (i % cols) * thumb_size[0]
+        y = (i // cols) * thumb_size[1]
+        canvas.paste(img, (x, y))
+
+    # 存到 buffer
+    buf = io.BytesIO()
+    canvas.save(buf, format='JPEG')
+    buf.seek(0)
+
+    # 上傳到 Firebase Storage
+    filename = f"analysis/{user_id}_{days}d_{uuid.uuid4().hex}.jpg"
+    blob = bucket.blob(filename)
+    blob.upload_from_string(buf.read(), content_type='image/jpeg')
+    blob.make_public()
+
+    return blob.public_url
 
 '''
 ## 選單訊息：拉麵口味選單
