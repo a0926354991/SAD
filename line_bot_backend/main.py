@@ -44,6 +44,33 @@ def read_all_ramen_shops():
     shops = get_all_ramen_shops()
     return {"ramen_stores": shops}
 
+@app.get("/nearby_shops")
+def get_nearby_shops(lat: float, lng: float, limit: int = 6):
+    try:
+        # 驗證輸入參數
+        if not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
+            raise HTTPException(status_code=400, detail="Invalid latitude or longitude")
+        
+        if not isinstance(limit, int) or limit <= 0:
+            raise HTTPException(status_code=400, detail="Invalid limit value")
+            
+        # 驗證經緯度範圍
+        if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
+            raise HTTPException(status_code=400, detail="Latitude or longitude out of range")
+            
+        # 使用 search_ramen_nearby 函數，不指定口味，獲取所有附近的店
+        shops = search_ramen_nearby(lat, lng, None)
+        # 限制返回數量
+        shops = shops[:limit]
+        
+        return {"status": "success", "shops": shops}
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Error in get_nearby_shops: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 # 新增：檢查使用者登入狀態
 @app.get("/users/{user_id}")
 def check_user(user_id: str):
@@ -574,10 +601,7 @@ async def reply_ramen_flavor_quick_reply(reply_token):
         await session.post(url, json=body, headers=headers)
 '''
 
-@app.get("/nearby_shops")
-def get_nearby_shops(lat: float, lng: float, limit: int = 6):
-    shops = find_nearby_shops(lat, lng, limit)
-    return {"status": "success", "shops": shops}
+
 
 
 

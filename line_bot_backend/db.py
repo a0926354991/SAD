@@ -78,30 +78,64 @@ def get_user_location(user_id: str):
     return None, None
 
 def search_ramen_nearby(lat, lng, flavor):
-    # 取得所有有該 flavor 的拉麵店
-    docs = db.collection("ramen_shops").where("keywords", "array_contains", flavor).stream()
-    
-    shops = []
-    for doc in docs:
-        data = doc.to_dict()
-        shop_lat = data["location"]["latitude"]
-        shop_lng = data["location"]["longitude"]
-        dist = haversine(lat, lng, shop_lat, shop_lng)
-        shops.append({
-            "id": data.get("id", ""),
-            "name": data.get("name", ""),
-            "distance": dist,
-            "address": data.get("address", ""),
-            "image_url": data.get("picture_image", ""),
-            "rating": data.get("rating", 0),
-            "phone": data.get("phone", ""),
-            "lat": shop_lat,
-            "lng": shop_lng,
-            "keywords": data.get("keywords", []),
-        })
-    # 按照距離排序
-    shops.sort(key=lambda x: x["distance"])
-    return shops
+    """
+    搜尋附近的拉麵店
+    Args:
+        lat: 緯度
+        lng: 經度
+        flavor: 拉麵口味，如果為 None 則搜尋所有口味
+    Returns:
+        list: 附近的拉麵店列表，按距離排序
+    """
+    try:
+        # 根據是否有指定口味來建立查詢
+        if flavor:
+            docs = db.collection("ramen_shops").where("keywords", "array_contains", flavor).stream()
+        else:
+            docs = db.collection("ramen_shops").stream()
+        
+        shops = []
+        for doc in docs:
+            try:
+                data = doc.to_dict()
+                location = data.get("location", {})
+                
+                # 檢查必要的位置資料
+                if not location or "latitude" not in location or "longitude" not in location:
+                    print(f"Warning: Store {doc.id} has invalid location data")
+                    continue
+                
+                shop_lat = location["latitude"]
+                shop_lng = location["longitude"]
+                dist = haversine(lat, lng, shop_lat, shop_lng)
+                
+                shops.append({
+                    "id": doc.id,
+                    "name": data.get("name", ""),
+                    "distance": dist,
+                    "address": data.get("address", ""),
+                    "image_url": data.get("picture_image", ""),
+                    "rating": data.get("rating", 0),
+                    "phone": data.get("phone", ""),
+                    "lat": shop_lat,
+                    "lng": shop_lng,
+                    "keywords": data.get("keywords", []),
+                    "location": location,
+                    "open_time": data.get("open_time", ""),
+                    "menu_image": data.get("menu_image", "")
+                })
+                
+            except Exception as e:
+                print(f"Error processing store {doc.id}: {str(e)}")
+                continue
+        
+        # 按照距離排序
+        shops.sort(key=lambda x: x["distance"])
+        return shops
+        
+    except Exception as e:
+        print(f"Error in search_ramen_nearby: {str(e)}")
+        return []
 
 def haversine(lat1, lng1, lat2, lng2):
     # Haversine formula
@@ -203,43 +237,7 @@ def upload_photo(file_content: bytes, content_type: str) -> tuple[bool, str]:
     except Exception as e:
         return False, str(e)
 
-def find_nearby_shops(lat: float, lng: float, limit: int = 6):
-    """
-    獲取指定位置附近的拉麵店
-    Args:
-        lat: 緯度
-        lng: 經度
-        limit: 返回的店家數量
-    Returns:
-        list: 附近的拉麵店列表，按距離排序
-    """
-    docs = db.collection("ramen_shops").stream()
-    shops = []
-    
-    for doc in docs:
-        data = doc.to_dict()
-        shop_lat = data["location"]["latitude"]
-        shop_lng = data["location"]["longitude"]
-        dist = haversine(lat, lng, shop_lat, shop_lng)
-        shops.append({
-            "id": doc.id,
-            "name": data.get("name", ""),
-            "distance": dist,
-            "address": data.get("address", ""),
-            "image_url": data.get("picture_image", ""),
-            "rating": data.get("rating", 0),
-            "phone": data.get("phone", ""),
-            "lat": shop_lat,
-            "lng": shop_lng,
-            "keywords": data.get("keywords", []),
-            "location": data.get("location", {}),
-            "open_time": data.get("open_time", ""),
-            "menu_image": data.get("menu_image", "")
-        })
-    
-    # 按照距離排序
-    shops.sort(key=lambda x: x["distance"])
-    return shops[:limit]
+
 
 # if __name__ == "__main__":
 #     shops = get_all_ramen_shops()

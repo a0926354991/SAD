@@ -835,7 +835,7 @@ async function ensureUserIdParam() {
         await loadLiffScript();
         await liff.init({ liffId: "2007489792-4popYn8a" });
         if (!liff.isInClient()) {
-            alert("請從LINE圖文選單打開本頁！");
+            showToast("請從LINE圖文選單打開本頁！");
             return;
         }
         const profile = await liff.getProfile();
