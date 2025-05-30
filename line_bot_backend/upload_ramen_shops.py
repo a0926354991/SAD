@@ -14,7 +14,5 @@ with open("merged_ramen_store_info.json", encoding="utf-8") as f:
 
 # 每間店寫入 Firestore 的 "ramen_shops" collection
 for idx, item in enumerate(data, 1):  # 1開始
-    store_name = item.get("name", "unknown").replace("/", "_")
-    item['id'] = str(idx)  # 加入id，建議存字串比較不會有型別問題
-    doc_ref = db.collection("ramen_shops").document(store_name)
+    doc_ref = db.collection("ramen_shops").document(str(idx))
     doc_ref.set(item)
