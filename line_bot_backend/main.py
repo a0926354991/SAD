@@ -7,10 +7,13 @@ from firebase_admin import firestore, storage # 新增：storage
 from pydantic import BaseModel
 from collections import Counter
 from PIL import Image, ImageOps
+from io import BytesIO
+
 
 import io
 import os
 import aiohttp
+import asyncio
 import random
 import json
 import math
@@ -562,16 +565,6 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
 
 
 def analyze_checkins(user_id: str, days: int) -> dict:
-    """
-    讀取 user_id 過去 days 天的 checkins，回傳統計：
-    {
-      'bowls': int,
-      'shops': int,
-      'top_shop': str,
-      'flavor_pct': {keyword: 'xx.x%', ...},
-      'records': [...]
-    }
-    """
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     docs = (
         db.collection('checkins')
@@ -685,17 +678,31 @@ async def handle_ramen_dump(reply_token: str, user_id: str):
     await reply_image(reply_token, public_url)
 
 
-async def generate_ramen_dump(urls: list[str],
-                              tile_size: tuple[int,int]=(200,200),
-                              bg_color: tuple[int,int,int]=(0x33,0x33,0x33)) -> io.BytesIO:
-    thumbs = []
-    for url in urls:
-        resp = requests.get(url, timeout=10)
-        img = Image.open(io.BytesIO(resp.content))
-        img = ImageOps.exif_transpose(img).convert("RGB")
-        thumb = ImageOps.fit(img, tile_size, method=Image.LANCZOS)
-        thumbs.append(thumb)
+async def fetch_and_prepare(session: aiohttp.ClientSession, url: str, tile_size: tuple[int,int]):
+    # 1) 並行下載
+    async with session.get(url, timeout=10) as resp:
+        data = await resp.read()
 
+    # 2) 在執行緒池裡做 PIL 轉正 & 裁切
+    loop = asyncio.get_running_loop()
+    def process():
+        img = Image.open(BytesIO(data))
+        img = ImageOps.exif_transpose(img).convert("RGB")
+        return ImageOps.fit(img, tile_size, method=Image.LANCZOS)
+    thumb = await loop.run_in_executor(None, process)
+    return thumb
+
+
+async def generate_ramen_dump(urls: list[str],
+                              tile_size: tuple[int,int] = (200,200),
+                              bg_color: tuple[int,int,int] = (0x33,0x33,0x33)
+                             ) -> BytesIO:
+    # 並行下載 + 裁切
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_and_prepare(session, u, tile_size) for u in urls]
+        thumbs = await asyncio.gather(*tasks)
+
+    # 計算格子並補滿
     n = len(thumbs)
     cols = int(math.sqrt(n))
     rows = math.ceil(n / cols)
@@ -703,6 +710,7 @@ async def generate_ramen_dump(urls: list[str],
     while len(thumbs) < total:
         thumbs.append(thumbs[-1])
 
+    # 建畫布並拼貼
     W, H = cols * tile_size[0], rows * tile_size[1]
     canvas = Image.new("RGB", (W, H), bg_color)
     for idx, thumb in enumerate(thumbs):
@@ -710,8 +718,9 @@ async def generate_ramen_dump(urls: list[str],
         y = (idx // cols) * tile_size[1]
         canvas.paste(thumb, (x, y))
 
-    bio = io.BytesIO()
-    canvas.save(bio, format="JPEG", quality=90)
+    # 輸出 BytesIO
+    bio = BytesIO()
+    canvas.save(bio, format="JPEG", quality=85)
     bio.seek(0)
     return bio
 
