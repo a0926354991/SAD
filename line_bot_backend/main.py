@@ -743,37 +743,43 @@ GRID_LAYOUT = {
 
 async def generate_ramen_dump(
     urls: list[str],
-    max_tiles: int,                # 必填，不再接受 None
-    tile_width: int = 300,
-    bg_color: tuple[int,int,int] = (0, 0, 0)
+    max_tiles: int,
+    tile_width: int = 300,              # 每格寬度（像素）
+    bg_color: tuple[int,int,int] = (0, 0, 0)  # 背景色
 ) -> io.BytesIO:
-    # 1) 只取前 max_tiles 張
+    # 只取前 max_tiles 張
     urls = urls[:max_tiles]
 
-    # 2) 取行列配置
+    # 取得列數、排數
     cols, rows = GRID_LAYOUT.get(max_tiles, (
         int(math.sqrt(max_tiles)),
         math.ceil(max_tiles / int(math.sqrt(max_tiles)))
     ))
 
-    # 3) 計算 tile_height、畫布尺寸
-    tile_height = int(tile_width * rows / cols)
-    W, H = cols * tile_width, rows * tile_height
-    canvas = Image.new("RGB", (W, H), bg_color)
+    # 先計算總畫布寬度 (cols * tile_width)
+    canvas_w = cols * tile_width
+    # 依 16:9 比例算出畫布高度
+    canvas_h = int(canvas_w * 9 / 16)
+    # 再算出每格高度
+    tile_height = int(canvas_h / rows)
 
-    # 4) 下載、轉正、裁切並貼圖
+    # 建立 16:9 畫布
+    canvas = Image.new("RGB", (canvas_w, canvas_h), bg_color)
+
     for idx, url in enumerate(urls):
         resp = requests.get(url, timeout=10)
         img = Image.open(io.BytesIO(resp.content))
         img = ImageOps.exif_transpose(img).convert("RGB")
+        # 裁切並填滿每格 (tile_width × tile_height)
         thumb = ImageOps.fit(img, (tile_width, tile_height), method=Image.LANCZOS)
 
+        # 計算貼圖座標
         x = (idx % cols) * tile_width
         y = (idx // cols) * tile_height
         canvas.paste(thumb, (x, y))
         img.close()
 
-    # 5) 輸出 BytesIO
+    # 輸出至 BytesIO
     bio = io.BytesIO()
     canvas.save(bio, format="JPEG", quality=90)
     bio.seek(0)
