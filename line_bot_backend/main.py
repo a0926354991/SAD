@@ -206,9 +206,10 @@ async def webhook(req: Request):
 
                             # 取出 ramen_list 的 id 組合網址
                             shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
-                            # ids_str = ",".join(shop_ids)
-                            encoded_store_ids = quote(",".join(shop_ids))
-                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a?show_wheel=1&store_ids={encoded_store_ids}"
+                            ids_str = ",".join(shop_ids)
+                            # encoded_store_ids = quote(",".join(shop_ids))
+                            # roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={encoded_store_ids}"
+                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={ids_str}"
 
                             # message = {
                             #     "type": "template",
@@ -449,7 +450,7 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
                         "action": {
                             "type": "uri",
                             "label": "🗺️ 地圖查看",
-                            "uri": f"https://liff.line.me/2007489792-4popYn8a?store_id={ramen['id']}"
+                            "uri": f"https://liff.line.me/2007489792-4popYn8a#store_id={ramen['id']}"
                         }
                     },
                     {
@@ -708,7 +709,7 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
         "c": json_str,
         "plugins": "chartjs-plugin-datalabels"
     }
-    return f"{base}?{urllib.parse.urlencode(params)}"
+    return f"{base}#{urllib.parse.urlencode(params)}"
 
 
 async def handle_ramen_dump(
