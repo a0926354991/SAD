@@ -608,59 +608,55 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
 def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     labels = list(flavor_pct.keys())
-    sizes  = [float(p.strip('%')) for p in flavor_pct.values()]
+    sizes = [float(p.strip('%')) for p in flavor_pct.values()]
 
     chart = {
-      "type": "pie",
-      "data": {
-        "labels": labels,
-        "datasets": [{
-          "data": sizes
-        }]
-      },
-      "options": {
-        "plugins": {
-          "datalabels": {
-            "formatter": "(value) => value.toFixed(1) + '%'",
-            "color": "#fff",
-            "font": {
-              "size": 18,
-              "weight": "bold"
+        "type": "pie",
+        "data": {
+            "labels": labels,
+            "datasets": [{
+                "data": sizes
+            }]
+        },
+        "options": {
+            "plugins": {
+                "datalabels": {
+                    "formatter": "FORMATTER_FUNCTION",
+                    "color": "#fff",
+                    "font": {
+                        "size": 20,
+                        "weight": "bold"
+                    }
+                },
+                "title": {
+                    "display": True,
+                    "text": "口味分布",
+                    "font": {"size": 18, "weight": "bold"}
+                },
+                "legend": {
+                    "position": "right",
+                    "labels": {"font": {"size": 14, "weight": "bold"}},
+                    "title": {
+                        "display": True,
+                        "text": "口味",
+                        "font": {"size": 16, "weight": "bold"}
+                    }
+                }
             }
-          },
-          "title": {
-            "display": True,
-            "text": "口味分布",
-            "font": { "size": 18, "weight": "bold" }
-          },
-          "legend": {
-            "position": "right",
-            "labels": { "font": { "size": 14, "weight": "bold" } },
-            "title": {
-              "display": True,
-              "text": "口味",
-              "font": { "size": 16, "weight": "bold" }
-            }
-          }
         }
-      }
     }
 
-    # 先轉成 JSON 字串
-    json_str = json.dumps(chart)
-
-    # 用 replace 把 formatter 的 JS function 從字串轉成 raw JS（避免被加雙引號）
-    json_str = json_str.replace(
-        '"formatter": "(val) => val.toFixed(1) + \'%\'"',
-        '"formatter": (val) => val.toFixed(1) + \'%\'"'
-    )
+    json_str = json.dumps(chart, ensure_ascii=False)
+    js_function = "(val) => Number(val).toFixed(1) + '%'"
+    json_str = json_str.replace('"FORMATTER_FUNCTION"', js_function)
 
     base = "https://quickchart.io/chart"
     params = {
-      "c": json_str,
-      "plugins": "chartjs-plugin-datalabels"
+        "c": json_str,
+        "plugins": "chartjs-plugin-datalabels"
     }
     return f"{base}?{urllib.parse.urlencode(params)}"
+
 
 '''
 ## 選單訊息：拉麵口味選單
