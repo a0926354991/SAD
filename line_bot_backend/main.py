@@ -686,7 +686,7 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
             "plugins": {
                 "datalabels": {
                     "formatter": {
-                        "raw": "function(ctx) { return ctx.chart.data.labels[ctx.dataIndex]; }"
+                        "__raw": "function(ctx) { return ctx.chart.data.labels[ctx.dataIndex]; }"
                     },
                     "color": "#ffffff",
                     "font": {"size": 16, "weight": "bold"}
