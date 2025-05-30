@@ -699,40 +699,138 @@ ramenList.addEventListener('scroll', () => {
 // 將詳細資訊渲染到右側欄
 function renderStoreInfo(store) {
     const ramenItems = document.getElementById('ramenItems');
+    
+    // 創建標籤頁容器
     ramenItems.innerHTML = `
         <div class="store-info-full">
-            <div class="store-header">
-                <div class="store-title">${store.name}</div>
-                <div class="store-address"><i class='fas fa-map-marker-alt'></i> ${store.address || ''}</div>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="info">店家資訊</button>
+                <button class="tab-btn" data-tab="checkins">打卡紀錄</button>
             </div>
-            <div class="store-section">
-                <div class="store-label">評分</div>
-                <div class="store-value"><i class="fas fa-star" style="color: #F1C40F;"></i> ${store.rating}</div>
-            </div>
-            <div class="store-section">
-                <div class="store-label">關鍵字</div>
-                <div class="store-value">
-                    ${
-                    store.keywords
-                        ? store.keywords.map(kw => `<b>#${kw}</b>`).join(' ')
-                        : ''
-                    }
+            
+            <div class="tab-content">
+                <div class="tab-pane active" id="info-tab">
+                    <div class="store-header">
+                        <div class="store-title">${store.name}</div>
+                        <div class="store-address"><i class='fas fa-map-marker-alt'></i> ${store.address || ''}</div>
+                    </div>
+                    <div class="store-section">
+                        <div class="store-label">評分</div>
+                        <div class="store-value"><i class="fas fa-star" style="color: #F1C40F;"></i> ${store.rating}</div>
+                    </div>
+                    <div class="store-section">
+                        <div class="store-label">關鍵字</div>
+                        <div class="store-value">
+                            ${store.keywords ? store.keywords.map(kw => `<b>#${kw}</b>`).join(' ') : ''}
+                        </div>
+                    </div>
+                    <div class="store-section">
+                        <div class="store-label">營業時間</div>
+                        <div class="store-value">${store.open_time ? store.open_time.replace(/; ?/g, '<br>') : '無資料'}</div>
+                    </div>
+                    <div class="store-menu-img">
+                        <div class="menu-title">菜單</div>
+                        <img src="${store.menu_image || ''}" alt="${store.name} 菜單" style="width:100%;max-width:350px;margin:10px auto 0;display:block;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);background:#fafafa;" />
+                    </div>
                 </div>
-            </div>
-            <div class="store-section">
-                <div class="store-label">營業時間</div>
-                <div class="store-value">${store.open_time ? store.open_time.replace(/; ?/g, '<br>') : '無資料'}</div>
-            </div>
-            <div class="store-menu-img">
-                <div class="menu-title">菜單</div>
-                <img src="${store.menu_image || ''}" alt="${store.name} 菜單" style="width:100%;max-width:350px;margin:10px auto 0;display:block;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);background:#fafafa;" />
+                
+                <div class="tab-pane" id="checkins-tab">
+                    <div class="checkins-container">
+                        <div class="checkins-list"></div>
+                        <button class="load-more-btn" style="display: none;">顯示更多</button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
 
+    // 初始化打卡紀錄
+    loadStoreCheckins(store.id);
+
+    // 綁定標籤頁切換事件
+    const tabBtns = ramenItems.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const tabPanes = ramenItems.querySelectorAll('.tab-pane');
+            tabPanes.forEach(pane => pane.classList.remove('active'));
+            ramenItems.querySelector(`#${btn.dataset.tab}-tab`).classList.add('active');
+        });
+    });
+
     ramenList.classList.add('active');
     ramenList.style.transform = 'translateY(0)';
     ramenList.style.maxHeight = 'var(--panel-height)';
+}
+
+// 新增：載入店家打卡紀錄
+async function loadStoreCheckins(storeId, lastId = null) {
+    try {
+        const response = await fetch(`https://linebot-fastapi-uhmi.onrender.com/store_checkins/${storeId}?limit=5${lastId ? `&last_id=${lastId}` : ''}`);
+        const data = await response.json();
+        
+        if (data.status === "success") {
+            const checkinsList = document.querySelector('.checkins-list');
+            const loadMoreBtn = document.querySelector('.load-more-btn');
+            
+            // 渲染打卡紀錄
+            data.checkins.forEach(checkin => {
+                const checkinElement = createCheckinElement(checkin);
+                checkinsList.appendChild(checkinElement);
+            });
+            
+            // 控制"顯示更多"按鈕
+            loadMoreBtn.style.display = data.has_more ? 'block' : 'none';
+            if (data.has_more) {
+                loadMoreBtn.onclick = () => {
+                    const lastCheckin = data.checkins[data.checkins.length - 1];
+                    loadStoreCheckins(storeId, lastCheckin.id);
+                };
+            }
+        }
+    } catch (error) {
+        console.error('Error loading checkins:', error);
+        showToast('載入打卡紀錄失敗');
+    }
+}
+
+// 新增：創建打卡紀錄元素
+function createCheckinElement(checkin) {
+    const div = document.createElement('div');
+    div.className = 'checkin-item';
+    div.innerHTML = `
+        <div class="checkin-header">
+            <div class="checkin-user">${checkin.user_name}</div>
+            <div class="checkin-time">${formatDate(checkin.timestamp)}</div>
+        </div>
+        <div class="checkin-content">
+            <div class="checkin-rating">
+                ${'⭐'.repeat(Math.round(checkin.rating))} ${checkin.rating}
+            </div>
+            <div class="checkin-comment">${checkin.comment}</div>
+            ${checkin.photo_url ? `
+                <div class="checkin-photo">
+                    <img src="${checkin.photo_url}" alt="打卡照片" />
+                </div>
+            ` : ''}
+            <div class="checkin-keyword">#${checkin.keyword}</div>
+        </div>
+    `;
+    return div;
+}
+
+// 新增：格式化日期
+function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
 // 點擊地圖空白處時，恢復預設狀態
