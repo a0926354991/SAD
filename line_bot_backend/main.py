@@ -663,23 +663,35 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     labels = list(flavor_pct.keys())
     sizes = [float(p.strip('%')) for p in flavor_pct.values()]
 
+    # 一组自订色板，你可以换成自己喜欢的颜色（十六进位）
+    colors = [
+        "#4E79A7",  # 蓝 – 豚骨
+        "#F28E2B",  # 橙 – 醬油
+        "#E15759",  # 红 – 雞白湯
+        "#76B7B2",  # 青 – 辣味
+        "#59A14F",  # 绿 – 其他
+    ]
+    # 如果 flavor 数量超过颜色数，可以循环使用
+    bg_colors = [colors[i % len(colors)] for i in range(len(labels))]
+
     chart = {
         "type": "pie",
         "data": {
             "labels": labels,
             "datasets": [{
-                "data": sizes
+                "data": sizes,
+                "backgroundColor": bg_colors,  # 填充色
+                "borderColor": "#ffffff",      # 扇形边框白色
+                "borderWidth": 2
             }]
         },
         "options": {
             "plugins": {
                 "datalabels": {
-                    "formatter": "FORMATTER_FUNCTION",
-                    "color": "#fff",
-                    "font": {
-                        "size": 20,
-                        "weight": "bold"
-                    }
+                    # 直接显示标签文字
+                    "formatter": "(ctx) => ctx.chart.data.labels[ctx.dataIndex]",
+                    "color": "#ffffff",
+                    "font": {"size": 14, "weight": "bold"}
                 },
                 "title": {
                     "display": True,
@@ -699,16 +711,22 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
         }
     }
 
+    # 把 formatter 函数插回 JSON
     json_str = json.dumps(chart, ensure_ascii=False)
-    js_function = "(val) => Number(val).toFixed(1) + '%'"
-    json_str = json_str.replace('"FORMATTER_FUNCTION"', js_function)
+    # 上面 formatter 用了占位符，替换它
+    json_str = json_str.replace(
+        "\"(ctx) => ctx.chart.data.labels[ctx.dataIndex]\"",
+        "(ctx) => ctx.chart.data.labels[ctx.dataIndex]"
+    )
 
     base = "https://quickchart.io/chart"
     params = {
         "c": json_str,
+        # 這裡如果有用到 datalabels plugin 才需要
         "plugins": "chartjs-plugin-datalabels"
     }
-    return f"{base}#{urllib.parse.urlencode(params)}"
+    return f"{base}?{urllib.parse.urlencode(params)}"
+
 
 
 async def handle_ramen_dump(
@@ -768,7 +786,6 @@ async def generate_ramen_dump(
     canvas = Image.new("RGB", (canvas_w, canvas_h), bg_color)
 
     for idx, url in enumerate(urls):
-        # 下载与方向校正
         resp = requests.get(url, timeout=10)
         img = Image.open(io.BytesIO(resp.content))
         img = ImageOps.exif_transpose(img).convert("RGB")
