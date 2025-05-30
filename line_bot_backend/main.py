@@ -607,54 +607,34 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
 
 def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
-    labels = list(flavor_pct.keys())
+    # 直接把百分比字串併到 labels 裡
+    labels = [f"{flavor} {pct}" for flavor, pct in flavor_pct.items()]
     sizes  = [float(p.strip('%')) for p in flavor_pct.values()]
 
     chart = {
       "type": "pie",
       "data": {
         "labels": labels,
-        "datasets": [{
-          "data": sizes
-        }]
+        "datasets": [{ "data": sizes }]
       },
       "options": {
         "plugins": {
-          # 1) 在这里配置 datalabels
-          "datalabels": {
-            "formatter": "function(value) { return value.toFixed(1) + '%'; }",
-            "color": "#fff",
-            "font": {
-              "size": 14,
-              "weight": "bold"
-            }
-          },
           "title": {
             "display": True,
             "text": "口味分布",
-            "font": { "size": 18, "weight": "bold" }
+            "font": {"size":18, "weight":"bold"}
           },
           "legend": {
             "position": "right",
-            "labels": { "font": { "size": 14, "weight": "bold" } },
-            "title": {
-              "display": True,
-              "text": "口味",
-              "font": { "size": 16, "weight": "bold" }
-            }
+            "labels": {"font": {"size":14, "weight":"bold"}}
           }
         }
       }
     }
+    import json, urllib.parse
+    url = "https://quickchart.io/chart?"+urllib.parse.urlencode({"c": json.dumps(chart)})
+    return url
 
-    # 2) URL API + 明确加载插件参数
-    base = "https://quickchart.io/chart"
-    params = {
-      "c": json.dumps(chart),
-      # 加载 DataLabels 插件
-      "plugins": "chartjs-plugin-datalabels"
-    }
-    return f"{base}?{urllib.parse.urlencode(params)}"
 
 
 '''
