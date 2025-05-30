@@ -695,7 +695,6 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
         }
     }
 
-    # 转成字符串，替换 formatter 占位符
     json_str = json.dumps(chart, ensure_ascii=False)
     json_str = json_str.replace(
         "\"(ctx) => ctx.chart.data.labels[ctx.dataIndex]\"",
@@ -703,9 +702,12 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     )
 
     base = "https://quickchart.io/chart"
-    # 主配置参数
-    url = f"{base}?{urllib.parse.urlencode({'c': json_str})}"
-    return url
+    params = {
+        "c": json_str,
+        "plugins": "chartjs-plugin-datalabels"   
+    }
+    return f"{base}?{urllib.parse.urlencode(params)}"
+
 
 
 async def handle_ramen_dump(
