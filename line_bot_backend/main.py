@@ -178,7 +178,7 @@ async def webhook(req: Request):
                     days = int(msg.replace("天", ""))
                     await handle_analysis(reply_token, user_id, days)
 
-                elif msg == DUMP_KEYWORDS:
+                elif any(keyword in msg for keyword in DUMP_KEYWORDS):
                     await handle_ramen_dump(reply_token, user_id)
                 
                 # 意見回饋
