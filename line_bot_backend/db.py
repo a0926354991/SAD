@@ -203,7 +203,7 @@ def upload_photo(file_content: bytes, content_type: str) -> tuple[bool, str]:
     except Exception as e:
         return False, str(e)
 
-def get_nearby_shops(lat: float, lng: float, limit: int = 6):
+def find_nearby_shops(lat: float, lng: float, limit: int = 6):
     """
     獲取指定位置附近的拉麵店
     Args:
