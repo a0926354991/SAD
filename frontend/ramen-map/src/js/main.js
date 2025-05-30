@@ -651,7 +651,6 @@ async function initWheel() {
     } else {
         wheelStores = getRandomShops();
     }
-    console.log(wheelStores);
 
     // 修改：加入/移除轉盤的功能
     addToWheelFab.addEventListener('click', () => {
@@ -1025,6 +1024,7 @@ async function handleCheckInSubmit(e) {
         photo_url: photoUrl,
         keyword: selectedKeyword  // 新增：提交選擇的關鍵字
     };
+    console.log(formData);
 
     try {
         const response = await fetch('https://linebot-fastapi-uhmi.onrender.com/checkin', {
@@ -1152,6 +1152,7 @@ function initCheckIn() {
     const ratingInput = document.getElementById('storeRating');
     const ratingStars = document.querySelectorAll('.rating-input i');
     const photoInput = document.getElementById('checkInPhoto');
+    const photoPreview = document.getElementById('photoPreview');
 
     // 打卡功能事件監聽
     checkInFab.addEventListener('click', () => {

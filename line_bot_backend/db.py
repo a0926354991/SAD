@@ -170,55 +170,61 @@ def create_checkin(data: dict):
         store_id = data.get("store_id")
         user_id = data.get("user_id")
         rating = data.get("rating")
-        keyword = data.get("keyword")
         comment = data.get("comment", "")
         photo_url = data.get("photo_url", "")
-        
+        keyword = data.get("keyword", "")
+
+        print(f"Received data: {data}")
 
         # 檢查必要欄位
         if not store_id or not user_id or rating is None or not keyword:
+            print(f"Missing required fields: store_id={store_id}, user_id={user_id}, rating={rating}, keyword={keyword}")
             return False, "Missing required field(s)"
 
         # 取得店家資訊
         store_ref = db.collection("ramen_shops").document(store_id)
         store_doc = store_ref.get()
         if not store_doc.exists:
+            print(f"Store not found: {store_id}")
             return False, "Store not found"
         store_data = store_doc.to_dict()
 
         # 驗證關鍵字是否屬於該店家（如果不是"其他"選項）
         store_keywords = store_data.get("keywords", [])
         if keyword != "other" and keyword not in store_keywords:
+            print(f"Invalid keyword: {keyword} for store: {store_id}")
             return False, "Invalid keyword for this store"
 
         user_ref = db.collection("users").document(user_id)
         user_doc = user_ref.get()
         if not user_doc.exists:
+            print(f"User not found: {user_id}")
             return False, "User not found"
         user_data = user_doc.to_dict()
 
         # 建立打卡記錄
         checkin_data = {
-            "store_id": store_data.get("id", ""),
+            "store_id": store_id,
             "store_name": store_data.get("name", ""),
             "user_id": user_id,
             "user_name": user_data.get("display_name", ""),
-            "rating": rating,
+            "rating": float(rating),
             "comment": comment,
             "photo_url": photo_url,
             "keyword": keyword,
             "timestamp": datetime.now()
         }
 
-        # 新增：印出打卡資料以便除錯
-        print("Creating check-in with data:", checkin_data)
+        print(f"Creating checkin with data: {checkin_data}")
 
         checkin_ref = db.collection("checkins").document()
         checkin_ref.set(checkin_data)
 
+        print(f"Checkin created successfully with ID: {checkin_ref.id}")
+
         return True, "Check-in recorded successfully"
     except Exception as e:
-        print("Error in create_checkin:", str(e))  # 新增：印出錯誤訊息
+        print(f"Error in create_checkin: {str(e)}")
         return False, str(e)
 
 def upload_photo(file_content: bytes, content_type: str) -> tuple[bool, str]:
