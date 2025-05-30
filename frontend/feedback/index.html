@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>拉麵意見回饋</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- 字體與圖示 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <style>
+    body {
+      background-color: #f4f4f4;
+      font-family: "Noto Sans TC", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100svh;
+      margin: 0;
+    }
+
+    .form-card {
+      background-color: #fff;
+      padding: 30px 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      width: 45vw;
+      height: 80vh;
+      max-width: 400px;
+      min-width: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 2px;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    textarea {
+      resize: none;
+      flex-grow: 1;
+      min-height: 150px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      margin-top: 25px;
+      padding: 12px;
+      background-color: #E94F37;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #c2402e;
+    }
+
+    #result {
+      margin-top: 15px;
+      text-align: center;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-card">
+    <h2><i class="fa-solid fa-comment-dots"></i> 意見回饋</h2>
+    <form id="feedback-form">
+      <!-- 隱藏欄位：user_id 之後由 LIFF 自動填入 -->
+      <input type="hidden" id="user_id" name="user_id">
+
+      <label for="category">回饋類別</label>
+      <select id="category" name="category" required>
+        <option value="">請選擇</option>
+        <option value="功能建議">功能建議</option>
+        <option value="介面問題">介面問題</option>
+        <option value="內容錯誤">內容錯誤</option>
+        <option value="其他">其他</option>
+      </select>
+
+      <label for="comment">回饋內容</label>
+      <textarea id="comment" name="comment" rows="4" placeholder="請輸入您的寶貴建議..." required></textarea>
+
+      <button type="submit"><i class="fa-solid fa-paper-plane"></i> 送出回饋</button>
+
+      <div id="result"></div>
+    </form>
+  </div>
+  
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+        apiKey: "AIzaSyDD2BuCuIUNsT3tqOFt4yQ4nxXdcR9_kGY",
+        authDomain: "la-king-man.firebaseapp.com",
+        projectId: "la-king-man",
+        storageBucket: "la-king-man.firebasestorage.app",
+        messagingSenderId: "294297788458",
+        appId: "1:294297788458:web:376f7535a38237505f6353",
+        measurementId: "G-WWQPSCV309"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    
+    // 表單送出時將資料存進 Firestore
+    document.getElementById("feedback-form").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const data = {
+        user_id: document.getElementById("user_id").value,
+        category: document.getElementById("category").value,
+        comment: document.getElementById("comment").value,
+        timestamp: serverTimestamp() // 使用 firebase server 時間
+      };
+
+      try {
+        await addDoc(collection(db, "feedbacks"), data);
+        document.getElementById("result").textContent = "✅ 感謝您的回饋，我們已收到！";
+        this.reset();
+      } catch (error) {
+        console.error("❌ 回饋送出失敗：", error);
+        document.getElementById("result").textContent = "❌ 發生錯誤，請稍後再試。";
+      }
+    });
+  </script>
+
+</body>
+</html>
