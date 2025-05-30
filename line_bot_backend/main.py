@@ -7,6 +7,7 @@ from firebase_admin import firestore, storage # 新增：storage
 from pydantic import BaseModel
 from collections import Counter
 
+import io
 import os
 import aiohttp
 import random
@@ -478,8 +479,8 @@ async def reply_analysis(reply_token: str):
 
 async def handle_analysis(reply_token: str, user_id: str, days: int):
     """
-    根據 user_id 和 days，取得統計並回覆 Flex 格式統整分析結果。
-    包含最常吃的店家資訊。
+    根據 user_id 和 days，取得統計並回覆 Flex 格式統整分析結果，並內嵌圓餅圖。
+    圖片格式為 PNG，不需另存 jpg。
     """
     # 取得統計資料
     try:
@@ -491,14 +492,19 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     # 最常吃的店家
     top_shop = stats.get('top_shop', '無資料')
 
-    # 建立 Flex 氣泡
+    # 產生圓餅圖 bytes，並上傳至 Storage
+    img_bytes = create_flavor_pie_chart(stats['flavor_pct'])
+    filename = f"analysis/{user_id}_{days}d_pie.png"
+    blob = storage.bucket().blob(filename)
+    blob.upload_from_string(img_bytes, content_type='image/png')
+    blob.make_public()
+    img_url = blob.public_url
+
+    # 建立 Flex 氣泡，先放圖片
     flavor_contents = []
     for flavor, pct in stats['flavor_pct'].items():
         flavor_contents.append({
-            "type": "box",
-            "layout": "baseline",
-            "spacing": "md",
-            "contents": [
+            "type": "box", "layout": "baseline", "spacing": "md", "contents": [
                 {"type": "text", "text": flavor, "size": "sm", "weight": "bold", "flex": 1},
                 {"type": "text", "text": pct, "size": "sm", "align": "end"}
             ]
@@ -506,6 +512,13 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
 
     bubble = {
         "type": "bubble",
+        "hero": {
+            "type": "image",
+            "url": img_url,
+            "size": "full",
+            "aspectRatio": "20:13",
+            "aspectMode": "cover"
+        },
         "body": {
             "type": "box",
             "layout": "vertical",
@@ -524,26 +537,14 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "type": "box",
             "layout": "vertical",
             "contents": [
-                {
-                    "type": "button",
-                    "action": {
-                        "type": "message",
-                        "label": "生成我的拉麵 dump",
-                        "text": "生成我的拉麵 dump"
-                    },
-                    "style": "primary",
-                    "color": "#905C44"
-                }
+                {"type": "button", "action": {"type": "message", "label": "生成我的拉麵 dump","text": "生成我的拉麵 dump"},"style": "primary","color": "#905C44"}
             ]
         }
     }
+
     flex_message = {
         "replyToken": reply_token,
-        "messages": [{
-            "type": "flex",
-            "altText": "統整分析結果",
-            "contents": bubble
-        }]
+        "messages": [{"type": "flex", "altText": "統整分析結果", "contents": bubble}]
     }
     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}", "Content-Type": "application/json"}
     async with aiohttp.ClientSession() as session:
@@ -600,19 +601,13 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
 
 def create_flavor_pie_chart(flavor_pct: dict[str, str]) -> bytes:
-    # 轉成 float
     labels = list(flavor_pct.keys())
-    sizes = [float(pct.strip('%')) for pct in flavor_pct.values()]
-
-    # 畫圖
+    sizes = [float(p.strip('%')) for p in flavor_pct.values()]
     plt.figure()
     plt.pie(sizes, labels=labels, autopct='%1.1f%%')
-    plt.title('口味分布圓餅圖')
-
-    # 存到 buffer
-    import io
+    plt.title('口味分布')
     buf = io.BytesIO()
-    plt.savefig(buf, format='jpeg')
+    plt.savefig(buf, format='png')
     plt.close()
     buf.seek(0)
     return buf.read()
