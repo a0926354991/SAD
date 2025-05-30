@@ -536,6 +536,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
 
     # 生成圓餅圖並上傳
     img_url = create_quickchart_url(stats["flavor_pct"])
+    print("QuickChart URL:", img_url)
 
     # 建立 Flex Bubble
     flavor_contents = []
