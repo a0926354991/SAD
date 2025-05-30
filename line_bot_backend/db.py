@@ -172,7 +172,7 @@ def create_checkin(data: dict):
         rating = data.get("rating")
         comment = data.get("comment", "")
         photo_url = data.get("photo_url", "")
-        keyword = data.get("keyword", "")
+        keyword = data.get("keyword")
 
         # 檢查必要欄位
         if not store_id or not user_id or rating is None or not keyword:

@@ -1152,7 +1152,6 @@ function initCheckIn() {
     const ratingInput = document.getElementById('storeRating');
     const ratingStars = document.querySelectorAll('.rating-input i');
     const photoInput = document.getElementById('checkInPhoto');
-    const photoPreview = document.getElementById('photoPreview');
 
     // 打卡功能事件監聽
     checkInFab.addEventListener('click', () => {
