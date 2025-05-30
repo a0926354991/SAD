@@ -705,8 +705,6 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     base = "https://quickchart.io/chart"
     # 主配置参数
     url = f"{base}?{urllib.parse.urlencode({'c': json_str})}"
-    # 加载 datalabels 插件
-    url += "&plugin=chartjs-plugin-datalabels@2.0.0"
     return url
 
 
