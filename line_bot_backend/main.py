@@ -226,44 +226,8 @@ async def webhook(req: Request):
                             encoded_store_ids = quote(",".join(shop_ids))
                             roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={encoded_store_ids}"
 
-                            message = {
-                                "type": "flex",
-                                "altText": "點擊「轉一下！」進入拉麵轉盤",
-                                "contents": {
-                                    "type": "bubble",
-                                    "body": {
-                                        "type": "box",
-                                        "layout": "vertical",
-                                        "spacing": "md",
-                                        "borderWidth": "4px",
-                                        "borderColor": "#A9C4EB",
-                                        "contents": [
-                                            {
-                                                "type": "text",
-                                                "text": "🎲 沒辦法決定要吃哪一家嗎？",
-                                                "weight": "bold",
-                                                "size": "md",
-                                                "wrap": True
-                                            },
-                                            {"type": "separator", "margin": "md"},
-                                            {
-                                                "type": "button",
-                                                "action":{ "type": "uri", "label": "轉一下！", "uri": roulette_url},
-                                                "style": "secondary",
-                                                "height": "md",
-                                                "margin": "md",
-                                                "color": "#D5E3F7"
-                                            },
-                                        ]
-                                    },
-                                    "styles": {
-                                        "body": { "backgroundColor": "#FCF9F4" }
-                                    }
-                                }
-                            }
-
                             # 傳一個訊息給使用者
-                            await push_template(user_id, message)
+                            await push_ramen_wheel(user_id, roulette_url)
                             # reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
                             # await push_template(user_id, message)
 
@@ -278,8 +242,9 @@ async def webhook(req: Request):
                             roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={encoded_store_ids}"
 
                             # 傳一個訊息給使用者
-                            reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
-                            await push_message(user_id, reply_text)
+                            await push_ramen_wheel(user_id, roulette_url)
+                            # reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
+                            # await push_message(user_id, reply_text)
 
                         else:
                             await reply_message(reply_token, "【 拉麵推薦 】\n請選擇正確的拉麵口味⚠️")
@@ -324,6 +289,8 @@ async def is_location_valid(user_id: str, threshold_minutes: int = 10):
     latlng, last_updated = get_user_location(user_id)
 
     if last_updated is None:
+        return False, None  # 沒有傳過位置
+    if latlng == GeoPoint(0, 0):
         return False, None  # 沒有傳過位置
 
     now = datetime.now(timezone.utc)
@@ -437,7 +404,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                     "spacing": "md",
                     "borderWidth": "4px",
                     "borderColor": "#FFE175",  # 你可以調整顏色
-                    "cornerRadius": "10px",    # 加一點圓角更好看（可選）
+                    "cornerRadius": "20px",    # 加一點圓角更好看（可選）
                     "contents": [
                         {
                             "type": "text",
@@ -453,6 +420,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                             "color": "#888888",
                             "wrap": True
                         },
+                        {"type": "spacer", "size": "md"},
                         *[
                             {
                                 "type": "button",
@@ -531,14 +499,7 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
                         "text": f"評價：{rating_text}\n距離：{dist_str}",
                         "wrap": True,
                         "size": "sm"
-                    }
-                ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "md",
-                "contents": [
+                    },
                     {
                         "type": "button",
                         "style": "secondary",
@@ -562,8 +523,8 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
                 ]
             },
             "styles": {
-                "body": {"backgroundColor": "#FFFFFF"},
-                "footer": {"backgroundColor": "#FFFFFF"}
+                "body": {"backgroundColor": "#FCF9F4"},
+                # "footer": {"backgroundColor": "#FFFFFF"}
             }
         }
         bubbles.append(bubble)
@@ -588,6 +549,59 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
     async with aiohttp.ClientSession() as session:
         await session.post(url, json=body, headers=headers)
 
+## 拉麵轉盤按鈕 (flex message)
+async def push_ramen_wheel(user_id, roulette_url):
+    message = {
+        "type": "flex",
+        "altText": "點擊進入拉麵轉盤！",
+        "contents": {
+            "type": "bubble",
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "md",
+                "borderWidth": "4px",
+                "borderColor": "#A9C4EB",
+                "cornerRadius": "20px",
+                "contents": [
+                    {
+                        "type": "text",
+                        "text": "沒辦法決定要吃哪一家嗎？",
+                        "weight": "bold",
+                        "size": "lg",
+                        "wrap": True
+                    },
+                    {"type": "spacer", "size": "md"},
+                    {
+                        "type": "button",
+                        "action":{ "type": "uri", "label": "🎲 進入拉麵轉盤", "uri": roulette_url},
+                        "style": "secondary",
+                        "height": "md",
+                        "margin": "md",
+                        "color": "#D5E3F7"
+                    },
+                ]
+            },
+            "styles": {
+                "body": { "backgroundColor": "#FCF9F4" }
+            }
+        }
+    }
+
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    body = {
+        "to": user_id,
+        "messages": [message]
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=body, headers=headers) as resp:
+            print("Status:", resp.status)
+            print("Body:", json.dumps(body, indent=2))
+            print("Response:", await resp.text())
 
 
 ## 統整分析 (quick reply)
@@ -622,6 +636,7 @@ async def reply_analysis_flex_menu(reply_token: str):
                     "spacing": "md",
                     "borderWidth": "4px",
                     "borderColor": "#FFE175",
+                    "cornerRadius": "20px",
                     "contents": [
                         {
                             "type": "text",
@@ -630,7 +645,7 @@ async def reply_analysis_flex_menu(reply_token: str):
                             "size": "lg",
                             "wrap": True
                         },
-                        {"type": "separator", "margin": "md"},
+                        {"type": "spacer", "size": "md"},
                         *[
                             {
                                 "type": "button",
@@ -692,24 +707,25 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     # 3. 準備 Bubble 的 body 主要內容
     body_contents = [
         {"type": "text", "text": f"最近 {days} 天的統整分析", "weight": "bold", "size": "lg"},
-        {"type": "separator", "margin": "md"},
+        {"type": "spacer", "size": "md"},
         {"type": "text", "text": f"🍜 總碗數：{bowls} 碗", "size": "sm"},
         {"type": "text", "text": f"🏠 造訪店家：{shops} 家", "size": "sm"},
         {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
+        {"type": "separator", "margin": "md"},
     ]
 
     # 4. 當 bowls == 0（打卡為 0）時，不要放任何圖片，直接在 body_contents 加一行提示文字
     if bowls == 0:
         body_contents.append({
             "type": "text",
-            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump 哦！",
+            "text": "🔒 打卡四張照片以上以解鎖拉麵 dump！",
             "size": "xs",
             # "align": "center",    
             "weight": "bold",
             "color": "#063D74",
             "margin": "md",
             "wrap": True,
-            "maxLines": 2         
+            "maxLines": 2
         })
 
     # 5. 當 1 <= bowls < 4 時，雖然有打卡資料，但筆數不到 4，這裡顯示真正的圓餅圖＋鎖頭文字
@@ -732,7 +748,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         # 再加一行紅色鎖頭文字
         body_contents.append({
             "type": "text",
-            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump 哦！",
+            "text": "🔒 打卡四張照片以上以解鎖拉麵 dump！",
             "size": "xs",
             # "align": "center",    
             "weight": "bold",
@@ -804,6 +820,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "spacing": "md",
             "borderWidth": "4px",
             "borderColor": "#A9C4EB",
+            "cornerRadius": "20px",
             "contents": body_contents,
         },
         "styles": {
@@ -853,7 +870,7 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
     bowls = len(records)
     shops = len(shop_counter)
-    top_shop = shop_counter.most_common(1)[0][0] if shop_counter else '無資料'
+    top_shop = shop_counter.most_common(1)[0][0] if shop_counter else '尚無資料'
 
     # 使用打卡時傳入的 keyword 作為口味
     flavor_pct = {}
