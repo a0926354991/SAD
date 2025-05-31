@@ -420,7 +420,13 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                             "color": "#888888",
                             "wrap": True
                         },
-                        {"type": "spacer", "size": "md"},
+                        # {"type": "spacer", "size": "md"},
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [],
+                            "height": "20px" # 控制空白區塊高度
+                        },
                         *[
                             {
                                 "type": "button",
@@ -571,7 +577,13 @@ async def push_ramen_wheel(user_id, roulette_url):
                         "size": "lg",
                         "wrap": True
                     },
-                    {"type": "spacer", "size": "md"},
+                    # {"type": "spacer", "size": "md"},
+                    {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [],
+                        "height": "20px" # 控制空白區塊高度
+                    },
                     {
                         "type": "button",
                         "action":{ "type": "uri", "label": "🎲 進入拉麵轉盤", "uri": roulette_url},
@@ -645,7 +657,13 @@ async def reply_analysis_flex_menu(reply_token: str):
                             "size": "lg",
                             "wrap": True
                         },
-                        {"type": "spacer", "size": "md"},
+                        # {"type": "spacer", "size": "md"},
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [],
+                            "height": "20px" # 控制空白區塊高度
+                        },
                         *[
                             {
                                 "type": "button",
@@ -707,7 +725,8 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     # 3. 準備 Bubble 的 body 主要內容
     body_contents = [
         {"type": "text", "text": f"最近 {days} 天的統整分析", "weight": "bold", "size": "lg"},
-        {"type": "spacer", "size": "md"},
+        # {"type": "spacer", "size": "md"},
+        {"type": "box", "layout": "vertical", "contents": [], "height": "20px"},
         {"type": "text", "text": f"🍜 總碗數：{bowls} 碗", "size": "sm"},
         {"type": "text", "text": f"🏠 造訪店家：{shops} 家", "size": "sm"},
         {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
