@@ -667,9 +667,17 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     labels = list(flavor_pct.keys())
     sizes  = [float(p.strip('%')) for p in flavor_pct.values()]
 
-    # 自訂配色
-    colors = ["#4E79A7", "#F28E2B", "#E15759", "#76B7B2", "#59A14F"]
-    bg_colors = [colors[i % len(colors)] for i in range(len(labels))]
+    other_color = "#e3e3e3"
+    palette = ["#6a8cbb", "#8caedd", "#a9c4eb", "#d5e3f7", "#ffdb5d", "#ffe699", "#fdf1c7"]
+    bg_colors = []
+    idx_palette = 0
+    for flavor in labels:
+        if flavor == "其他":
+            bg_colors.append(other_color)
+        else:
+            color = palette[idx_palette % len(palette)]
+            bg_colors.append(color)
+            idx_palette += 1
 
     chart = {
         "type": "pie",
@@ -685,14 +693,18 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
         "options": {
             "plugins": {
                 "datalabels": {
+                    "display": True,
+                    # 用 __raw 字段注入 JS function
                     "formatter": {
                         "__raw": "function(ctx) { return ctx.chart.data.labels[ctx.dataIndex]; }"
                     },
                     "color": "#ffffff",
                     "font": {"size": 16, "weight": "bold"}
                 },
+                # 2.2 取消默认的 legend/tooltip
                 "legend": {"display": False},
-                "title":  {"display": False}
+                "title":  {"display": False},
+                "tooltip": {"enabled": False}
             }
         }
     }
@@ -736,11 +748,13 @@ async def handle_ramen_dump(
 
     await reply_image(reply_token, public_url)
 
+
 GRID_LAYOUT = {
     4:  (2, 2),  # 2 列 × 2 排
     6:  (2, 3),  # 2 列 × 3 排
     12: (3, 4),  # 3 列 × 4 排
 }
+
 
 async def generate_ramen_dump(
     urls: list[str],
