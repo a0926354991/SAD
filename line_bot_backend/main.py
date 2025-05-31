@@ -419,7 +419,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                     "type": "box",
                     "layout": "vertical",
                     "spacing": "md",
-                    "borderWidth": "2px",
+                    "borderWidth": "4px",
                     "borderColor": "#FFE175",  # 你可以調整顏色
                     # "cornerRadius": "10px",    # 加一點圓角更好看（可選）
                     "contents": [

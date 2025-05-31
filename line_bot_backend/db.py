@@ -77,7 +77,7 @@ def get_user_location(user_id: str):
         return data.get("latlng"), data.get("last_updated")
     return None, None
 
-def search_ramen_nearby(lat, lng, flavor):
+def search_ramen_nearby(lat, lng, flavor=None):
     """
     搜尋附近的拉麵店
     Args:
