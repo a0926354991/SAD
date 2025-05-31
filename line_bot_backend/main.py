@@ -224,7 +224,7 @@ async def webhook(req: Request):
                             shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
                             # ids_str = ",".join(shop_ids)
                             encoded_store_ids = quote(",".join(shop_ids))
-                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a?show_wheel=1&store_ids={encoded_store_ids}"
+                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={encoded_store_ids}"
 
                             message = {
                                 "type": "flex",
@@ -252,7 +252,7 @@ async def webhook(req: Request):
                                                 "style": "secondary",
                                                 "height": "md",
                                                 "margin": "md",
-                                                "color": "D5E3F7"
+                                                "color": "#D5E3F7"
                                             },
                                         ]
                                     },
@@ -437,7 +437,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                     "spacing": "md",
                     "borderWidth": "4px",
                     "borderColor": "#FFE175",  # 你可以調整顏色
-                    # "cornerRadius": "10px",    # 加一點圓角更好看（可選）
+                    "cornerRadius": "10px",    # 加一點圓角更好看（可選）
                     "contents": [
                         {
                             "type": "text",
@@ -554,9 +554,9 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
                         "style": "secondary",
                         "color": "#D5E3F7",
                         "action": {
-                            "type": "message",
+                            "type": "uri",
                             "label": "📸 打卡上傳",
-                            "text": "打卡上傳"
+                            "uri": f"https://liff.line.me/2007489792-4popYn8a#store_id={ramen['id']}&checkin=1"
                         }
                     }
                 ]
@@ -805,9 +805,9 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "borderWidth": "4px",
             "borderColor": "#A9C4EB",
             "contents": body_contents,
-            "styles": {
-                "body": { "backgroundColor": "#FCF9F4" }
-            }
+        },
+        "styles": {
+            "body": { "backgroundColor": "#FCF9F4" }
         }
     }
 
