@@ -732,9 +732,6 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
 ## 生成圓餅圖
 def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
-    if not flavor_pct:
-        raise ValueError("flavor_pct is empty or None")
-
     labels = list(flavor_pct.keys())
     sizes  = [float(p.strip('%')) for p in flavor_pct.values()]
 
@@ -751,7 +748,7 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
             idx_palette += 1
 
     chart = {
-        "type": "pie",
+        "type": "outlabeledPie",                   # ← 改成 outlabeledPie
         "data": {
             "labels": labels,
             "datasets": [{
@@ -763,27 +760,26 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
         },
         "options": {
             "plugins": {
-                "datalabels": {
-                    "display": True,
-                    "formatter": {
-                        "__raw": "function(ctx) { return ctx.chart.data.labels[ctx.dataIndex]; }"
-                    },
-                    "color": "#ffffff",
-                    "font": {"size": 16, "weight": "bold"}
-                },
-                "legend": {"display": False},
-                "title":  {"display": False},
-                "tooltip": {"enabled": False}
+                "legend": False,
+                "outlabels": {                       # ← 使用 outlabels plugin
+                    "text": "%l %p",                # %l=label，%p=percent
+                    "color": "white",
+                    "stretch": 35,
+                    "font": {
+                        "resizable": True,
+                        "minSize": 12,
+                        "maxSize": 18
+                    }
+                }
             }
-        },
-        "plugins": ["chartjs-plugin-datalabels"]
+        }
     }
 
     base = "https://quickchart.io/chart"
     params = {
         "c": json.dumps(chart, ensure_ascii=False),
-        "plugins": "chartjs-plugin-datalabels",
-        "version": "3"
+        "plugins": "chartjs-plugin-outlabels",     # ← 請載入 outlabels plugin
+        "version": "2.9.4"                         # 範例是 v2.9.4，outlabels plugin 才能正常跑
     }
     return f"{base}?{urllib.parse.urlencode(params)}"
 
