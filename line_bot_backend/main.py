@@ -194,13 +194,13 @@ async def webhook(req: Request):
 
                 elif msg == "生成 4 格 dump":
                     await reply_message(reply_token, "稍等一下，您的拉麵 dump 正在生成中...")
-                    await handle_ramen_dump(reply_token, user_id, max_tiles=4)
+                    asyncio.create_task(handle_ramen_dump(reply_token, user_id, max_tiles=4))
                 elif msg == "生成 6 格 dump":
                     await reply_message(reply_token, "稍等一下，您的拉麵 dump 正在生成中...")
-                    await handle_ramen_dump(reply_token, user_id, max_tiles=6)
+                    asyncio.create_task(handle_ramen_dump(reply_token, user_id, max_tiles=6))
                 elif msg == "生成 12 格 dump":
                     await reply_message(reply_token, "稍等一下，您的拉麵 dump 正在生成中...")
-                    await handle_ramen_dump(reply_token, user_id, max_tiles=12)
+                    asyncio.create_task(handle_ramen_dump(reply_token, user_id, max_tiles=12))
                 
                 # 意見回饋
                 elif any(keyword in msg for keyword in FEEDBACK_KEYWORDS):
