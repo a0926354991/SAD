@@ -32,7 +32,7 @@ db = firestore.client()
 ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 RECOMMEND_KEYWORDS = ["推薦", "推薦拉麵", "拉麵推薦"]
-ANALYSIS_KEYWORDS = ["統整", "分析", "統整分析"]
+ANALYSIS_KEYWORDS = ["統整", "統整分析"]
 FLAVORS = ["豚骨", "醬油", "味噌", "鹽味", "辣味", "雞白湯", "海老", "魚介"]
 # FEEDBACK_KEYWORDS = ["意見回饋", "回饋"]
 # UPLOAD_KEYWORDS = ["打卡","打卡上傳", "照片上傳"]
@@ -226,26 +226,45 @@ async def webhook(req: Request):
                             encoded_store_ids = quote(",".join(shop_ids))
                             roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={encoded_store_ids}"
                             
-                            # message = {
-                            #     "type": "template",
-                            #     "altText": "點擊「轉一下！」進入拉麵轉盤",
-                            #     "template": {
-                            #         "type": "buttons",
-                            #         "title": "拉麵轉盤",
-                            #         "text": "🎲 沒辦法決定要吃哪一家嗎？",
-                            #         "actions": [
-                            #             {
-                            #                 "type": "uri",
-                            #                 "label": "轉一下！",   # 你要顯示的文字
-                            #                 "uri": roulette_url   # 你要跳的網址
-                            #             }
-                            #         ]
-                            #     }
-                            # }
+                            message = {
+                                "type": "flex",
+                                "altText": "點擊「轉一下！」進入拉麵轉盤",
+                                "contents": {
+                                    "type": "bubble",
+                                    "body": {
+                                        "type": "box",
+                                        "layout": "vertical",
+                                        "spacing": "md",
+                                        "borderWidth": "4px",
+                                        "borderColor": "#A9C4EB",
+                                        "contents": [
+                                            {
+                                                "type": "text",
+                                                "text": "🎲 沒辦法決定要吃哪一家嗎？",
+                                                "weight": "bold",
+                                                "size": "md",
+                                                "wrap": True
+                                            },
+                                            {"type": "separator", "margin": "md"},
+                                            {
+                                                "type": "button",
+                                                "action":{ "type": "uri", "label": "轉一下！", "uri": roulette_url},
+                                                "style": "secondary",
+                                                "height": "md",
+                                                "margin": "md",
+                                                "color": "D5E3F7"
+                                            },
+                                        ]
+                                    },
+                                    "styles": {
+                                        "body": { "backgroundColor": "#FCF9F4" }
+                                    }
+                                }
+                            }
 
                             # 傳一個訊息給使用者
-                            reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
-                            await push_message(user_id, reply_text)
+                            # reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
+                            await push_message(user_id, message)
                             # await push_template(user_id, message)
 
                         elif flavor == "全部":
@@ -783,7 +802,12 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "type": "box",
             "layout": "vertical",
             "spacing": "md",
-            "contents": body_contents
+            "borderWidth": "4px",
+            "borderColor": "#A9C4EB",
+            "contents": body_contents,
+            "styles": {
+                "body": { "backgroundColor": "#FCF9F4" }
+            }
         }
     }
 
