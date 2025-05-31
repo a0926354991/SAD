@@ -1569,6 +1569,16 @@ function openUserCheckinsModal() {
 // 新增：載入用戶打卡紀錄
 async function loadUserCheckins(lastId = null) {
     try {
+        // 如果是第一次載入，顯示 loading 訊息
+        if (!lastId) {
+            userCheckinsList.innerHTML = `
+                <div class="loading-message">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>載入中...</p>
+                </div>
+            `;
+        }
+
         const url = `https://linebot-fastapi-uhmi.onrender.com/user_checkins/${currentUser.id}?limit=5` + (lastId ? `&last_id=${lastId}` : '');
         const response = await fetch(url);
         const data = await response.json();
@@ -1587,6 +1597,16 @@ async function loadUserCheckins(lastId = null) {
                 return;
             }
             
+            // 如果是載入更多，清空 loading 訊息
+            if (lastId) {
+                const loadingMessage = userCheckinsList.querySelector('.loading-message');
+                if (loadingMessage) {
+                    loadingMessage.remove();
+                }
+            } else {
+                userCheckinsList.innerHTML = ''; // 清空 loading 訊息
+            }
+            
             // 渲染打卡紀錄
             data.checkins.forEach(checkin => {
                 const checkinElement = createCheckinElement(checkin);
@@ -1597,6 +1617,15 @@ async function loadUserCheckins(lastId = null) {
             if (data.has_more) {
                 userCheckinsLoadMore.style.display = 'block';
                 userCheckinsLoadMore.onclick = () => {
+                    // 在點擊"顯示更多"時，添加 loading 訊息
+                    const loadingMessage = document.createElement('div');
+                    loadingMessage.className = 'loading-message';
+                    loadingMessage.innerHTML = `
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>載入中...</p>
+                    `;
+                    userCheckinsList.appendChild(loadingMessage);
+                    
                     const lastCheckin = data.checkins[data.checkins.length - 1];
                     loadUserCheckins(lastCheckin.id);
                 };
@@ -1614,6 +1643,14 @@ async function loadUserCheckins(lastId = null) {
     } catch (error) {
         console.error('Error loading user checkins:', error);
         showToast('載入打卡紀錄失敗');
+        // 顯示錯誤訊息
+        userCheckinsList.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>載入失敗</p>
+                <p class="sub-text">請稍後再試</p>
+            </div>
+        `;
     }
 }
 
