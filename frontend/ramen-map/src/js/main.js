@@ -519,7 +519,13 @@ function handleUrlParameters() {
         });
     } 
     
-    // 3. 處理是否顯示轉盤 - 移到 store_ids 處理中
+    // 3. 處理是否顯示轉盤 
+    if (urlParams.get("show_wheel") === "1") {
+        const wheelModal = document.getElementById('wheelModal');
+        wheelModal.classList.add('active');
+        document.body.classList.add('modal-open');
+        window.drawWheel();
+    }
     
     // 4. 處理自動聚焦單一店家
     const storeId = urlParams.get("store_id");
@@ -1351,6 +1357,44 @@ function centerOnUserLocation() {
     }
 }
 
+// 新增：初始化打卡功能
+function initCheckIn() {
+    const checkInFab = document.getElementById('checkInFab');
+    const checkInModal = document.getElementById('checkInModal');
+    const closeModal = document.querySelector('.close-modal');
+    const checkInForm = document.getElementById('checkInForm');
+    const storeNameElement = document.getElementById('checkInStoreName');
+    const storeAddressElement = document.getElementById('checkInStoreAddress');
+    const ratingInput = document.getElementById('storeRating');
+    const ratingStars = document.querySelectorAll('.rating-input i');
+    const photoInput = document.getElementById('checkInPhoto');
+    const photoPreview = document.getElementById('photoPreview');
+
+    // 打卡功能事件監聽
+    checkInFab.addEventListener('click', () => {
+        if (currentStore && canCheckIn()) {
+            openCheckInModal(currentStore);
+        }
+    });
+
+    closeModal.addEventListener('click', closeCheckInModal);
+
+    checkInModal.addEventListener('click', (e) => {
+        if (e.target === checkInModal) {
+            closeCheckInModal();
+        }
+    });
+
+    ratingStars.forEach(star => {
+        star.addEventListener('click', handleRatingClick);
+    });
+
+    photoInput.addEventListener('change', handlePhotoPreview);
+
+    checkInForm.addEventListener('submit', handleCheckInSubmit);
+}
+
+
 // 新增：處理打卡提交
 async function handleCheckInSubmit(e) {
     e.preventDefault();
@@ -1765,41 +1809,5 @@ async function init() {
     }
 }
 
-// 新增：初始化打卡功能
-function initCheckIn() {
-    const checkInFab = document.getElementById('checkInFab');
-    const checkInModal = document.getElementById('checkInModal');
-    const closeModal = document.querySelector('.close-modal');
-    const checkInForm = document.getElementById('checkInForm');
-    const storeNameElement = document.getElementById('checkInStoreName');
-    const storeAddressElement = document.getElementById('checkInStoreAddress');
-    const ratingInput = document.getElementById('storeRating');
-    const ratingStars = document.querySelectorAll('.rating-input i');
-    const photoInput = document.getElementById('checkInPhoto');
-    const photoPreview = document.getElementById('photoPreview');
-
-    // 打卡功能事件監聽
-    checkInFab.addEventListener('click', () => {
-        if (currentStore && canCheckIn()) {
-            openCheckInModal(currentStore);
-        }
-    });
-
-    closeModal.addEventListener('click', closeCheckInModal);
-
-    checkInModal.addEventListener('click', (e) => {
-        if (e.target === checkInModal) {
-            closeCheckInModal();
-        }
-    });
-
-    ratingStars.forEach(star => {
-        star.addEventListener('click', handleRatingClick);
-    });
-
-    photoInput.addEventListener('change', handlePhotoPreview);
-
-    checkInForm.addEventListener('submit', handleCheckInSubmit);
-}
 
 init();
