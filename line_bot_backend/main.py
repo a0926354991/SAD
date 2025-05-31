@@ -193,10 +193,13 @@ async def webhook(req: Request):
                     await handle_analysis(reply_token, user_id, days)
 
                 elif msg == "生成 4 格 dump":
+                    await reply_message(reply_token, "稍等一下，您的拉麵 dump 正在生成中...")
                     await handle_ramen_dump(reply_token, user_id, max_tiles=4)
                 elif msg == "生成 6 格 dump":
+                    await reply_message(reply_token, "稍等一下，您的拉麵 dump 正在生成中...")
                     await handle_ramen_dump(reply_token, user_id, max_tiles=6)
                 elif msg == "生成 12 格 dump":
+                    await reply_message(reply_token, "稍等一下，您的拉麵 dump 正在生成中...")
                     await handle_ramen_dump(reply_token, user_id, max_tiles=12)
                 
                 # 意見回饋
@@ -306,7 +309,7 @@ async def push_message(user_id, message):
     }
     body = {
         "to": user_id,
-        "messages": [{"type": "text", "text": message}]
+        "messages": [message] if isinstance(message, dict) else [{"type": "text", "text": message}]
     }
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=body, headers=headers) as resp:
@@ -760,7 +763,13 @@ async def handle_ramen_dump(
     blob.make_public()
     public_url = blob.public_url
 
-    await reply_image(reply_token, public_url)
+    img_message = {
+        "type": "image",
+        "originalContentUrl": public_url,   # 圖片原始網址
+        "previewImageUrl": public_url       # 預覽圖網址，通常直接用原圖
+    }
+    await push_message(user_id, img_message)
+    # await reply_image(reply_token, public_url)
 
 
 GRID_LAYOUT = {
