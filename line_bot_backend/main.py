@@ -224,8 +224,8 @@ async def webhook(req: Request):
                             shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
                             # ids_str = ",".join(shop_ids)
                             encoded_store_ids = quote(",".join(shop_ids))
-                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={encoded_store_ids}"
-                            
+                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a?show_wheel=1&store_ids={encoded_store_ids}"
+
                             message = {
                                 "type": "flex",
                                 "altText": "點擊「轉一下！」進入拉麵轉盤",
@@ -263,8 +263,8 @@ async def webhook(req: Request):
                             }
 
                             # 傳一個訊息給使用者
+                            await push_template(user_id, message)
                             # reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
-                            await push_message(user_id, message)
                             # await push_template(user_id, message)
 
                         elif flavor == "全部":
