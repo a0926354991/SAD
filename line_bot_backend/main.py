@@ -604,7 +604,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     top_shop = stats.get("top_shop", "無資料")
     flavor_pct = stats.get("flavor_pct", {})
 
-    # 1. 先動態產生口味分布（文字列表）
+    # 1. 建立「口味分布」列表
     flavor_contents = []
     for flavor, pct in flavor_pct.items():
         flavor_contents.append({
@@ -621,7 +621,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     img_url = create_quickchart_url(flavor_pct)
     print("QuickChart URL:", img_url)
 
-    # 3. 開始組 Flex Bubble 的「Body」部分 (統整分析標題、總碗數、造訪店家、最常吃、口味分布、圓餅圖)
+    # 3. 準備 Bubble 的 body 內容（放標題、統計文字、口味分布、圓餅圖）
     body_contents = [
         {"type": "text", "text": f"近 {days} 天統整分析", "weight": "bold", "size": "lg"},
         {"type": "separator", "margin": "sm"},
@@ -640,30 +640,28 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         }
     ]
 
-    # 4. 根據 bowls 數量決定 Footer 要顯示的內容
+    # 4. 如果打卡少於 4，直接在 body_contents 加一行「鎖頭文字」
     if bowls < 4:
-        # 如果少於 4，就顯示一行文字「打卡四張照片以上可以解鎖拉麵 dump」
-        footer_contents = [
-            {
-                "type": "text",
-                "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump",
-                "size": "sm",
-                "align": "center",
-                "weight": "bold",
-                "color": "#FF0000",  # 可以自己調成喜歡的顏色
-                "margin": "md"
-            }
-        ]
+        body_contents.append({
+            "type": "text",
+            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump",
+            "size": "md",         # 這裡可以用 "sm","md","lg" 來控制大小
+            "align": "center",
+            "weight": "bold",
+            "color": "#FF0000",
+            "margin": "md"
+        })
+
+    # 5. 如果打卡 ≥ 4，就把按鈕也放到 body 裡面（或你想放的位置）
     else:
-        # 打卡 ≥ 4 張，原本要顯示按鈕的 Footer
-        footer_contents = [
-            {
-                "type": "text",
-                "text": "生成我的拉麵 dump",
-                "weight": "bold",
-                "size": "sm",
-                "align": "center",
-                "margin": "md"
+        # 這邊示範把按鈕放到 body_contents 下面，不另外使用 footer
+        body_contents.extend([
+            {"type": "text",
+             "text": "生成我的拉麵 dump",
+             "weight": "bold",
+             "size": "sm",
+             "align": "center",
+             "margin": "md"
             },
             {
                 "type": "button",
@@ -689,9 +687,9 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 "height": "sm",
                 "margin": "sm"
             }
-        ]
+        ])
 
-    # 5. 把 Body + Footer together，組成完整的 bubble
+    # 6. 因為我們把「鎖頭文字／按鈕」都放到 body 了，footer 就可以完全省略
     bubble = {
         "type": "bubble",
         "body": {
@@ -699,16 +697,10 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "layout": "vertical",
             "spacing": "md",
             "contents": body_contents
-        },
-        "footer": {
-            "type": "box",
-            "layout": "vertical",
-            "spacing": "sm",
-            "contents": footer_contents
         }
     }
 
-    # 6. 回傳給使用者
+    # 7. 回傳這個 Flex Message
     flex_message = {
         "replyToken": reply_token,
         "messages": [{"type": "flex", "altText": "統整分析結果", "contents": bubble}]
