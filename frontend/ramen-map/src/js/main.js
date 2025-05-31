@@ -619,6 +619,7 @@ async function initMap() {
 
                 // 儲存標記和店家的關聯
                 marker.store = store;
+                console.log(store);
                 allMarkers.push(marker);
 
                 // 點擊 marker 時顯示店名和打卡按鈕
@@ -1450,7 +1451,7 @@ async function handleCheckInSubmit(e) {
     }
 
     const formData = {
-        store_id: currentStore.name,
+        store_id: currentStore.id,
         user_id: currentUser.id,
         rating: parseFloat(ratingValue),
         comment: commentValue,

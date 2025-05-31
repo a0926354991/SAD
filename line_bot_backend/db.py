@@ -57,7 +57,7 @@ def get_all_ramen_shops():
     result = []
     for doc in docs:
         shop = doc.to_dict()
-        # shop["id"] = doc.id
+        shop["id"] = doc.id
         result.append(shop)
     return result
 
@@ -197,7 +197,7 @@ def create_checkin(data: dict):
 
         # 建立打卡記錄
         checkin_data = {
-            "store_id": store_data.get("id", ""),
+            "store_id": store_id,
             "store_name": store_data.get("name", ""),
             "user_id": user_id,
             "user_name": user_data.get("display_name", ""),
