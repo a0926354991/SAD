@@ -611,7 +611,7 @@ async def reply_analysis_flex_menu(reply_token: str):
                             "size": "lg",
                             "wrap": True
                         },
-                        {"type": "separator", "margin": "sm"},
+                        {"type": "separator", "margin": "md"},
                         *[
                             {
                                 "type": "button",
@@ -672,13 +672,11 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
 
     # 3. 準備 Bubble 的 body 主要內容
     body_contents = [
-        {"type": "text", "text": f"近 {days} 天統整分析", "weight": "bold", "size": "lg"},
-        {"type": "separator", "margin": "sm"},
+        {"type": "text", "text": f"最近 {days} 天的統整分析", "weight": "bold", "size": "lg"},
+        {"type": "separator", "margin": "md"},
         {"type": "text", "text": f"🍜 總碗數：{bowls} 碗", "size": "sm"},
         {"type": "text", "text": f"🏠 造訪店家：{shops} 家", "size": "sm"},
         {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
-        {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
-        {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
     ]
 
     # 4. 當 bowls == 0（打卡為 0）時，不要放任何圖片，直接在 body_contents 加一行提示文字
@@ -687,7 +685,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "type": "text",
             "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump 哦！",
             "size": "xs",
-            "align": "center",    
+            # "align": "center",    
             "weight": "bold",
             "color": "#063D74",
             "margin": "md",
@@ -701,7 +699,10 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         img_url = create_quickchart_url(flavor_pct)
 
         # 圖片
-        body_contents.append({
+        body_contents.append(
+            {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
+            {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
+            {
             "type": "image",
             "url": img_url,
             "size": "full",
@@ -714,7 +715,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "type": "text",
             "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump 哦！",
             "size": "xs",
-            "align": "center",    
+            # "align": "center",    
             "weight": "bold",
             "color": "#063D74",
             "margin": "md",
@@ -727,13 +728,16 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         img_url = create_quickchart_url(flavor_pct)
 
         # 圖片
-        body_contents.append({
-            "type": "image",
-            "url": img_url,
-            "size": "full",
-            "aspectRatio": "1:1",
-            "aspectMode": "cover",
-            "margin": "md"
+        body_contents.append(
+            {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
+            {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
+            {
+                "type": "image",
+                "url": img_url,
+                "size": "full",
+                "aspectRatio": "1:1",
+                "aspectMode": "cover",
+                "margin": "md"
         })
         # 「生成我的拉麵 dump」文字
         body_contents.append({
