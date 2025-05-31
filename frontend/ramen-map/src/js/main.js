@@ -586,11 +586,16 @@ async function initMap() {
 
     // 如果有用戶位置，設置地圖中心和標記
     if (currentUser && currentUser.latlng) {
-        
-        const { latitude, longitude } = currentUser.latlng;
-        map.setCenter({ lat: latitude, lng: longitude });
-        map.setZoom(17);
-        addUserLocationMarker(latitude, longitude);
+
+        const isValid = await isUserLocationValid();
+        if (!isValid) {
+            showToast('無法獲取您的位置，請確保已開啟位置權限');
+        } else {
+            const { latitude, longitude } = currentUser.latlng;
+            map.setCenter({ lat: latitude, lng: longitude });
+            map.setZoom(17);
+            addUserLocationMarker(latitude, longitude);
+        }
     }
 
     // 讀取拉麵店資料
