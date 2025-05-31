@@ -599,29 +599,26 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         await reply_message(reply_token, "❌ 分析失敗，請稍後再試！")
         return
 
-    bowls = stats.get("bowls", 0)
-    shops = stats.get("shops", 0)
+    # 1. 先把打卡統計拿出來
+    bowls    = stats.get("bowls", 0)
+    shops    = stats.get("shops", 0)
     top_shop = stats.get("top_shop", "無資料")
     flavor_pct = stats.get("flavor_pct", {})
 
-    # 1. 建立「口味分布」列表
+    # 2. 準備「口味分布」列表（如果沒有資料，這裡就是空的）
     flavor_contents = []
     for flavor, pct in flavor_pct.items():
         flavor_contents.append({
             "type": "box",
             "layout": "baseline",
-            "spacing": "md",
+            "spacing": "sm",
             "contents": [
                 {"type": "text", "text": flavor, "size": "sm", "weight": "bold", "flex": 1},
                 {"type": "text", "text": pct,    "size": "sm", "align": "end"}
             ]
         })
 
-    # 2. 產生圓餅圖 URL
-    img_url = create_quickchart_url(flavor_pct)
-    print("QuickChart URL:", img_url)
-
-    # 3. 準備 Bubble 的 body 內容（放標題、統計文字、口味分布、圓餅圖）
+    # 3. 準備 Bubble 的 body 主要內容
     body_contents = [
         {"type": "text", "text": f"近 {days} 天統整分析", "weight": "bold", "size": "lg"},
         {"type": "separator", "margin": "sm"},
@@ -630,39 +627,67 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
         {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
         {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
-        {
-            "type": "image",
-            "url": img_url,
-            "size": "full",
-            "aspectRatio": "20:13",
-            "aspectMode": "cover",
-            "margin": "md"
-        }
     ]
 
-    # 4. 如果打卡少於 4，直接在 body_contents 加一行「鎖頭文字」
-    if bowls < 4:
+    # 4. 當 bowls == 0（打卡為 0）時，不要放任何圖片，直接在 body_contents 加一行提示文字
+    if bowls == 0:
         body_contents.append({
             "type": "text",
-            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump",
-            "size": "md",         # 這裡可以用 "sm","md","lg" 來控制大小
+            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump ~",
+            "size": "sm",         
             "align": "center",
             "weight": "bold",
             "color": "#FF0000",
             "margin": "md"
         })
 
-    # 5. 如果打卡 ≥ 4，就把按鈕也放到 body 裡面（或你想放的位置）
-    else:
-        # 這邊示範把按鈕放到 body_contents 下面，不另外使用 footer
+    # 5. 當 1 <= bowls < 4 時，雖然有打卡資料，但筆數不到 4，這裡顯示真正的圓餅圖＋鎖頭文字
+    elif 1 <= bowls < 4:
+        # 先產生圓餅圖 URL（create_quickchart_url 會正常產生有口味分布的圖）
+        img_url = create_quickchart_url(flavor_pct)
+
+        # 圖片
+        body_contents.append({
+            "type": "image",
+            "url": img_url,
+            "size": "md",         # 改成 md 或 lg，避免把畫面撐得太滿
+            "aspectMode": "cover",
+            "margin": "md"
+        })
+        # 再加一行紅色鎖頭文字
+        body_contents.append({
+            "type": "text",
+            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump ~",
+            "size": "sm",
+            "align": "center",
+            "weight": "bold",
+            "color": "#FF0000",
+            "margin": "md"
+        })
+
+    # 6. 當 bowls >= 4 時，顯示真正的圓餅圖＋按鈕（生成 4/6/12 格 dump）
+    else:  # bowls >= 4
+        img_url = create_quickchart_url(flavor_pct)
+
+        # 圖片
+        body_contents.append({
+            "type": "image",
+            "url": img_url,
+            "size": "md",         # 依需求可調為 "md" 或 "lg"
+            "aspectMode": "cover",
+            "margin": "md"
+        })
+        # 「生成我的拉麵 dump」文字
+        body_contents.append({
+            "type": "text",
+            "text": "生成我的拉麵 dump",
+            "weight": "bold",
+            "size": "sm",
+            "align": "center",
+            "margin": "md"
+        })
+        # 三個按鈕
         body_contents.extend([
-            {"type": "text",
-             "text": "生成我的拉麵 dump",
-             "weight": "bold",
-             "size": "sm",
-             "align": "center",
-             "margin": "md"
-            },
             {
                 "type": "button",
                 "action": {"type": "message", "label": "生成 4 格 dump",  "text": "生成 4 格 dump"},
@@ -689,7 +714,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             }
         ])
 
-    # 6. 因為我們把「鎖頭文字／按鈕」都放到 body 了，footer 就可以完全省略
+    # 7. 把 body_contents 組成最終的 Flex Bubble
     bubble = {
         "type": "bubble",
         "body": {
@@ -700,18 +725,14 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         }
     }
 
-    # 7. 回傳這個 Flex Message
+    # 8. 回傳 Flex Message
     flex_message = {
         "replyToken": reply_token,
         "messages": [{"type": "flex", "altText": "統整分析結果", "contents": bubble}]
     }
     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}", "Content-Type": "application/json"}
     async with aiohttp.ClientSession() as session:
-        await session.post(
-            "https://api.line.me/v2/bot/message/reply",
-            json=flex_message,
-            headers=headers
-        )
+        await session.post("https://api.line.me/v2/bot/message/reply", json=flex_message, headers=headers)
 
 
 ## 分析打卡紀錄內容
