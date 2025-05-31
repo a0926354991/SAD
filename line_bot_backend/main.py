@@ -4,6 +4,7 @@ from line_bot_backend.db import db, add_user, get_all_ramen_shops, get_user_by_i
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, storage # 新增：storage
+from linebot.models import TextSendMessage, QuickReply, QuickReplyButton, LocationAction # 毛 0531 新增
 from pydantic import BaseModel
 from urllib.parse import quote
 from collections import Counter
@@ -32,10 +33,10 @@ db = firestore.client()
 ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 RECOMMEND_KEYWORDS = ["推薦", "推薦拉麵", "拉麵推薦"]
-UPLOAD_KEYWORDS = ["打卡","打卡上傳", "照片上傳"]
 ANALYSIS_KEYWORDS = ["統整", "分析", "統整分析"]
 FEEDBACK_KEYWORDS = ["意見回饋", "回饋"]
 FLAVORS = ["豚骨", "醬油", "味噌", "鹽味", "辣味", "雞白湯", "海老", "魚介"]
+# UPLOAD_KEYWORDS = ["打卡","打卡上傳", "照片上傳"]
 # DUMP_KEYWORDS = ["生成我的拉麵 dump", "拉麵 dump", "拉麵 Dump", "拉麵dump", "拉麵Dump", "dump", "Dump"]
 
 # 儲存使用者位置（之後要改用 Firestore，現在先這樣）
@@ -43,12 +44,12 @@ user_locations = {}
 user_last_days: dict[str,int] = {}
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 或改成你的前端網址
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"]
 )
 
-# 拿取拉麵店
+#### 拿取拉麵店
 @app.get("/all_shops")
 def read_all_ramen_shops():
     shops = get_all_ramen_shops()
@@ -81,7 +82,9 @@ def get_nearby_shops(lat: float, lng: float, limit: int = 6):
         print(f"Error in get_nearby_shops: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-# 新增：檢查使用者登入狀態
+
+
+#### 新增：檢查使用者登入狀態
 @app.get("/users/{user_id}")
 def check_user(user_id: str):
     user = get_user_by_id(user_id)
@@ -106,7 +109,9 @@ def checkin(data: CheckInRequest):
         return {"status": "success", "message": message}
     raise HTTPException(status_code=400, detail=message)
 
-# 新增：照片上傳 endpoint
+
+
+#### 新增：照片上傳 endpoint
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     try:
@@ -155,6 +160,9 @@ def get_user_checkins_api(user_id: str, limit: int = 5, last_id: str = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+#### Main
 @app.post("/webhook")
 async def webhook(req: Request):
     body = await req.json()
@@ -179,16 +187,12 @@ async def webhook(req: Request):
             # 1️⃣ 使用者傳文字訊息
             if msg_type == "text":
                 msg = event["message"]["text"]
-
-                # 打卡上傳
-                if any(keyword in msg for keyword in UPLOAD_KEYWORDS):
-                    await reply_message(reply_token, "【 打卡上傳 】\n功能實作中，敬請期待更多功能✨")
                 
                 # 統整分析
-                elif any(keyword in msg for keyword in ANALYSIS_KEYWORDS):
+                if any(keyword in msg for keyword in ANALYSIS_KEYWORDS):
                     await reply_analysis(reply_token)
 
-                elif msg in ["7天", "30天", "90天"]:
+                elif msg in ["7 天", "30 天", "90 天"]:
                     days = int(msg.replace("天", ""))
                     await handle_analysis(reply_token, user_id, days)
 
@@ -213,9 +217,9 @@ async def webhook(req: Request):
                 # 使用者選擇口味
                 elif msg.startswith("今天想吃的拉麵口味："):
                     flavor = msg.replace("今天想吃的拉麵口味：", "")
-                    if flavor in FLAVORS:
-                        is_valid, latlng = await is_location_valid(user_id)
-                        if is_valid:
+                    is_valid, latlng = await is_location_valid(user_id)
+                    if is_valid:
+                        if flavor in FLAVORS:
                             ramen_list = search_ramen_nearby(latlng.latitude, latlng.longitude, flavor)
                             await reply_ramen_flex_carousel(reply_token, ramen_list)
 
@@ -246,10 +250,25 @@ async def webhook(req: Request):
                             reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
                             await push_message(user_id, reply_text)
                             # await push_template(user_id, message)
+
+                        elif flavor == "全部":
+                            ramen_list = search_ramen_nearby(latlng.latitude, latlng.longitude)
+                            await reply_ramen_flex_carousel(reply_token, ramen_list)
+
+                            # 取出 ramen_list 的 id 組合網址
+                            shop_ids = [ramen["id"] for ramen in ramen_list[:10]]  # 只取 carousel 有顯示的
+                            # ids_str = ",".join(shop_ids)
+                            encoded_store_ids = quote(",".join(shop_ids))
+                            roulette_url = f"https://liff.line.me/2007489792-4popYn8a#show_wheel=1&store_ids={encoded_store_ids}"
+
+                            # 傳一個訊息給使用者
+                            reply_text = f"🎲 沒辦法決定要吃哪一家嗎？點這裡進入轉盤\n{roulette_url}"
+                            await push_message(user_id, reply_text)
+
                         else:
-                            await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
+                            await reply_message(reply_token, "【 拉麵推薦 】\n請選擇正確的拉麵口味⚠️")
                     else:
-                        await reply_message(reply_token, "【 拉麵推薦 】\n請選擇正確的拉麵口味⚠️")
+                        await reply_message(reply_token, "【 拉麵推薦 】\n請重新按左下角的加號➕，再次分享你的位置資訊📍")
 
 
                 # 隨機回覆拉麵文案
@@ -275,7 +294,7 @@ async def webhook(req: Request):
 
 
 #### Handle logic
-async def is_location_valid(user_id: str, threshold_minutes: int = 5):
+async def is_location_valid(user_id: str, threshold_minutes: int = 10):
     latlng, last_updated = get_user_location(user_id)
 
     if last_updated is None:
@@ -286,8 +305,23 @@ async def is_location_valid(user_id: str, threshold_minutes: int = 5):
         return True, latlng
     else:
         return False, None
+    
+async def get_user_profile(user_id: str):
+    url = f"https://api.line.me/v2/bot/profile/{user_id}"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}"
+    }
 
-#### Reply message or push message
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as res:
+            if res.status == 200:
+                return await res.json()
+            else:
+                return None
+
+
+
+#### Reply or push
 async def reply_message(reply_token, text):
     url = "https://api.line.me/v2/bot/message/reply"
     headers = {
@@ -317,7 +351,7 @@ async def push_message(user_id, message):
             print("Body:", json.dumps(body, indent=2))
             print("Response:", await resp.text())
 
-async def push_template(user_id, message):
+async def push_template(user_id, message):                ## 這個應該沒有用到
     url = "https://api.line.me/v2/bot/message/push"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -333,9 +367,25 @@ async def push_template(user_id, message):
             print("Body:", json.dumps(body, indent=2))
             print("Response:", await resp.text())
 
+async def reply_image(reply_token: str, image_url: str):  ## 這個應該沒有用到
+    body = {
+        "replyToken": reply_token,
+        "messages": [{
+            "type": "image",
+            "originalContentUrl": image_url,
+            "previewImageUrl": image_url
+        }]
+    }
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        await session.post("https://api.line.me/v2/bot/message/reply", json=body, headers=headers)
 
 
-## 回覆拉麵推薦
+
+## 拉麵推薦
 async def reply_recommend(reply_token, user_id):
     is_valid, _ = await is_location_valid(user_id)
     if is_valid:
@@ -345,7 +395,6 @@ async def reply_recommend(reply_token, user_id):
             reply_token,
             "【 拉麵推薦 】\n請按左下角的加號➕，分享你的位置資訊，我會為你推薦附近的拉麵店！"
         )
-
 
 ## 選單訊息：拉麵口味選單（flex menu）
 async def reply_ramen_flavor_flex_menu(reply_token):
@@ -388,7 +437,15 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                                 "color": "#FDEDC7"
                             }
                             for flavor in FLAVORS
-                        ]
+                        ],
+                        {
+                            "type": "button",
+                            "action": { "type": "message", "label": "我要全部！", "text": "今天想吃的拉麵口味：全部"},
+                            "style": "secondary",
+                            "height": "sm",
+                            "margin": "md",
+                            "color": "#FDEDC7"
+                        }
                     ]
                 },
                 "styles": {
@@ -408,7 +465,6 @@ async def reply_ramen_flavor_flex_menu(reply_token):
         async with session.post(url, json=body, headers=headers) as resp:
             print("flex response status:", resp.status)
             print("response text:", await resp.text())
-
 
 ## 多頁訊息：回傳推薦拉麵店 (flex message)
 async def reply_ramen_flex_carousel(reply_token, ramen_list):
@@ -507,24 +563,12 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
         await session.post(url, json=body, headers=headers)
 
 
-async def get_user_profile(user_id: str):
-    url = f"https://api.line.me/v2/bot/profile/{user_id}"
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}"
-    }
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers) as res:
-            if res.status == 200:
-                return await res.json()
-            else:
-                return None
-
-
+## 統整分析 (quick reply)
 async def reply_analysis(reply_token: str):
     items = [{
         "type": "action",
-        "action": {"type": "message", "label": f"{d}天", "text": f"{d}天"}
+        "action": {"type": "message", "label": f"{d} 天", "text": f"{d} 天"}
     } for d in (7, 30, 90)]
     body = {
         "replyToken": reply_token,
@@ -538,7 +582,7 @@ async def reply_analysis(reply_token: str):
     async with aiohttp.ClientSession() as session:
         await session.post("https://api.line.me/v2/bot/message/reply", json=body, headers=headers)
 
-
+## 統整分析結果 (flex message)
 async def handle_analysis(reply_token: str, user_id: str, days: int):
     try:
         stats = analyze_checkins(user_id, days)
@@ -635,7 +679,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     async with aiohttp.ClientSession() as session:
         await session.post("https://api.line.me/v2/bot/message/reply", json=flex_message, headers=headers)
 
-
+## 分析打卡紀錄內容
 def analyze_checkins(user_id: str, days: int) -> dict:
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     docs = (
@@ -676,7 +720,7 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
     return {'bowls': bowls, 'shops': shops, 'top_shop': top_shop, 'flavor_pct': flavor_pct, 'records': records}
 
-
+## 生成圓餅圖
 def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     if not flavor_pct:
         raise ValueError("flavor_pct is empty or None")
@@ -733,7 +777,7 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     }
     return f"{base}?{urllib.parse.urlencode(params)}"
 
-
+## 拉麵 dump 處理與回覆
 async def handle_ramen_dump(
     reply_token: str,
     user_id: str,
@@ -771,14 +815,13 @@ async def handle_ramen_dump(
     await push_message(user_id, img_message)
     # await reply_image(reply_token, public_url)
 
-
 GRID_LAYOUT = {
     4:  (2, 2),  # 2 列 × 2 排
     6:  (2, 3),  # 2 列 × 3 排
     12: (3, 4),  # 3 列 × 4 排
 }
 
-
+## 生成拉麵 dump 照片
 async def generate_ramen_dump(
     urls: list[str],
     canvas_height: int = 1600,               # 直向畫布總高
@@ -814,23 +857,6 @@ async def generate_ramen_dump(
     canvas.save(bio, format="JPEG", quality=90)
     bio.seek(0)
     return bio
-
-
-async def reply_image(reply_token: str, image_url: str):
-    body = {
-        "replyToken": reply_token,
-        "messages": [{
-            "type": "image",
-            "originalContentUrl": image_url,
-            "previewImageUrl": image_url
-        }]
-    }
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    async with aiohttp.ClientSession() as session:
-        await session.post("https://api.line.me/v2/bot/message/reply", json=body, headers=headers)
 
 
 '''
