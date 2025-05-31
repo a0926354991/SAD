@@ -851,10 +851,14 @@ async def handle_ramen_dump(
         return await reply_message(reply_token, f"❌ 近 {days} 天內沒有可用的打卡照片啦～")
     
     if len(urls) < max_tiles:
-        return await reply_message(
-            reply_token,
-            f"❌ 需要至少 {max_tiles} 張照片才能生成 {max_tiles} 格 dump，目前只有 {len(urls)} 張喔～"
+        await push_message(
+            user_id,
+            {
+                "type": "text",
+                "text": f"❌ 需要至少 {max_tiles} 張照片才能生成「{max_tiles} 格 dump」，目前只有 {len(urls)} 張喔～"
+            }
         )
+        return
 
     # 只取前 max_tiles 張
     sliced = urls[:max_tiles]
