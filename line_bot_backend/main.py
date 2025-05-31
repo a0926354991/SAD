@@ -669,6 +669,8 @@ def analyze_checkins(user_id: str, days: int) -> dict:
             pct = cnt / bowls * 100
             flavor_pct[kw] = f"{pct:.1f}%"
 
+    print(f"[DEBUG] flavor_pct for user={user_id}, days={days}: {flavor_pct}")
+
     return {'bowls': bowls, 'shops': shops, 'top_shop': top_shop, 'flavor_pct': flavor_pct, 'records': records}
 
 
@@ -723,7 +725,8 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
     base = "https://quickchart.io/chart"
     params = {
         "c": json.dumps(chart, ensure_ascii=False),
-        "plugins": "chartjs-plugin-datalabels"
+        "plugins": "chartjs-plugin-datalabels",
+        "version": "3"
     }
     return f"{base}?{urllib.parse.urlencode(params)}"
 
