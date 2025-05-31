@@ -657,12 +657,14 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         # 再加一行紅色鎖頭文字
         body_contents.append({
             "type": "text",
-            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump ~",
-            "size": "sm",
-            "align": "center",
+            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump ～",
+            "size": "xs",
+            "align": "center",    
             "weight": "bold",
             "color": "#FF0000",
-            "margin": "md"
+            "margin": "md",
+            "wrap": True,
+            "maxLines": 2         
         })
 
     # 6. 當 bowls >= 4 時，顯示真正的圓餅圖＋按鈕（生成 4/6/12 格 dump）
