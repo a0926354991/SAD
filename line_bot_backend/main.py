@@ -4,7 +4,6 @@ from line_bot_backend.db import db, add_user, get_all_ramen_shops, get_user_by_i
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, storage # 新增：storage
-from linebot.models import TextSendMessage, QuickReply, QuickReplyButton, LocationAction # 毛 0531 新增
 from pydantic import BaseModel
 from urllib.parse import quote
 from collections import Counter
@@ -34,8 +33,8 @@ ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 RECOMMEND_KEYWORDS = ["推薦", "推薦拉麵", "拉麵推薦"]
 ANALYSIS_KEYWORDS = ["統整", "分析", "統整分析"]
-FEEDBACK_KEYWORDS = ["意見回饋", "回饋"]
 FLAVORS = ["豚骨", "醬油", "味噌", "鹽味", "辣味", "雞白湯", "海老", "魚介"]
+# FEEDBACK_KEYWORDS = ["意見回饋", "回饋"]
 # UPLOAD_KEYWORDS = ["打卡","打卡上傳", "照片上傳"]
 # DUMP_KEYWORDS = ["生成我的拉麵 dump", "拉麵 dump", "拉麵 Dump", "拉麵dump", "拉麵Dump", "dump", "Dump"]
 
@@ -190,25 +189,23 @@ async def webhook(req: Request):
                 
                 # 統整分析
                 if any(keyword in msg for keyword in ANALYSIS_KEYWORDS):
-                    await reply_analysis(reply_token)
+                    await reply_analysis_flex_menu(reply_token)
 
-                elif msg in ["7 天", "30 天", "90 天"]:
-                    days = int(msg.replace("天", ""))
+                elif msg in ["分析最近 7 天的結果", "分析最近 30 天的結果", "分析最近 90 天的結果"]:
+                    msg = msg.replace("分析最近 ", "")
+                    msg = msg.replace(" 天的結果", "")
+                    days = int(msg)
                     await handle_analysis(reply_token, user_id, days)
 
                 elif msg == "生成 4 格 dump":
-                    await reply_message(reply_token, "稍等一下，您的拉麵 dump 正在生成中...")
+                    await reply_message(reply_token, "稍等一下，你的拉麵 dump 正在生成中⋯⋯")
                     asyncio.create_task(handle_ramen_dump(reply_token, user_id, max_tiles=4))
                 elif msg == "生成 6 格 dump":
-                    await reply_message(reply_token, "稍等一下，您的拉麵 dump 正在生成中...")
+                    await reply_message(reply_token, "稍等一下，你的拉麵 dump 正在生成中⋯⋯")
                     asyncio.create_task(handle_ramen_dump(reply_token, user_id, max_tiles=6))
                 elif msg == "生成 12 格 dump":
-                    await reply_message(reply_token, "稍等一下，您的拉麵 dump 正在生成中...")
+                    await reply_message(reply_token, "稍等一下，你的拉麵 dump 正在生成中⋯⋯")
                     asyncio.create_task(handle_ramen_dump(reply_token, user_id, max_tiles=12))
-                
-                # 意見回饋
-                elif any(keyword in msg for keyword in FEEDBACK_KEYWORDS):
-                    await reply_message(reply_token, "【 意見回饋 】\n功能實作中，敬請期待更多功能✨")
                 
                 # 拉麵推薦，處理判斷
                 elif any(keyword in msg for keyword in RECOMMEND_KEYWORDS):
@@ -592,6 +589,61 @@ async def reply_analysis(reply_token: str):
     async with aiohttp.ClientSession() as session:
         await session.post("https://api.line.me/v2/bot/message/reply", json=body, headers=headers)
 
+async def reply_analysis_flex_menu(reply_token: str):
+    body = {
+        "replyToken": reply_token,
+        "messages": [{
+            "type": "flex",
+            "altText": "請選擇統整分析期間",
+            "contents": {
+                "type": "bubble",
+                "body": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "md",
+                    "borderWidth": "4px",
+                    "borderColor": "#FFE175",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": "請選擇統整分析區間",
+                            "weight": "bold",
+                            "size": "lg",
+                            "wrap": True
+                        },
+                        {"type": "separator", "margin": "sm"},
+                        *[
+                            {
+                                "type": "button",
+                                "action": { "type": "message", "label": f"最近 {d} 天", "text": f"分析最近 {d} 天的結果"},
+                                "style": "secondary",
+                                "height": "sm",
+                                "margin": "md",
+                                "color": "#FDEDC7"
+                            }
+                            for d in (7, 30, 90)
+                        ]
+                    ]
+                },
+                "styles": {
+                    "body": { "backgroundColor": "#FCF9F4" }
+                }
+            }
+        }]
+    }
+
+    url = "https://api.line.me/v2/bot/message/reply"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=body, headers=headers) as resp:
+            print("flex response status:", resp.status)
+            print("response text:", await resp.text())
+
+## 回覆分析結果
 async def handle_analysis(reply_token: str, user_id: str, days: int):
     try:
         stats = analyze_checkins(user_id, days)
@@ -637,7 +689,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "size": "xs",
             "align": "center",    
             "weight": "bold",
-            "color": "#FF0000",
+            "color": "#063D74",
             "margin": "md",
             "wrap": True,
             "maxLines": 2         
@@ -664,7 +716,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "size": "xs",
             "align": "center",    
             "weight": "bold",
-            "color": "#FF0000",
+            "color": "#063D74",
             "margin": "md",
             "wrap": True,
             "maxLines": 2         
@@ -931,35 +983,6 @@ async def generate_ramen_dump(
     return bio
 
 
-'''
-## 選單訊息：拉麵口味選單
-async def reply_ramen_flavor_quick_reply(reply_token):
-    url = "https://api.line.me/v2/bot/message/reply"
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    body = {
-        "replyToken": reply_token,
-        "messages": [{
-            "type": "text",
-            "text": "請選擇想吃的拉麵口味🍜",
-            "quickReply": {
-                "items": [
-                    {"type": "action", "action": {"type": "message", "label": "豚骨", "text": "今天想吃的拉麵口味：豚骨"}},
-                    {"type": "action", "action": {"type": "message", "label": "醬油", "text": "今天想吃的拉麵口味：醬油"}},
-                    {"type": "action", "action": {"type": "message", "label": "味噌", "text": "今天想吃的拉麵口味：味噌"}},
-                    {"type": "action", "action": {"type": "message", "label": "鹽味", "text": "今天想吃的拉麵口味：鹽味"}},
-                    {"type": "action", "action": {"type": "message", "label": "辣味", "text": "今天想吃的拉麵口味：辣味"}},
-                    {"type": "action", "action": {"type": "message", "label": "海鮮", "text": "今天想吃的拉麵口味：海鮮"}},
-                    {"type": "action", "action": {"type": "message", "label": "雞白湯", "text": "今天想吃的拉麵口味：雞白湯"}},
-                ]
-            }
-        }]
-    }
-    async with aiohttp.ClientSession() as session:
-        await session.post(url, json=body, headers=headers)
-'''
 
 @app.get("/check_location/{user_id}")
 async def check_location_validity(user_id: str):
@@ -990,8 +1013,5 @@ async def update_location_web(user_id: str, location: LocationUpdate):
     except Exception as e:
         print(f"Error in update_location_web: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
-
-
 
 
