@@ -633,7 +633,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     if bowls == 0:
         body_contents.append({
             "type": "text",
-            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump ～",
+            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump 哦！",
             "size": "xs",
             "align": "center",    
             "weight": "bold",
@@ -660,7 +660,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         # 再加一行紅色鎖頭文字
         body_contents.append({
             "type": "text",
-            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump ～",
+            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump 哦！",
             "size": "xs",
             "align": "center",    
             "weight": "bold",
@@ -698,7 +698,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 "type": "button",
                 "action": {"type": "message", "label": "生成 4 格 dump",  "text": "生成 4 格 dump"},
                 "style": "secondary",
-                "color": "#CCCCCC",
+                "color": "#FDEDC7",
                 "height": "sm",
                 "margin": "sm"
             },
@@ -706,7 +706,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 "type": "button",
                 "action": {"type": "message", "label": "生成 6 格 dump",  "text": "生成 6 格 dump"},
                 "style": "secondary",
-                "color": "#CCCCCC",
+                "color": "#FDEDC7",
                 "height": "sm",
                 "margin": "sm"
             },
@@ -714,7 +714,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 "type": "button",
                 "action": {"type": "message", "label": "生成 12 格 dump", "text": "生成 12 格 dump"},
                 "style": "secondary",
-                "color": "#CCCCCC",
+                "color": "#FDEDC7",
                 "height": "sm",
                 "margin": "sm"
             }
