@@ -706,19 +706,18 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
             "plugins": {
                 "datalabels": {
                     "display": True,
-                    # 用 __raw 字段注入 JS function
                     "formatter": {
                         "__raw": "function(ctx) { return ctx.chart.data.labels[ctx.dataIndex]; }"
                     },
                     "color": "#ffffff",
                     "font": {"size": 16, "weight": "bold"}
                 },
-                # 2.2 取消默认的 legend/tooltip
                 "legend": {"display": False},
                 "title":  {"display": False},
                 "tooltip": {"enabled": False}
             }
-        }
+        },
+        "plugins": ["chartjs-plugin-datalabels"]
     }
 
     base = "https://quickchart.io/chart"
