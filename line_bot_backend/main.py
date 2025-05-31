@@ -592,7 +592,6 @@ async def reply_analysis(reply_token: str):
     async with aiohttp.ClientSession() as session:
         await session.post("https://api.line.me/v2/bot/message/reply", json=body, headers=headers)
 
-## 統整分析結果 (flex message)
 async def handle_analysis(reply_token: str, user_id: str, days: int):
     try:
         stats = analyze_checkins(user_id, days)
@@ -600,94 +599,128 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         await reply_message(reply_token, "❌ 分析失敗，請稍後再試！")
         return
 
-    # 計算最常吃店家
-    top_shop = stats.get('top_shop', '無資料')
+    bowls = stats.get("bowls", 0)
+    shops = stats.get("shops", 0)
+    top_shop = stats.get("top_shop", "無資料")
+    flavor_pct = stats.get("flavor_pct", {})
 
-    # 生成圓餅圖並上傳
-    img_url = create_quickchart_url(stats["flavor_pct"])
-    print("QuickChart URL:", img_url)
-
-    # 建立 Flex Bubble
+    # 1. 先動態產生口味分布（文字列表）
     flavor_contents = []
-    for flavor, pct in stats['flavor_pct'].items():
+    for flavor, pct in flavor_pct.items():
         flavor_contents.append({
-            "type": "box", "layout": "baseline", "spacing": "md", "contents": [
+            "type": "box",
+            "layout": "baseline",
+            "spacing": "md",
+            "contents": [
                 {"type": "text", "text": flavor, "size": "sm", "weight": "bold", "flex": 1},
-                {"type": "text", "text": pct, "size": "sm", "align": "end"}
+                {"type": "text", "text": pct,    "size": "sm", "align": "end"}
             ]
         })
 
+    # 2. 產生圓餅圖 URL
+    img_url = create_quickchart_url(flavor_pct)
+    print("QuickChart URL:", img_url)
+
+    # 3. 開始組 Flex Bubble 的「Body」部分 (統整分析標題、總碗數、造訪店家、最常吃、口味分布、圓餅圖)
+    body_contents = [
+        {"type": "text", "text": f"近 {days} 天統整分析", "weight": "bold", "size": "lg"},
+        {"type": "separator", "margin": "sm"},
+        {"type": "text", "text": f"🍜 總碗數：{bowls} 碗", "size": "sm"},
+        {"type": "text", "text": f"🏠 造訪店家：{shops} 家", "size": "sm"},
+        {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
+        {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
+        {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
+        {
+            "type": "image",
+            "url": img_url,
+            "size": "full",
+            "aspectRatio": "20:13",
+            "aspectMode": "cover",
+            "margin": "md"
+        }
+    ]
+
+    # 4. 根據 bowls 數量決定 Footer 要顯示的內容
+    if bowls < 4:
+        # 如果少於 4，就顯示一行文字「打卡四張照片以上可以解鎖拉麵 dump」
+        footer_contents = [
+            {
+                "type": "text",
+                "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump",
+                "size": "sm",
+                "align": "center",
+                "weight": "bold",
+                "color": "#FF0000",  # 可以自己調成喜歡的顏色
+                "margin": "md"
+            }
+        ]
+    else:
+        # 打卡 ≥ 4 張，原本要顯示按鈕的 Footer
+        footer_contents = [
+            {
+                "type": "text",
+                "text": "生成我的拉麵 dump",
+                "weight": "bold",
+                "size": "sm",
+                "align": "center",
+                "margin": "md"
+            },
+            {
+                "type": "button",
+                "action": {"type": "message", "label": "生成 4 格 dump",  "text": "生成 4 格 dump"},
+                "style": "secondary",
+                "color": "#CCCCCC",
+                "height": "sm",
+                "margin": "sm"
+            },
+            {
+                "type": "button",
+                "action": {"type": "message", "label": "生成 6 格 dump",  "text": "生成 6 格 dump"},
+                "style": "secondary",
+                "color": "#CCCCCC",
+                "height": "sm",
+                "margin": "sm"
+            },
+            {
+                "type": "button",
+                "action": {"type": "message", "label": "生成 12 格 dump", "text": "生成 12 格 dump"},
+                "style": "secondary",
+                "color": "#CCCCCC",
+                "height": "sm",
+                "margin": "sm"
+            }
+        ]
+
+    # 5. 把 Body + Footer together，組成完整的 bubble
     bubble = {
         "type": "bubble",
         "body": {
             "type": "box",
             "layout": "vertical",
             "spacing": "md",
-            "contents": [
-                {"type": "text", "text": f"近 {days} 天統整分析", "weight": "bold", "size": "lg"},
-                {"type": "separator", "margin": "sm"},
-                {"type": "text", "text": f"🍜 總碗數：{stats['bowls']} 碗", "size": "sm"},
-                {"type": "text", "text": f"🏠 造訪店家：{stats['shops']} 家", "size": "sm"},
-                {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
-                {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
-                {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
-                {
-                    "type": "image",
-                    "url": img_url,
-                    "size": "full",
-                    "aspectRatio": "20:13",
-                    "aspectMode": "cover",
-                    "margin": "md"
-                }
-            ]
+            "contents": body_contents
         },
         "footer": {
             "type": "box",
             "layout": "vertical",
-            "contents": [
-                {
-                    "type": "text",
-                    "text": "生成我的拉麵 dump",
-                    "weight": "bold",
-                    "size": "sm",
-                    "align": "center",
-                    "margin": "md"
-                },
-                {
-                    "type": "button",
-                    "action": {"type": "message", "label": "生成 4 格 dump",  "text": "生成 4 格 dump"},
-                    "style": "secondary",
-                    "color": "#CCCCCC",
-                    "height": "sm",
-                    "margin": "sm"
-                },
-                {
-                    "type": "button",
-                    "action": {"type": "message", "label": "生成 6 格 dump",  "text": "生成 6 格 dump"},
-                    "style": "secondary",
-                    "color": "#CCCCCC",
-                    "height": "sm",
-                    "margin": "sm"
-                },
-                {
-                    "type": "button",
-                    "action": {"type": "message", "label": "生成 12 格 dump", "text": "生成 12 格 dump"},
-                    "style": "secondary",
-                    "color": "#CCCCCC",
-                    "height": "sm",
-                    "margin": "sm"
-                }
-            ]
+            "spacing": "sm",
+            "contents": footer_contents
         }
     }
 
+    # 6. 回傳給使用者
     flex_message = {
         "replyToken": reply_token,
         "messages": [{"type": "flex", "altText": "統整分析結果", "contents": bubble}]
     }
     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}", "Content-Type": "application/json"}
     async with aiohttp.ClientSession() as session:
-        await session.post("https://api.line.me/v2/bot/message/reply", json=flex_message, headers=headers)
+        await session.post(
+            "https://api.line.me/v2/bot/message/reply",
+            json=flex_message,
+            headers=headers
+        )
+
 
 ## 分析打卡紀錄內容
 def analyze_checkins(user_id: str, days: int) -> dict:
