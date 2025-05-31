@@ -653,7 +653,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "type": "image",
             "url": img_url,
             "size": "full",
-            "aspectRatio": "20:13",
+            "aspectRatio": "1:1",
             "aspectMode": "cover",
             "margin": "md"
         })
@@ -679,7 +679,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "type": "image",
             "url": img_url,
             "size": "full",
-            "aspectRatio": "20:13",
+            "aspectRatio": "1:1",
             "aspectMode": "cover",
             "margin": "md"
         })
@@ -849,6 +849,12 @@ async def handle_ramen_dump(
     urls = [r["photo_url"] for r in records if r.get("photo_url")]
     if not urls:
         return await reply_message(reply_token, f"❌ 近 {days} 天內沒有可用的打卡照片啦～")
+    
+    if len(urls) < max_tiles:
+        return await reply_message(
+            reply_token,
+            f"❌ 需要至少 {max_tiles} 張照片才能生成 {max_tiles} 格 dump，目前只有 {len(urls)} 張喔～"
+        )
 
     # 只取前 max_tiles 張
     sliced = urls[:max_tiles]
