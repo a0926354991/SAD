@@ -89,8 +89,13 @@
   </button>
 
   <!-- 拉麵轉盤按鈕 -->
-  <button id="wheelFab" class="fab wheel-fab">
+  <button id="wheelFab" class="fab wheel-fab" style="top: 170px; left: 0;">
     <i class="fas fa-dharmachakra"></i>
+  </button>
+
+  <!-- 用戶打卡紀錄按鈕 -->
+  <button id="userCheckinsFab" class="fab user-checkins-fab" style="top: 230px; left: 0;">
+    <i class="fas fa-history"></i>
   </button>
 
   <!-- 打卡模態框 -->
@@ -219,6 +224,22 @@
         <div class="wheel-buttons">
             <button id="spinButton" class="wheel-btn">再轉一次</button>
             <button id="confirmButton" class="wheel-btn confirm">確認</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 用戶打卡紀錄模態框 -->
+  <div id="userCheckinsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>我的打卡紀錄</h2>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="checkins-container">
+          <div class="checkins-list"></div>
+          <button class="load-more-btn" style="display: none;">顯示更多</button>
         </div>
       </div>
     </div>

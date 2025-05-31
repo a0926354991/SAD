@@ -485,4 +485,144 @@ body.modal-open .container {
 #quickCheckInModal .submit-btn:disabled {
     background: #ccc;
     cursor: not-allowed;
+}
+
+/* 用戶打卡紀錄按鈕樣式 */
+.user-checkins-fab {
+  position: fixed;
+  top: 230px;
+  left: 0;
+  right: auto;
+  bottom: auto;
+  background-color: var(--primary-color);
+  width: 50px;
+  height: 50px;
+  font-size: 20px;
+  display: flex !important;
+  opacity: 1;
+  visibility: visible;
+  cursor: pointer;
+  z-index: 1000;
+  border-radius: 0 25px 25px 0;
+  box-shadow: var(--shadow);
+  color: white;
+}
+.user-checkins-fab:hover {
+  background-color: #34495E;
+}
+
+/* 用戶打卡紀錄模態框樣式 */
+#userCheckinsModal .modal-content {
+  max-width: 800px;
+  width: 95%;
+  padding: 24px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+#userCheckinsModal .checkins-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+#userCheckinsModal .checkins-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding: 8px;
+  align-items: start;
+  width: 100%;
+}
+
+#userCheckinsModal .checkin-item {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+#userCheckinsModal .checkin-item:hover {
+  transform: translateY(-2px);
+}
+
+#userCheckinsModal .checkin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+#userCheckinsModal .checkin-store {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+#userCheckinsModal .checkin-date {
+  color: #666;
+  font-size: 0.9em;
+}
+
+#userCheckinsModal .checkin-rating {
+  color: #F1C40F;
+  margin-bottom: 8px;
+}
+
+#userCheckinsModal .checkin-comment {
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+#userCheckinsModal .checkin-photo {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background-color: #f8f9fa;
+  padding: 8px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+#userCheckinsModal .checkin-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#userCheckinsModal .load-more-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 16px auto;
+  display: block;
+  width: fit-content;
+}
+
+#userCheckinsModal .load-more-btn:hover {
+  background-color: #34495E;
+  transform: translateY(-2px);
+}
+
+#userCheckinsModal .no-more-records {
+  text-align: center;
+  color: #666;
+  padding: 16px;
+  font-style: italic;
 } 

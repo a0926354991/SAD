@@ -1566,14 +1566,6 @@ function openUserCheckinsModal() {
     loadUserCheckins();
 }
 
-// 新增：關閉用戶打卡紀錄頁面
-function closeUserCheckinsModal() {
-    userCheckinsModal.classList.remove('active');
-    document.body.classList.remove('modal-open');
-    userCheckinsList.innerHTML = '';
-    userCheckinsLoadMore.style.display = 'none';
-}
-
 // 新增：載入用戶打卡紀錄
 async function loadUserCheckins(lastId = null) {
     try {
@@ -1697,11 +1689,20 @@ async function init() {
         initCheckIn();
 
         // 7. 新增：初始化用戶打卡紀錄功能
+        userCheckinsFab.classList.add('active');
         userCheckinsFab.addEventListener('click', openUserCheckinsModal);
-        closeUserCheckinsModal.addEventListener('click', closeUserCheckinsModal);
+        closeUserCheckinsModal.addEventListener('click', () => {
+            userCheckinsModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            userCheckinsList.innerHTML = '';
+            userCheckinsLoadMore.style.display = 'none';
+        });
         userCheckinsModal.addEventListener('click', (e) => {
             if (e.target === userCheckinsModal) {
-                closeUserCheckinsModal();
+                userCheckinsModal.classList.remove('active');
+                document.body.classList.remove('modal-open');
+                userCheckinsList.innerHTML = '';
+                userCheckinsLoadMore.style.display = 'none';
             }
         });
 
