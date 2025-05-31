@@ -537,6 +537,16 @@ function handleUrlParameters() {
             
             if (store) {
                 selectStore(store);
+                
+                // 如果有 checkin=1 參數，直接開啟打卡視窗
+                if (urlParams.get("checkin") === "1") {
+                    // 等待一下確保 selectStore 完成後再開啟打卡視窗
+                    setTimeout(() => {
+                        if (canCheckIn()) {
+                            openCheckInModal(store);
+                        }
+                    }, 500);
+                }
             } else {
                 console.error('Store not found with id/name:', storeId);
             }
