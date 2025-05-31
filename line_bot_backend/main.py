@@ -404,7 +404,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                     "spacing": "md",
                     "borderWidth": "4px",
                     "borderColor": "#FFE175",  # 你可以調整顏色
-                    "cornerRadius": "20px",    # 加一點圓角更好看（可選）
+                    "cornerRadius": "18px",    # 加一點圓角更好看（可選）
                     "contents": [
                         {
                             "type": "text",
@@ -425,7 +425,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                             "type": "box",
                             "layout": "vertical",
                             "contents": [],
-                            "height": "20px" # 控制空白區塊高度
+                            "height": "10px" # 控制空白區塊高度
                         },
                         *[
                             {
@@ -568,7 +568,7 @@ async def push_ramen_wheel(user_id, roulette_url):
                 "spacing": "md",
                 "borderWidth": "4px",
                 "borderColor": "#A9C4EB",
-                "cornerRadius": "20px",
+                "cornerRadius": "18px",
                 "contents": [
                     {
                         "type": "text",
@@ -582,7 +582,7 @@ async def push_ramen_wheel(user_id, roulette_url):
                         "type": "box",
                         "layout": "vertical",
                         "contents": [],
-                        "height": "20px" # 控制空白區塊高度
+                        "height": "10px" # 控制空白區塊高度
                     },
                     {
                         "type": "button",
@@ -648,7 +648,7 @@ async def reply_analysis_flex_menu(reply_token: str):
                     "spacing": "md",
                     "borderWidth": "4px",
                     "borderColor": "#FFE175",
-                    "cornerRadius": "20px",
+                    "cornerRadius": "18px",
                     "contents": [
                         {
                             "type": "text",
@@ -662,7 +662,7 @@ async def reply_analysis_flex_menu(reply_token: str):
                             "type": "box",
                             "layout": "vertical",
                             "contents": [],
-                            "height": "20px" # 控制空白區塊高度
+                            "height": "10px" # 控制空白區塊高度
                         },
                         *[
                             {
@@ -726,7 +726,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     body_contents = [
         {"type": "text", "text": f"最近 {days} 天的統整分析", "weight": "bold", "size": "lg"},
         # {"type": "spacer", "size": "md"},
-        {"type": "box", "layout": "vertical", "contents": [], "height": "20px"},
+        {"type": "box", "layout": "vertical", "contents": [], "height": "10px"},
         {"type": "text", "text": f"🍜 總碗數：{bowls} 碗", "size": "sm"},
         {"type": "text", "text": f"🏠 造訪店家：{shops} 家", "size": "sm"},
         {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
@@ -839,7 +839,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "spacing": "md",
             "borderWidth": "4px",
             "borderColor": "#A9C4EB",
-            "cornerRadius": "20px",
+            "cornerRadius": "18px",
             "contents": body_contents,
         },
         "styles": {
