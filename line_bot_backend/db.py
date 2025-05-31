@@ -287,6 +287,45 @@ def get_store_checkins(store_id: str, limit: int = 5, last_id: str = None):
         print(f"Error in get_store_checkins: {str(e)}")
         return [], False
 
+def get_user_checkins(user_id: str, limit: int = 5, last_id: str = None):
+    """
+    獲取用戶的打卡紀錄，支援分頁
+    Args:
+        user_id: 用戶ID
+        limit: 每次返回的紀錄數量
+        last_id: 上一頁最後一個文檔的ID
+    Returns:
+        tuple: (打卡紀錄列表, 是否有更多紀錄)
+    """
+    try:
+        query = db.collection("checkins").where("user_id", "==", user_id)
+        
+        if last_id:
+            last_doc = db.collection("checkins").document(last_id).get()
+            if last_doc.exists:
+                query = query.start_after(last_doc)
+            
+        query = query.order_by("timestamp", direction=firestore.Query.DESCENDING)
+        docs = query.limit(limit + 1).stream()
+        
+        checkins = []
+        has_more = False
+        
+        for i, doc in enumerate(docs):
+            if i < limit:
+                data = doc.to_dict()
+                data["id"] = doc.id
+                checkins.append(data)
+            else:
+                has_more = True
+                break
+                
+        return checkins, has_more
+        
+    except Exception as e:
+        print(f"Error in get_user_checkins: {str(e)}")
+        return [], False
+
 # if __name__ == "__main__":
 #     shops = get_all_ramen_shops()
 #     print(json.dumps(shops, ensure_ascii=False, indent=2))

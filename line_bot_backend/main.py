@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from dotenv import load_dotenv
-from line_bot_backend.db import db, add_user, get_all_ramen_shops, get_user_by_id, update_user_location, get_user_location, search_ramen_nearby, create_checkin, upload_photo, get_store_checkins
+from line_bot_backend.db import db, add_user, get_all_ramen_shops, get_user_by_id, update_user_location, get_user_location, search_ramen_nearby, create_checkin, upload_photo, get_store_checkins, get_user_checkins
 # from db import add_user, get_all_ramen_shops  # 本地
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import firestore, storage # 新增：storage
@@ -135,6 +135,18 @@ async def upload_file(file: UploadFile = File(...)):
 def get_store_checkins_api(store_id: str, limit: int = 5, last_id: str = None):
     try:
         checkins, has_more = get_store_checkins(store_id, limit, last_id)
+        return {
+            "status": "success",
+            "checkins": checkins,
+            "has_more": has_more
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/user_checkins/{user_id}")
+def get_user_checkins_api(user_id: str, limit: int = 5, last_id: str = None):
+    try:
+        checkins, has_more = get_user_checkins(user_id, limit, last_id)
         return {
             "status": "success",
             "checkins": checkins,

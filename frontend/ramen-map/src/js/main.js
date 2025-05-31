@@ -1550,6 +1550,81 @@ function initQuickCheckIn() {
     quickCheckInForm.addEventListener('submit', handleQuickCheckInSubmit);
 }
 
+// 新增：用戶打卡紀錄相關的 DOM 元素
+const userCheckinsFab = document.getElementById('userCheckinsFab');
+const userCheckinsModal = document.getElementById('userCheckinsModal');
+const closeUserCheckinsModal = document.querySelector('#userCheckinsModal .close-modal');
+const userCheckinsList = document.querySelector('#userCheckinsModal .checkins-list');
+const userCheckinsLoadMore = document.querySelector('#userCheckinsModal .load-more-btn');
+
+// 新增：開啟用戶打卡紀錄頁面
+function openUserCheckinsModal() {
+    if (!canCheckIn()) return;
+    
+    userCheckinsModal.classList.add('active');
+    document.body.classList.add('modal-open');
+    loadUserCheckins();
+}
+
+// 新增：關閉用戶打卡紀錄頁面
+function closeUserCheckinsModal() {
+    userCheckinsModal.classList.remove('active');
+    document.body.classList.remove('modal-open');
+    userCheckinsList.innerHTML = '';
+    userCheckinsLoadMore.style.display = 'none';
+}
+
+// 新增：載入用戶打卡紀錄
+async function loadUserCheckins(lastId = null) {
+    try {
+        const url = `https://linebot-fastapi-uhmi.onrender.com/user_checkins/${currentUser.id}?limit=5` + (lastId ? `&last_id=${lastId}` : '');
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.status === "success") {
+            // 如果是第一次載入且沒有打卡記錄
+            if (!lastId && data.checkins.length === 0) {
+                userCheckinsList.innerHTML = `
+                    <div class="no-checkins-message">
+                        <i class="fas fa-utensils"></i>
+                        <p>還沒有任何打卡記錄</p>
+                        <p class="sub-text">快去找一家拉麵店打卡吧！</p>
+                    </div>
+                `;
+                userCheckinsLoadMore.style.display = 'none';
+                return;
+            }
+            
+            // 渲染打卡紀錄
+            data.checkins.forEach(checkin => {
+                const checkinElement = createCheckinElement(checkin);
+                userCheckinsList.appendChild(checkinElement);
+            });
+            
+            // 控制"顯示更多"按鈕和到底提示
+            if (data.has_more) {
+                userCheckinsLoadMore.style.display = 'block';
+                userCheckinsLoadMore.onclick = () => {
+                    const lastCheckin = data.checkins[data.checkins.length - 1];
+                    loadUserCheckins(lastCheckin.id);
+                };
+            } else {
+                const endMessage = document.createElement('div');
+                endMessage.className = 'end-message';
+                endMessage.innerHTML = `
+                    <i class="fas fa-flag-checkered"></i>
+                    <p>已經到底了！</p>
+                `;
+                userCheckinsList.appendChild(endMessage);
+                userCheckinsLoadMore.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading user checkins:', error);
+        showToast('載入打卡紀錄失敗');
+    }
+}
+
 // 修改：初始化所有功能
 async function init() {
     showLoading();
@@ -1563,13 +1638,10 @@ async function init() {
         // 2. 初始化地圖並獲取所有拉麵店資料
         await initMap();
 
-        // 3. 檢查登入狀態並獲取用戶資料
-        
-
-        // 4. 初始化轉盤（需要 allStores 和 currentUser 數據）
+        // 3. 初始化轉盤（需要 allStores 和 currentUser 數據）
         await initWheel();
 
-        // 5. 新增：回到用戶位置按鈕
+        // 4. 新增：回到用戶位置按鈕
         const backToUserBtn = document.createElement('button');
         backToUserBtn.className = 'back-to-user-btn';
         backToUserBtn.innerHTML = '<i class="fas fa-crosshairs"></i>';
@@ -1577,7 +1649,7 @@ async function init() {
         backToUserBtn.addEventListener('click', centerOnUserLocation);
         document.querySelector('.main-content').appendChild(backToUserBtn);
 
-        // 6. 初始化搜尋功能
+        // 5. 初始化搜尋功能
         const searchInput = document.getElementById('searchInput');
         const searchBox = document.querySelector('.search-box');
         const searchToggle = document.querySelector('.search-toggle');
@@ -1621,11 +1693,19 @@ async function init() {
             }
         });
 
-        // 7. 初始化打卡功能
+        // 6. 初始化打卡功能
         initCheckIn();
 
+        // 7. 新增：初始化用戶打卡紀錄功能
+        userCheckinsFab.addEventListener('click', openUserCheckinsModal);
+        closeUserCheckinsModal.addEventListener('click', closeUserCheckinsModal);
+        userCheckinsModal.addEventListener('click', (e) => {
+            if (e.target === userCheckinsModal) {
+                closeUserCheckinsModal();
+            }
+        });
 
-        // 9. 處理所有 URL 參數
+        // 8. 處理所有 URL 參數
         handleUrlParameters();
 
     } catch (error) {
