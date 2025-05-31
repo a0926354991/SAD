@@ -761,11 +761,15 @@ def analyze_checkins(user_id: str, days: int) -> dict:
             ts = ts.to_datetime().replace(tzinfo=timezone.utc)
         if ts >= cutoff:
             records.append(data)
-            # 統計店家
             shop_counter[data.get('store_name', '未知商家')] += 1
-            # 統計關鍵字作為口味
-            kw = data.get('keyword', '其他')
+
+            raw_kw = data.get('keyword', None)
+            if raw_kw in FLAVORS:
+                kw = raw_kw
+            else:
+                kw = "其他"
             keyword_counter[kw] += 1
+
 
     bowls = len(records)
     shops = len(shop_counter)
