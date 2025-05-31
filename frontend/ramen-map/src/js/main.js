@@ -454,7 +454,7 @@ async function handleQuickCheckInSubmit(e) {
     }
 
     const formData = {
-        store_id: currentStore.name,
+        store_id: currentStore.id,
         user_id: currentUser.id,
         rating: parseFloat(ratingValue),
         comment: commentValue,
