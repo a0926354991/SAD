@@ -1346,15 +1346,107 @@ async function ensureUserIdParam() {
     }
 }
 
-// 新增：回到用戶位置
-function centerOnUserLocation() {
-    if (currentUser && currentUser.latlng) {
-        const { latitude, longitude } = currentUser.latlng;
-        map.setCenter({ lat: latitude, lng: longitude });
-        map.setZoom(17);
-    } else {
-        showToast('無法獲取您的位置');
+// 新增：獲取用戶位置
+function getUserLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('您的瀏覽器不支援地理定位功能'));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                resolve({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                });
+            },
+            (error) => {
+                reject(error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            }
+        );
+    });
+}
+
+// 新增：更新用戶位置到後端
+async function updateUserLocation(latlng) {
+    try {
+        const response = await fetch(`https://linebot-fastapi-uhmi.onrender.com/update_location/${currentUser.id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                latitude: latlng.latitude,
+                longitude: latlng.longitude
+            })
+        });
+
+        const data = await response.json();
+        if (data.status === 'success') {
+            // 更新本地用戶資料
+            currentUser.latlng = latlng;
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error updating location:', error);
+        return false;
     }
+}
+
+// 修改：檢查用戶位置是否有效
+async function isUserLocationValid() {
+    if (!currentUser || !currentUser.latlng) {
+        return false;
+    }
+
+    try {
+        const response = await fetch(`https://linebot-fastapi-uhmi.onrender.com/check_location/${currentUser.id}`);
+        const data = await response.json();
+        
+        if (!data.is_valid) {
+            // 位置過期，請求新的位置
+            try {
+                const newLocation = await getUserLocation();
+                const updateSuccess = await updateUserLocation(newLocation);
+                if (updateSuccess) {
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error getting new location:', error);
+                showToast('無法獲取您的位置，請確保已開啟位置權限');
+            }
+        }
+        return data.is_valid;
+    } catch (error) {
+        console.error('Error checking location validity:', error);
+        return false;
+    }
+}
+
+// 修改：回到用戶位置
+async function centerOnUserLocation() {
+    if (!currentUser) {
+        showToast('請先登入');
+        return;
+    }
+
+    const isValid = await isUserLocationValid();
+    if (!isValid) {
+        showToast('無法獲取您的位置，請確保已開啟位置權限');
+        return;
+    }
+
+    const { latitude, longitude } = currentUser.latlng;
+    map.setCenter({ lat: latitude, lng: longitude });
+    map.setZoom(17);
+    addUserLocationMarker(latitude, longitude);
 }
 
 // 新增：初始化打卡功能

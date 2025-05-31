@@ -943,6 +943,36 @@ async def reply_ramen_flavor_quick_reply(reply_token):
         await session.post(url, json=body, headers=headers)
 '''
 
+@app.get("/check_location/{user_id}")
+async def check_location_validity(user_id: str):
+    is_valid, _ = await is_location_valid(user_id)
+    return {"is_valid": is_valid}
+
+class LocationUpdate(BaseModel):
+    latitude: float
+    longitude: float
+
+@app.post("/update_location/{user_id}")
+async def update_location_web(user_id: str, location: LocationUpdate):
+    try:
+        # 驗證輸入參數
+        if not isinstance(location.latitude, (int, float)) or not isinstance(location.longitude, (int, float)):
+            raise HTTPException(status_code=400, detail="Invalid latitude or longitude")
+        
+        # 驗證經緯度範圍
+        if not (-90 <= location.latitude <= 90) or not (-180 <= location.longitude <= 180):
+            raise HTTPException(status_code=400, detail="Latitude or longitude out of range")
+            
+        # 更新用戶位置
+        update_user_location(user_id, location.latitude, location.longitude)
+        return {"status": "success", "message": "Location updated successfully"}
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Error in update_location_web: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 
 
 
