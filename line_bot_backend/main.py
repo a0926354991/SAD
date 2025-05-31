@@ -840,11 +840,18 @@ def analyze_checkins(user_id: str, days: int) -> dict:
 
 ## 生成圓餅圖
 def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
-    labels = list(flavor_pct.keys())
-    sizes  = [float(p.strip('%')) for p in flavor_pct.values()]
+
+    sorted_items = sorted(
+        flavor_pct.items(),
+        key=lambda kv: float(kv[1].strip('%')),  # kv = (label, "xx.x%")
+        reverse=True
+    )
+
+    labels = [item[0] for item in sorted_items]
+    sizes  = [float(item[1].strip('%')) for item in sorted_items]
 
     other_color = "#e3e3e3"
-    palette = ["#6a8cbb", "#8caedd", "#a9c4eb", "#d5e3f7", "#ffdb5d", "#ffe699", "#fdf1c7"]
+    palette = ["#d5e3f7", "#a9c4eb", "#8caedd", "#6a8cbb", "#ffd02c", "#ffdb5d", "#ffe699", "#fdf1c7"]
     bg_colors = []
     idx_palette = 0
     for flavor in labels:
@@ -867,12 +874,20 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
             }]
         },
         "options": {
+            "layout": {
+                "padding": {
+                    "left": 40,
+                    "right": 40,
+                    "top": 20,
+                    "bottom": 20
+                }
+            },
             "plugins": {
                 "legend": False,
                 "outlabels": {                       # ← 使用 outlabels plugin
                     "text": "%l %p",                # %l=label，%p=percent
-                    "color": "white",
-                    "stretch": 35,
+                    "color": "black",
+                    "stretch": 15,
                     "font": {
                         "resizable": True,
                         "minSize": 12,
