@@ -633,12 +633,14 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     if bowls == 0:
         body_contents.append({
             "type": "text",
-            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump ~",
-            "size": "sm",         
-            "align": "center",
+            "text": "🔒 打卡四張照片以上可以解鎖拉麵 dump ～",
+            "size": "xs",
+            "align": "center",    
             "weight": "bold",
             "color": "#FF0000",
-            "margin": "md"
+            "margin": "md",
+            "wrap": True,
+            "maxLines": 2         
         })
 
     # 5. 當 1 <= bowls < 4 時，雖然有打卡資料，但筆數不到 4，這裡顯示真正的圓餅圖＋鎖頭文字
@@ -650,7 +652,8 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         body_contents.append({
             "type": "image",
             "url": img_url,
-            "size": "md",         # 改成 md 或 lg，避免把畫面撐得太滿
+            "size": "full",
+            "aspectRatio": "20:13",
             "aspectMode": "cover",
             "margin": "md"
         })
@@ -675,7 +678,8 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         body_contents.append({
             "type": "image",
             "url": img_url,
-            "size": "md",         # 依需求可調為 "md" 或 "lg"
+            "size": "full",
+            "aspectRatio": "20:13",
             "aspectMode": "cover",
             "margin": "md"
         })
