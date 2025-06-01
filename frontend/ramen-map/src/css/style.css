@@ -220,12 +220,13 @@ input[type="text"]:focus {
   border-radius: 15px 15px 0 0;
   box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  transform: translateY(calc(100% - 50px));
+  transform: translateY(calc(100% - 80px));
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   max-height: var(--panel-height);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   will-change: transform, max-height;
+  padding-bottom: 40px;
 }
 
 .ramen-list.active {
@@ -248,7 +249,6 @@ input[type="text"]:focus {
   -webkit-tap-highlight-color: transparent;
   padding: 5px 15px;
   transition: background-color 0.3s ease;
-  margin-bottom: 24px;
 }
 
 .ramen-list-handle:hover {
