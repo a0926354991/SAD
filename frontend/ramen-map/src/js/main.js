@@ -709,7 +709,7 @@ function renderStoreInfo(store) {
         <div class="store-info-full">
             <div class="tabs">
                 <button class="tab-btn active" data-tab="info">店家資訊</button>
-                <button class="tab-btn" data-tab="checkins">打卡紀錄</button>
+                <button class="tab-btn" data-tab="checkins">他人打卡</button>
             </div>
             
             <div class="tab-content">
