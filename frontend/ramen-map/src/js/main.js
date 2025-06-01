@@ -1079,6 +1079,7 @@ async function initWheel() {
     const selectedStoreName = document.getElementById('selectedStoreName');
     const ctx = canvas.getContext('2d');
     const addToWheelFab = document.getElementById('addToWheelFab');
+    const clearWheelButton = document.getElementById('clearWheelButton');
 
     canvas.width = 300;
     canvas.height = 300;
@@ -1274,6 +1275,20 @@ async function initWheel() {
             document.body.classList.remove('modal-open');
         }
     });
+
+    clearWheelButton.addEventListener('click', () => {
+    if (wheelStores.length === 0) {
+        showToast('目前沒有店家可以清空');
+        return;
+    }
+    if (confirm('確定要清空轉盤上的所有店家嗎？')) {
+        wheelStores = [];
+        selectedStore = null;
+        selectedStoreName.textContent = '尚未選擇';
+        drawWheel();
+        showToast('已清空轉盤上的所有店家');
+    }
+});
 }
 
 // 新增：只顯示選中的標記
