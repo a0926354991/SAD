@@ -285,7 +285,7 @@ async def webhook(req: Request):
 
 
 #### Handle logic
-async def is_location_valid(user_id: str, threshold_minutes: int = 3):
+async def is_location_valid(user_id: str, threshold_minutes: int = 10):
     latlng, last_updated = get_user_location(user_id)
 
     if last_updated is None:
@@ -425,7 +425,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                             "type": "box",
                             "layout": "vertical",
                             "contents": [],
-                            "height": "10px" # 控制空白區塊高度
+                            "height": "7px" # 控制空白區塊高度
                         },
                         *[
                             {
@@ -490,7 +490,7 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "sm",
+                "spacing": "md",
                 "contents": [
                     {
                         "type": "text",
@@ -582,7 +582,7 @@ async def push_ramen_wheel(user_id, roulette_url):
                         "type": "box",
                         "layout": "vertical",
                         "contents": [],
-                        "height": "10px" # 控制空白區塊高度
+                        "height": "7px" # 控制空白區塊高度
                     },
                     {
                         "type": "button",
@@ -634,6 +634,7 @@ async def reply_analysis(reply_token: str):
     async with aiohttp.ClientSession() as session:
         await session.post("https://api.line.me/v2/bot/message/reply", json=body, headers=headers)
 
+## 統整分析 (flex menu)
 async def reply_analysis_flex_menu(reply_token: str):
     body = {
         "replyToken": reply_token,
@@ -662,7 +663,7 @@ async def reply_analysis_flex_menu(reply_token: str):
                             "type": "box",
                             "layout": "vertical",
                             "contents": [],
-                            "height": "10px" # 控制空白區塊高度
+                            "height": "7px" # 控制空白區塊高度
                         },
                         *[
                             {
@@ -726,7 +727,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     body_contents = [
         {"type": "text", "text": f"最近 {days} 天的統整分析", "weight": "bold", "size": "lg"},
         # {"type": "spacer", "size": "md"},
-        {"type": "box", "layout": "vertical", "contents": [], "height": "10px"},
+        {"type": "box", "layout": "vertical", "contents": [], "height": "7px"},
         {"type": "text", "text": f"🍜 總碗數：{bowls} 碗", "size": "sm"},
         {"type": "text", "text": f"🏠 造訪店家：{shops} 家", "size": "sm"},
         {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
@@ -970,7 +971,7 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
             },
             "plugins": {
                 "legend": False,
-                "outlabels": {                       # ← 使用 outlabels plugin
+                "outlabels": {                      # ← 使用 outlabels plugin
                     "text": "%l %p",                # %l=label，%p=percent
                     "color": "black",
                     "stretch": 15,
