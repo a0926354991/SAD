@@ -829,7 +829,7 @@ function createCheckinElement(checkin) {
     div.className = 'checkin-item';
     div.innerHTML = `
         <div class="checkin-header">
-            <div class="checkin-user">${checkin.user_name}</div>
+            <div class="checkin-user">${checkin.store_name}</div>
             <div class="checkin-time">${formatDate(checkin.timestamp)}</div>
         </div>
         <div class="checkin-content">

@@ -285,7 +285,7 @@ async def webhook(req: Request):
 
 
 #### Handle logic
-async def is_location_valid(user_id: str, threshold_minutes: int = 10):
+async def is_location_valid(user_id: str, threshold_minutes: int = 3):
     latlng, last_updated = get_user_location(user_id)
 
     if last_updated is None:
