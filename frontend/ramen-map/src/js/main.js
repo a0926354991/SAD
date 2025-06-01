@@ -1207,7 +1207,7 @@ async function initWheel() {
         if (isSpinning || wheelStores.length === 0) return;
         
         isSpinning = true;
-        spinButton.disabled = true;
+        // spinButton.disabled = true;
         confirmButton.disabled = true;
         selectedStoreName.textContent = '轉動中...';
         
@@ -1228,7 +1228,7 @@ async function initWheel() {
                 requestAnimationFrame(animate);
             } else {
                 isSpinning = false;
-                spinButton.disabled = false;
+                // spinButton.disabled = false;
                 confirmButton.disabled = false;
                 
                 const anglePerSlice = (2 * Math.PI) / wheelStores.length;
@@ -1261,7 +1261,7 @@ async function initWheel() {
         document.body.classList.remove('modal-open');
     });
 
-    spinButton.addEventListener('click', spinWheel);
+    // spinButton.addEventListener('click', spinWheel);
 
     confirmButton.addEventListener('click', () => {
         if (selectedStore) {
