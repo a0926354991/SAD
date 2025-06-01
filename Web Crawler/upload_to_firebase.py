@@ -1,21 +1,25 @@
 import firebase_admin
-from datetime import datetime
-import os
+from firebase_admin import credentials, firestore
 import json
-from firebase_admin import credentials, firestore, initialize_app
+import os
 
+# 初始化 Firestore
 cred = credentials.Certificate(r"C:\Users\User\Desktop\SAD\Web Crawler\key.json")
-initialize_app(cred)
+firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# 讀取 JSON 檔案
+# 讀取 JSON 檔
 json_path = r"C:\Users\User\Desktop\SAD\Web Crawler\ramin\merge_json\merged_ramen_store_info.json"
 with open(json_path, encoding="utf-8") as f:
     data = json.load(f)
 
-# 每間店寫入 Firestore 的 "ramen_shops" collection
-for idx, item in enumerate(data, 1):  # 1開始
-    store_name = item.get("name", "unknown").replace("/", "_")
-    item['id'] = str(idx)  # 加入id，建議存字串比較不會有型別問題
-    doc_ref = db.collection("ramen_shops").document(store_name)
+# 將每家店寫到 ramen_stores，僅使用數字字串作為 Document ID
+for idx, item in enumerate(data, 1):  # 從 1 開始編號
+    # 下面這行不再把 id 存到 item 裡：
+    # item['id'] = str(idx)
+
+    # 改成直接把文件 ID 決定為 "1", "2", "3", …：
+    doc_ref = db.collection("ramen_shops").document(str(idx))
     doc_ref.set(item)
+
+    print(f"已寫入 ramen_shops/{idx}：名稱={item.get('name', '')}")
