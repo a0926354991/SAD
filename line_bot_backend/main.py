@@ -753,10 +753,20 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         img_url = create_quickchart_url(flavor_pct)
 
         # 圖片
-        body_contents.append(
-            {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
-            {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
-            {
+        body_contents.append({
+            "type": "text", 
+            "text": "口味分布", 
+            "size": "sm", 
+            "weight": "bold", 
+            "margin": "md"
+        })
+        body_contents.append({
+            "type": "box", 
+            "layout": "vertical", 
+            "spacing": "sm", 
+            "contents": flavor_contents
+        })
+        body_contents.append({
             "type": "image",
             "url": img_url,
             "size": "full",
@@ -764,17 +774,17 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "aspectMode": "cover",
             "margin": "md"
         })
+
         # 再加一行紅色鎖頭文字
         body_contents.append({
             "type": "text",
             "text": "🔒 打卡四張照片以上以解鎖拉麵 dump！",
             "size": "xs",
-            # "align": "center",    
             "weight": "bold",
             "color": "#063D74",
             "margin": "md",
             "wrap": True,
-            "maxLines": 2         
+            "maxLines": 2
         })
 
     # 6. 當 bowls >= 4 時，顯示真正的圓餅圖＋按鈕（生成 4/6/12 格 dump）
@@ -782,18 +792,29 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         img_url = create_quickchart_url(flavor_pct)
 
         # 圖片
-        body_contents.append(
-            {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
-            {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
-            {
-                "type": "image",
-                "url": img_url,
-                "size": "full",
-                "aspectRatio": "1:1",
-                "aspectMode": "cover",
-                "margin": "md"
+        body_contents.append({
+            "type": "text", 
+            "text": "口味分布", 
+            "size": "sm", 
+            "weight": "bold", 
+            "margin": "md"
         })
-        # 「生成我的拉麵 dump」文字
+        body_contents.append({
+            "type": "box", 
+            "layout": "vertical", 
+            "spacing": "sm", 
+            "contents": flavor_contents
+        })
+        body_contents.append({
+            "type": "image",
+            "url": img_url,
+            "size": "full",
+            "aspectRatio": "1:1",
+            "aspectMode": "cover",
+            "margin": "md"
+        })
+
+        # 再 append 「生成我的拉麵 dump」這行文字
         body_contents.append({
             "type": "text",
             "text": "生成我的拉麵 dump",
@@ -802,7 +823,8 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "align": "center",
             "margin": "md"
         })
-        # 三個按鈕
+
+        # 最後再 extend 三個按鈕
         body_contents.extend([
             {
                 "type": "button",
