@@ -728,9 +728,11 @@ function renderStoreInfo(store) {
                             ${store.keywords ? store.keywords.map(kw => `<b>#${kw}</b>`).join(' ') : ''}
                         </div>
                     </div>
-                    <div class="store-section">
+                    <div class="open-time-section">
                         <div class="store-label">營業時間</div>
-                        <div class="store-value">${store.open_time ? store.open_time.replace(/; ?/g, '<br>') : '無資料'}</div>
+                        <div class="open-time-list">
+                            ${store.open_time ? store.open_time.replace(/; ?/g, '<br>') : '無資料'}
+                        </div>
                     </div>
                     <div class="store-menu-img">
                         <div class="menu-title">菜單</div>

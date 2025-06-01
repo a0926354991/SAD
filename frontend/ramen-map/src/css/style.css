@@ -693,6 +693,30 @@ input[type="text"]:focus {
     color: #34495E;
 }
 
+.open-time-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 16px;         /* 和上下區塊分開一點 */
+}
+
+.open-time-label {
+  font-weight: bold;
+  font-size: 1em;
+  margin-bottom: 6px;
+  color: #34495E;
+}
+
+.open-time-list {
+  margin-top: 0;
+  text-align: left;
+  font-family: inherit;
+  margin: 0;
+  padding: 10px;
+  color: var(--text-color);
+  width: 100%;                 /* 讓它撐滿外框 */
+}
+
 .store-header {
     margin-bottom: 20px;
     padding-bottom: 15px;
