@@ -425,7 +425,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                             "type": "box",
                             "layout": "vertical",
                             "contents": [],
-                            "height": "7px" # 控制空白區塊高度
+                            "height": "3px" # 控制空白區塊高度
                         },
                         *[
                             {
@@ -582,7 +582,7 @@ async def push_ramen_wheel(user_id, roulette_url):
                         "type": "box",
                         "layout": "vertical",
                         "contents": [],
-                        "height": "7px" # 控制空白區塊高度
+                        "height": "3px" # 控制空白區塊高度
                     },
                     {
                         "type": "button",
@@ -663,7 +663,7 @@ async def reply_analysis_flex_menu(reply_token: str):
                             "type": "box",
                             "layout": "vertical",
                             "contents": [],
-                            "height": "7px" # 控制空白區塊高度
+                            "height": "3px" # 控制空白區塊高度
                         },
                         *[
                             {
@@ -727,7 +727,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     body_contents = [
         {"type": "text", "text": f"最近 {days} 天的統整分析", "weight": "bold", "size": "lg"},
         # {"type": "spacer", "size": "md"},
-        {"type": "box", "layout": "vertical", "contents": [], "height": "7px"},
+        {"type": "box", "layout": "vertical", "contents": [], "height": "3px"},
         {"type": "text", "text": f"🍜 總碗數：{bowls} 碗", "size": "sm"},
         {"type": "text", "text": f"🏠 造訪店家：{shops} 家", "size": "sm"},
         {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
