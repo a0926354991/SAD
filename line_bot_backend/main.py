@@ -425,7 +425,7 @@ async def reply_ramen_flavor_flex_menu(reply_token):
                             "type": "box",
                             "layout": "vertical",
                             "contents": [],
-                            "height": "10px" # 控制空白區塊高度
+                            "height": "3px" # 控制空白區塊高度
                         },
                         *[
                             {
@@ -490,7 +490,7 @@ async def reply_ramen_flex_carousel(reply_token, ramen_list):
             "body": {
                 "type": "box",
                 "layout": "vertical",
-                "spacing": "sm",
+                "spacing": "md",
                 "contents": [
                     {
                         "type": "text",
@@ -582,7 +582,7 @@ async def push_ramen_wheel(user_id, roulette_url):
                         "type": "box",
                         "layout": "vertical",
                         "contents": [],
-                        "height": "10px" # 控制空白區塊高度
+                        "height": "3px" # 控制空白區塊高度
                     },
                     {
                         "type": "button",
@@ -634,6 +634,7 @@ async def reply_analysis(reply_token: str):
     async with aiohttp.ClientSession() as session:
         await session.post("https://api.line.me/v2/bot/message/reply", json=body, headers=headers)
 
+## 統整分析 (flex menu)
 async def reply_analysis_flex_menu(reply_token: str):
     body = {
         "replyToken": reply_token,
@@ -662,7 +663,7 @@ async def reply_analysis_flex_menu(reply_token: str):
                             "type": "box",
                             "layout": "vertical",
                             "contents": [],
-                            "height": "10px" # 控制空白區塊高度
+                            "height": "3px" # 控制空白區塊高度
                         },
                         *[
                             {
@@ -711,7 +712,12 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
 
     # 2. 準備「口味分布」列表（如果沒有資料，這裡就是空的）
     flavor_contents = []
-    for flavor, pct in flavor_pct.items():
+    sorted_flavors = sorted(
+        flavor_pct.items(),
+        key=lambda kv: float(kv[1].strip('%')),
+        reverse=True
+    )
+    for flavor, pct in sorted_flavors:
         flavor_contents.append({
             "type": "box",
             "layout": "baseline",
@@ -726,7 +732,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
     body_contents = [
         {"type": "text", "text": f"最近 {days} 天的統整分析", "weight": "bold", "size": "lg"},
         # {"type": "spacer", "size": "md"},
-        {"type": "box", "layout": "vertical", "contents": [], "height": "10px"},
+        {"type": "box", "layout": "vertical", "contents": [], "height": "3px"},
         {"type": "text", "text": f"🍜 總碗數：{bowls} 碗", "size": "sm"},
         {"type": "text", "text": f"🏠 造訪店家：{shops} 家", "size": "sm"},
         {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
@@ -753,10 +759,20 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         img_url = create_quickchart_url(flavor_pct)
 
         # 圖片
-        body_contents.append(
-            {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
-            {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
-            {
+        body_contents.append({
+            "type": "text", 
+            "text": "口味分布", 
+            "size": "sm", 
+            "weight": "bold", 
+            "margin": "md"
+        })
+        body_contents.append({
+            "type": "box", 
+            "layout": "vertical", 
+            "spacing": "sm", 
+            "contents": flavor_contents
+        })
+        body_contents.append({
             "type": "image",
             "url": img_url,
             "size": "full",
@@ -764,17 +780,17 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "aspectMode": "cover",
             "margin": "md"
         })
+
         # 再加一行紅色鎖頭文字
         body_contents.append({
             "type": "text",
             "text": "🔒 打卡四張照片以上以解鎖拉麵 dump！",
             "size": "xs",
-            # "align": "center",    
             "weight": "bold",
             "color": "#063D74",
             "margin": "md",
             "wrap": True,
-            "maxLines": 2         
+            "maxLines": 2
         })
 
     # 6. 當 bowls >= 4 時，顯示真正的圓餅圖＋按鈕（生成 4/6/12 格 dump）
@@ -782,18 +798,29 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         img_url = create_quickchart_url(flavor_pct)
 
         # 圖片
-        body_contents.append(
-            {"type": "text", "text": "口味分布", "size": "sm", "weight": "bold", "margin": "md"},
-            {"type": "box", "layout": "vertical", "spacing": "sm", "contents": flavor_contents},
-            {
-                "type": "image",
-                "url": img_url,
-                "size": "full",
-                "aspectRatio": "1:1",
-                "aspectMode": "cover",
-                "margin": "md"
+        body_contents.append({
+            "type": "text", 
+            "text": "口味分布", 
+            "size": "sm", 
+            "weight": "bold", 
+            "margin": "md"
         })
-        # 「生成我的拉麵 dump」文字
+        body_contents.append({
+            "type": "box", 
+            "layout": "vertical", 
+            "spacing": "sm", 
+            "contents": flavor_contents
+        })
+        body_contents.append({
+            "type": "image",
+            "url": img_url,
+            "size": "full",
+            "aspectRatio": "1:1",
+            "aspectMode": "cover",
+            "margin": "md"
+        })
+
+        # 再 append 「生成我的拉麵 dump」這行文字
         body_contents.append({
             "type": "text",
             "text": "生成我的拉麵 dump",
@@ -802,31 +829,32 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "align": "center",
             "margin": "md"
         })
-        # 三個按鈕
+
+        # 最後再 extend 三個按鈕
         body_contents.extend([
             {
                 "type": "button",
                 "action": {"type": "message", "label": "生成 4 格 dump",  "text": "生成 4 格 dump"},
                 "style": "secondary",
-                "color": "#FDEDC7",
+                "color": "#D5E3F7",
                 "height": "sm",
-                "margin": "sm"
+                "margin": "md"
             },
             {
                 "type": "button",
                 "action": {"type": "message", "label": "生成 6 格 dump",  "text": "生成 6 格 dump"},
                 "style": "secondary",
-                "color": "#FDEDC7",
+                "color": "#D5E3F7",
                 "height": "sm",
-                "margin": "sm"
+                "margin": "md"
             },
             {
                 "type": "button",
                 "action": {"type": "message", "label": "生成 12 格 dump", "text": "生成 12 格 dump"},
                 "style": "secondary",
-                "color": "#FDEDC7",
+                "color": "#D5E3F7",
                 "height": "sm",
-                "margin": "sm"
+                "margin": "md"
             }
         ])
 
@@ -948,7 +976,7 @@ def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
             },
             "plugins": {
                 "legend": False,
-                "outlabels": {                       # ← 使用 outlabels plugin
+                "outlabels": {                      # ← 使用 outlabels plugin
                     "text": "%l %p",                # %l=label，%p=percent
                     "color": "black",
                     "stretch": 15,
