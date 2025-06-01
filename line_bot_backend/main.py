@@ -836,25 +836,25 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
                 "type": "button",
                 "action": {"type": "message", "label": "生成 4 格 dump",  "text": "生成 4 格 dump"},
                 "style": "secondary",
-                "color": "#FDEDC7",
+                "color": "#D5E3F7",
                 "height": "sm",
-                "margin": "sm"
+                "margin": "md"
             },
             {
                 "type": "button",
                 "action": {"type": "message", "label": "生成 6 格 dump",  "text": "生成 6 格 dump"},
                 "style": "secondary",
-                "color": "#FDEDC7",
+                "color": "#D5E3F7",
                 "height": "sm",
-                "margin": "sm"
+                "margin": "md"
             },
             {
                 "type": "button",
                 "action": {"type": "message", "label": "生成 12 格 dump", "text": "生成 12 格 dump"},
                 "style": "secondary",
-                "color": "#FDEDC7",
+                "color": "#D5E3F7",
                 "height": "sm",
-                "margin": "sm"
+                "margin": "md"
             }
         ])
 
