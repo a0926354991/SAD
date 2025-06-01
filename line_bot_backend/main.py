@@ -712,7 +712,12 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
 
     # 2. 準備「口味分布」列表（如果沒有資料，這裡就是空的）
     flavor_contents = []
-    for flavor, pct in flavor_pct.items():
+    sorted_flavors = sorted(
+        flavor_pct.items(),
+        key=lambda kv: float(kv[1].strip('%')),
+        reverse=True
+    )
+    for flavor, pct in sorted_flavors:
         flavor_contents.append({
             "type": "box",
             "layout": "baseline",
