@@ -1051,7 +1051,7 @@ async def handle_ramen_dump(
     if start_dt.date() == end_dt.date():
         date_range_text = f"{start_dt.month:02d}/{start_dt.day:02d}"
     else:
-        date_range_text = f"{start_dt.month:02d}/{start_dt.day:02d}-{end_dt.month:02d}/{end_dt.day:02d}"
+        date_range_text = f"{start_dt.month:02d}/{start_dt.day:02d} - {end_dt.month:02d}/{end_dt.day:02d}"
     author_text = "made by LaKingMan"
     # ────────────────────────────────────────────────────────────────
 
