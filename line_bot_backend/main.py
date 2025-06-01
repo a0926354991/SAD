@@ -1036,17 +1036,22 @@ async def handle_ramen_dump(
     for rec in sliced_records:
         ts = rec.get("timestamp")
         if hasattr(ts, "to_datetime"):
-            dt = ts.to_datetime()  # Firestore Timestamp → datetime
+            dt = ts.to_datetime()
         else:
-            dt = ts  # 如果這裡直接就是 datetime 也沒關係
+            dt = ts
         datetimes.append(dt)
 
-    # 找最早、最晚
-    start_dt = min(datetimes)
-    end_dt   = max(datetimes)
+    if not datetimes:
+        now = datetime.now()
+        start_dt = end_dt = now
+    else:
+        start_dt = min(datetimes)
+        end_dt   = max(datetimes)
 
-    # 格式化成 "MM/DD-MM/DD"
-    date_range_text = f"{start_dt.month:02d}/{start_dt.day:02d}-{end_dt.month:02d}/{end_dt.day:02d}"
+    if start_dt.date() == end_dt.date():
+        date_range_text = f"{start_dt.month:02d}/{start_dt.day:02d}"
+    else:
+        date_range_text = f"{start_dt.month:02d}/{start_dt.day:02d}-{end_dt.month:02d}/{end_dt.day:02d}"
     author_text = "made by LaKingMan"
     # ────────────────────────────────────────────────────────────────
 
@@ -1135,7 +1140,7 @@ async def generate_ramen_dump(
     draw = ImageDraw.Draw(final_canvas)
     try:
         font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-        date_font   = ImageFont.truetype(font_path, 30)
+        date_font   = ImageFont.truetype(font_path, 20)
         author_font = ImageFont.truetype(font_path, 20)
     except Exception:
         date_font   = ImageFont.load_default()
