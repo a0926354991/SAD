@@ -213,7 +213,7 @@ input[type="text"]:focus {
 
 .ramen-list {
   position: fixed;
-  bottom: 50px;
+  bottom: 0;
   left: 0;
   right: 0;
   background: white;
@@ -248,6 +248,7 @@ input[type="text"]:focus {
   -webkit-tap-highlight-color: transparent;
   padding: 5px 15px;
   transition: background-color 0.3s ease;
+  margin-bottom: 24px;
 }
 
 .ramen-list-handle:hover {
