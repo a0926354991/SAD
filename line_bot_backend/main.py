@@ -7,7 +7,7 @@ from firebase_admin import firestore, storage # 新增：storage
 from pydantic import BaseModel
 from urllib.parse import quote
 from collections import Counter
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageDraw, ImageFont
 
 import io
 import os
@@ -1004,32 +1004,65 @@ async def handle_ramen_dump(
     user_id: str,
     max_tiles: int | None = None
 ):
+    # 1. 取得要分析的天數與打卡紀錄
     days = user_last_days.get(user_id, 90)
 
-    # 撈資料
     stats = analyze_checkins(user_id, days)
-    records = stats.get("records", [])
-    urls = [r["photo_url"] for r in records if r.get("photo_url")]
-    if not urls:
+    records = stats.get("records", [])  # 這裡的 records 已經包含所有符合條件的打卡 document
+    # 只有保留有 photo_url 的那幾筆
+    photo_records = [r for r in records if r.get("photo_url")]
+
+    # 2. 如果根本沒有任何照片，直接回錯誤，並 return
+    if not photo_records:
         return await reply_message(reply_token, f"❌ 近 {days} 天內沒有可用的打卡照片啦～")
-    
-    if len(urls) < max_tiles:
-        await push_message(
+
+    # 3. 如果照片總數小於 max_tiles，直接用 push_message 回錯誤文字後 return
+    if len(photo_records) < max_tiles:
+        return await push_message(
             user_id,
             {
                 "type": "text",
-                "text": f"❌ 需要至少 {max_tiles} 張照片才能生成「{max_tiles} 格 dump」，目前只有 {len(urls)} 張喔～"
+                "text": f"❌ 需要至少 {max_tiles} 張照片才能生成「{max_tiles} 格 dump」，目前只有 {len(photo_records)} 張喔～"
             }
         )
-        return
 
-    # 只取前 max_tiles 張
-    sliced = urls[:max_tiles]
+    # 4. 取出前 max_tiles 張照片的 URL
+    sliced_records = photo_records[:max_tiles]
+    sliced_urls = [r["photo_url"] for r in sliced_records]
 
-    # 呼叫不變的 generate_ramen_dump
-    dump_bytes = await generate_ramen_dump(sliced)
+    # ───【新增】── 計算日期範圍 (date_range_text) ───────────────────
+    # 把每筆 sliced_records 裡的 timestamp (Firestore Timestamp) 轉成 Python datetime
+    datetimes = []
+    for rec in sliced_records:
+        ts = rec.get("timestamp")
+        if hasattr(ts, "to_datetime"):
+            dt = ts.to_datetime()  # Firestore Timestamp → datetime
+        else:
+            dt = ts  # 如果這裡直接就是 datetime 也沒關係
+        datetimes.append(dt)
 
-    # 上傳並回傳
+    # 找最早、最晚
+    start_dt = min(datetimes)
+    end_dt   = max(datetimes)
+
+    # 格式化成 "MM/DD-MM/DD"
+    date_range_text = f"{start_dt.month:02d}/{start_dt.day:02d}-{end_dt.month:02d}/{end_dt.day:02d}"
+    author_text = "made by LaKingMan"
+    # ────────────────────────────────────────────────────────────────
+
+    # 5. 呼叫新版 generate_ramen_dump，並傳入日期範圍與作者文字
+    #    其餘參數可依需求自行微調：border_px（白框厚度）、text_area_height（底部文字區高度）等
+    dump_bytes = await generate_ramen_dump(
+        sliced_urls,
+        date_range_text=date_range_text,
+        author_text=author_text,
+        canvas_height=1600,        # 網格原本高度 (9:16 比例)
+        bg_color=(0, 0, 0),        # 網格背景色 (黑色)
+        border_px=20,              # 白框厚度 20px
+        text_area_height=60        # 底部留 60px 高度給文字
+    )
+
+    # 6. 上傳圖片到 Firebase Storage
     bucket = storage.bucket()
     suffix = f"_{max_tiles}tiles" if max_tiles else "_all"
     file_name = f"ramen_dump/{user_id}{suffix}_{uuid.uuid4().hex}.jpg"
@@ -1038,54 +1071,107 @@ async def handle_ramen_dump(
     blob.make_public()
     public_url = blob.public_url
 
+    # 7. 用 push_message 把圖片 URL 回給使用者
     img_message = {
         "type": "image",
-        "originalContentUrl": public_url,   # 圖片原始網址
-        "previewImageUrl": public_url       # 預覽圖網址，通常直接用原圖
+        "originalContentUrl": public_url,
+        "previewImageUrl": public_url
     }
     await push_message(user_id, img_message)
-    # await reply_image(reply_token, public_url)
 
-GRID_LAYOUT = {
-    4:  (2, 2),  # 2 列 × 2 排
-    6:  (2, 3),  # 2 列 × 3 排
-    12: (3, 4),  # 3 列 × 4 排
-}
-
-## 生成拉麵 dump 照片
 async def generate_ramen_dump(
     urls: list[str],
-    canvas_height: int = 1600,               # 直向畫布總高
-    bg_color: tuple[int,int,int] = (0, 0, 0)  # 背景色
+    date_range_text: str,                  # 傳入 "MM/DD-MM/DD" 的日期範圍
+    author_text: str = "made by LaKingMan",# 底部右側顯示這段文字
+    canvas_height: int = 1600,             # 原始網格畫布高度 (9:16 比例)
+    bg_color: tuple[int,int,int] = (0, 0, 0),  # 網格背景色
+    border_px: int = 20,                   # 外圈「白框」厚度
+    text_area_height: int = 60             # 底部留給文字的高度
 ) -> io.BytesIO:
-    # 這裡根據 urls 長度自动推 cols, rows （用 GRID_LAYOUT 或正方形 fallback）
+    """
+    urls: 圖片 URL 清單，只取前 N 張來排
+    date_range_text: 例如 "05/26-06/01"
+    author_text: 如 "made by LaKingMan"
+    border_px: 白框厚度 (px)
+    text_area_height: 底下用來放日期 + 作者文字的空間 (px)
+    """
+
+    # ──────────── 1. 計算行列 (grid) ────────────
     total = len(urls)
+    # 如果正好是 4、6、12 張，用預先定義的格數；否則 fallback 為「盡量平方接近」
+    GRID_LAYOUT = {
+        4:  (2, 2),
+        6:  (2, 3),
+        12: (3, 4),
+    }
     cols, rows = GRID_LAYOUT.get(total, (
         int(math.sqrt(total)),
         math.ceil(total / int(math.sqrt(total)))
     ))
 
-    # 建立 9:16 直向畫布
+    # ──────────── 2. 建立原始「網格畫布」 ────────────
     canvas_h = canvas_height
-    canvas_w = int(canvas_h * 9 / 16)
+    canvas_w = int(canvas_h * 9 / 16)  # 9:16 比例，如 900x1600
     tile_w = canvas_w // cols
     tile_h = canvas_h // rows
-    canvas = Image.new("RGB", (canvas_w, canvas_h), bg_color)
+
+    # 先在黑底 (bg_color) 的原畫布上排照片
+    grid_canvas = Image.new("RGB", (canvas_w, canvas_h), bg_color)
 
     for idx, url in enumerate(urls):
-        resp = requests.get(url, timeout=10)
-        img = Image.open(io.BytesIO(resp.content))
+        try:
+            resp = requests.get(url, timeout=10)
+            img = Image.open(io.BytesIO(resp.content))
+        except Exception:
+            continue  # 如果某張讀不進來，就跳過
+
         img = ImageOps.exif_transpose(img).convert("RGB")
         thumb = ImageOps.fit(img, (tile_w, tile_h), method=Image.LANCZOS)
 
         x = (idx % cols) * tile_w
         y = (idx // cols) * tile_h
-        canvas.paste(thumb, (x, y))
-
+        grid_canvas.paste(thumb, (x, y))
         img.close()
 
+    # ──────────── 3. 把「網格畫布」貼到一個更大的「白底 + 底部文字區」畫布上 ────────────
+    # 最終最外層畫布大小：
+    #   - 寬度 = 原始 canvas_w + 2 * border_px
+    #   - 高度 = 原始 canvas_h + 2 * border_px + text_area_height
+    final_w = canvas_w + 2 * border_px
+    final_h = canvas_h + 2 * border_px + text_area_height
+
+    final_canvas = Image.new("RGB", (final_w, final_h), (255, 255, 255))  # 純白底
+
+    # 先把網格貼到 (border_px, border_px) 的位置
+    final_canvas.paste(grid_canvas, (border_px, border_px))
+
+    # ──────────── 4. 在底部留空間，畫「日期範圍」和「作者文字」 ────────────
+    draw = ImageDraw.Draw(final_canvas)
+
+    # 先嘗試載入系統內建的字型 (若沒有特別字型，就用 PIL 內建字型)
+    try:
+        font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+        date_font = ImageFont.truetype(font_path,  thirty := 30)
+        author_font = ImageFont.truetype(font_path,  twenty := 20)
+    except Exception:
+        date_font = ImageFont.load_default()
+        author_font = ImageFont.load_default()
+
+    # 日期範圍文字放在：x = border_px + 10, y = border_px + canvas_h + (text_area_height - 字高) // 2
+    date_w, date_h = draw.textsize(date_range_text, font=date_font)
+    date_x = border_px + 10
+    date_y = border_px + canvas_h + (text_area_height - date_h) // 2
+    draw.text((date_x, date_y), date_range_text, fill=(0, 0, 0), font=date_font)
+
+    # 作者文字放在底部右側：x = final_w - border_px - 10 - 作者文字寬度
+    author_w, author_h = draw.textsize(author_text, font=author_font)
+    author_x = final_w - border_px - 10 - author_w
+    author_y = border_px + canvas_h + (text_area_height - author_h) // 2
+    draw.text((author_x, author_y), author_text, fill=(0, 0, 0), font=author_font)
+
+    # ──────────── 5. 輸出到 BytesIO，準備上傳或傳給 LINE ────────────
     bio = io.BytesIO()
-    canvas.save(bio, format="JPEG", quality=90)
+    final_canvas.save(bio, format="JPEG", quality=90)
     bio.seek(0)
     return bio
 
