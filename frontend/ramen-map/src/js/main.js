@@ -673,7 +673,7 @@ ramenListHandle.addEventListener('click', () => {
     if (ramenList.classList.contains('active')) {
         ramenList.style.transform = 'translateY(0)';
     } else {
-        ramenList.style.transform = 'translateY(calc(100% - 50px))';
+        ramenList.style.transform = 'translateY(calc(100% - 80px))';
     }
 });
 
@@ -867,7 +867,7 @@ function showDefaultPage() {
     if (ramenItems) ramenItems.innerHTML = '';
 
     ramenList.classList.remove('active');
-    ramenList.style.transform = 'translateY(calc(100% - 50px))';
+    ramenList.style.transform = 'translateY(calc(100% - 80px))';
     ramenList.style.maxHeight = 'var(--panel-height)';
 
     // 顯示所有標記
