@@ -1079,43 +1079,37 @@ async def handle_ramen_dump(
     }
     await push_message(user_id, img_message)
 
+
 async def generate_ramen_dump(
     urls: list[str],
     date_range_text: str,                  # 傳入 "MM/DD-MM/DD" 的日期範圍
-    author_text: str = "made by LaKingMan",# 底部右側顯示這段文字
+    author_text: str = "made by LaKingMan",# 底部右側顯示文字
     canvas_height: int = 1600,             # 原始網格畫布高度 (9:16 比例)
     bg_color: tuple[int,int,int] = (0, 0, 0),  # 網格背景色
-    border_px: int = 20,                   # 外圈「白框」厚度
+    border_px: int = 20,                   # 外框白色邊厚度
     text_area_height: int = 60             # 底部留給文字的高度
 ) -> io.BytesIO:
     """
-    urls: 圖片 URL 清單，只取前 N 張來排
+    urls: 照片 URL 清單，只取前 N 張來排列
     date_range_text: 例如 "05/26-06/01"
-    author_text: 如 "made by LaKingMan"
+    author_text: 底部右側要顯示的文字
     border_px: 白框厚度 (px)
-    text_area_height: 底下用來放日期 + 作者文字的空間 (px)
+    text_area_height: 底部文字區高度 (px)
     """
 
-    # ──────────── 1. 計算行列 (grid) ────────────
+    # 1. 決定行列數 (grid 列 × 欄)
     total = len(urls)
-    # 如果正好是 4、6、12 張，用預先定義的格數；否則 fallback 為「盡量平方接近」
-    GRID_LAYOUT = {
-        4:  (2, 2),
-        6:  (2, 3),
-        12: (3, 4),
-    }
+    GRID_LAYOUT = {4: (2,2), 6: (2,3), 12: (3,4)}
     cols, rows = GRID_LAYOUT.get(total, (
         int(math.sqrt(total)),
         math.ceil(total / int(math.sqrt(total)))
     ))
 
-    # ──────────── 2. 建立原始「網格畫布」 ────────────
+    # 2. 建立網格畫布 (黑底)
     canvas_h = canvas_height
-    canvas_w = int(canvas_h * 9 / 16)  # 9:16 比例，如 900x1600
+    canvas_w = int(canvas_h * 9 / 16)  # 9:16 寬高比
     tile_w = canvas_w // cols
     tile_h = canvas_h // rows
-
-    # 先在黑底 (bg_color) 的原畫布上排照片
     grid_canvas = Image.new("RGB", (canvas_w, canvas_h), bg_color)
 
     for idx, url in enumerate(urls):
@@ -1123,58 +1117,51 @@ async def generate_ramen_dump(
             resp = requests.get(url, timeout=10)
             img = Image.open(io.BytesIO(resp.content))
         except Exception:
-            continue  # 如果某張讀不進來，就跳過
-
+            continue  # 若某張載入失敗，就跳過
         img = ImageOps.exif_transpose(img).convert("RGB")
         thumb = ImageOps.fit(img, (tile_w, tile_h), method=Image.LANCZOS)
-
         x = (idx % cols) * tile_w
         y = (idx // cols) * tile_h
         grid_canvas.paste(thumb, (x, y))
         img.close()
 
-    # ──────────── 3. 把「網格畫布」貼到一個更大的「白底 + 底部文字區」畫布上 ────────────
-    # 最終最外層畫布大小：
-    #   - 寬度 = 原始 canvas_w + 2 * border_px
-    #   - 高度 = 原始 canvas_h + 2 * border_px + text_area_height
+    # 3. 建立最外層白底並留出底部文字區
     final_w = canvas_w + 2 * border_px
     final_h = canvas_h + 2 * border_px + text_area_height
-
-    final_canvas = Image.new("RGB", (final_w, final_h), (255, 255, 255))  # 純白底
-
-    # 先把網格貼到 (border_px, border_px) 的位置
+    final_canvas = Image.new("RGB", (final_w, final_h), (255, 255, 255))
     final_canvas.paste(grid_canvas, (border_px, border_px))
 
-    # ──────────── 4. 在底部留空間，畫「日期範圍」和「作者文字」 ────────────
+    # 4. 在底部畫文字：用 getbbox 取得文字寬高
     draw = ImageDraw.Draw(final_canvas)
-
-    # 先嘗試載入系統內建的字型 (若沒有特別字型，就用 PIL 內建字型)
     try:
         font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-        date_font = ImageFont.truetype(font_path,  thirty := 30)
-        author_font = ImageFont.truetype(font_path,  twenty := 20)
+        date_font   = ImageFont.truetype(font_path, 30)
+        author_font = ImageFont.truetype(font_path, 20)
     except Exception:
-        date_font = ImageFont.load_default()
+        date_font   = ImageFont.load_default()
         author_font = ImageFont.load_default()
 
-    # 日期範圍文字放在：x = border_px + 10, y = border_px + canvas_h + (text_area_height - 字高) // 2
-    date_w, date_h = date_font.getsize(date_range_text)
+    # 4.1 計算「日期範圍」文字寬高
+    bbox_date = date_font.getbbox(date_range_text)
+    date_w = bbox_date[2] - bbox_date[0]
+    date_h = bbox_date[3] - bbox_date[1]
     date_x = border_px + 10
     date_y = border_px + canvas_h + (text_area_height - date_h) // 2
     draw.text((date_x, date_y), date_range_text, fill=(0, 0, 0), font=date_font)
 
-    # 作者文字放在底部右側：x = final_w - border_px - 10 - 作者文字寬度
-    author_w, author_h = author_font.getsize(author_text)
+    # 4.2 計算「作者文字」寬高
+    bbox_auth = author_font.getbbox(author_text)
+    author_w = bbox_auth[2] - bbox_auth[0]
+    author_h = bbox_auth[3] - bbox_auth[1]
     author_x = final_w - border_px - 10 - author_w
     author_y = border_px + canvas_h + (text_area_height - author_h) // 2
     draw.text((author_x, author_y), author_text, fill=(0, 0, 0), font=author_font)
 
-    # ──────────── 5. 輸出到 BytesIO，準備上傳或傳給 LINE ────────────
+    # 5. 輸出到 BytesIO
     bio = io.BytesIO()
     final_canvas.save(bio, format="JPEG", quality=90)
     bio.seek(0)
     return bio
-
 
 
 @app.get("/check_location/{user_id}")
