@@ -1158,13 +1158,13 @@ async def generate_ramen_dump(
         author_font = ImageFont.load_default()
 
     # 日期範圍文字放在：x = border_px + 10, y = border_px + canvas_h + (text_area_height - 字高) // 2
-    date_w, date_h = draw.textsize(date_range_text, font=date_font)
+    date_w, date_h = date_font.getsize(date_range_text)
     date_x = border_px + 10
     date_y = border_px + canvas_h + (text_area_height - date_h) // 2
     draw.text((date_x, date_y), date_range_text, fill=(0, 0, 0), font=date_font)
 
     # 作者文字放在底部右側：x = final_w - border_px - 10 - 作者文字寬度
-    author_w, author_h = draw.textsize(author_text, font=author_font)
+    author_w, author_h = author_font.getsize(author_text)
     author_x = final_w - border_px - 10 - author_w
     author_y = border_px + canvas_h + (text_area_height - author_h) // 2
     draw.text((author_x, author_y), author_text, fill=(0, 0, 0), font=author_font)
