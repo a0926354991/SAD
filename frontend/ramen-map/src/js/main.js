@@ -1797,7 +1797,9 @@ async function loadUserCheckins(lastId = null) {
                 if (loadingMessage) {
                     loadingMessage.remove();
                 }
-            } 
+            } else {
+                userCheckinsList.innerHTML = ''; // 清空 loading 訊息
+            }
             
             // 渲染打卡紀錄
             data.checkins.forEach(checkin => {
