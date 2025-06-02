@@ -797,7 +797,7 @@ async function loadStoreCheckins(storeId, lastId = null) {
             
             // 渲染打卡紀錄
             data.checkins.forEach(checkin => {
-                const checkinElement = createCheckinElement(checkin);
+                const checkinElement = createStoreCheckinElement(checkin);
                 checkinsList.appendChild(checkinElement);
             });
             
@@ -826,7 +826,33 @@ async function loadStoreCheckins(storeId, lastId = null) {
 }
 
 // 新增：創建打卡紀錄元素
-function createCheckinElement(checkin) {
+function createStoreCheckinElement(checkin) {
+    const div = document.createElement('div');
+    div.className = 'checkin-item';
+    div.innerHTML = `
+        <div class="checkin-header">
+            <div class="checkin-user">${checkin.user_name}</div>
+            <div class="checkin-time">${formatDate(checkin.timestamp)}</div>
+        </div>
+        <div class="checkin-content">
+            <div class="checkin-keyword">#${checkin.keyword || '其他'}</div>
+            <div class="checkin-rating">
+                <div class="stars">${'★'.repeat(Math.round(checkin.rating))}${'☆'.repeat(5 - Math.round(checkin.rating))}</div>
+                <div class="rating-value">${checkin.rating}</div>
+            </div>
+            <div class="checkin-comment">${checkin.comment}</div>
+            ${checkin.photo_url ? `
+                <div class="checkin-photo">
+                    <img src="${checkin.photo_url}" alt="打卡照片" />
+                </div>
+            ` : ''}
+        </div>
+    `;
+    return div;
+}
+
+// 新增：創建打卡紀錄元素
+function createUserCheckinElement(checkin) {
     const div = document.createElement('div');
     div.className = 'checkin-item';
     div.innerHTML = `
@@ -1771,13 +1797,11 @@ async function loadUserCheckins(lastId = null) {
                 if (loadingMessage) {
                     loadingMessage.remove();
                 }
-            } else {
-                userCheckinsList.innerHTML = ''; // 清空 loading 訊息
-            }
+            } 
             
             // 渲染打卡紀錄
             data.checkins.forEach(checkin => {
-                const checkinElement = createCheckinElement(checkin);
+                const checkinElement = createUserCheckinElement(checkin);
                 userCheckinsList.appendChild(checkinElement);
             });
             
