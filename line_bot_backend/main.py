@@ -705,12 +705,20 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         return
 
     # 1. 先把打卡統計拿出來
-    bowls    = stats.get("bowls", 0)
-    shops    = stats.get("shops", 0)
-    top_shop = stats.get("top_shop", "無資料")
+    bowls      = stats.get("bowls", 0)
+    shops      = stats.get("shops", 0)
+    top_shops  = stats.get("top_shops", [])  # 現在 top_shops 可能是多個
     flavor_pct = stats.get("flavor_pct", {})
 
-    # 2. 準備「口味分布」列表（如果沒有資料，這裡就是空的）
+    # 2. 將 top_shops（list）轉成要顯示的字串
+    if not top_shops:
+        top_shop_text = "尚無資料"
+    elif len(top_shops) == 1:
+        top_shop_text = top_shops[0]
+    else:
+        top_shop_text = "、".join(top_shops)
+
+    # 3. 準備「口味分布」列表（如果沒有資料，這裡就是空的）
     flavor_contents = []
     sorted_flavors = sorted(
         flavor_pct.items(),
@@ -728,24 +736,22 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             ]
         })
 
-    # 3. 準備 Bubble 的 body 主要內容
+    # 4. 準備 Bubble 的 body 主要內容
     body_contents = [
         {"type": "text", "text": f"最近 {days} 天的統整分析", "weight": "bold", "size": "lg"},
-        # {"type": "spacer", "size": "md"},
         {"type": "box", "layout": "vertical", "contents": [], "height": "3px"},
         {"type": "text", "text": f"🍜 總碗數：{bowls} 碗", "size": "sm"},
         {"type": "text", "text": f"🏠 造訪店家：{shops} 家", "size": "sm"},
-        {"type": "text", "text": f"⭐️ 最常吃：{top_shop}", "size": "sm", "margin": "md"},
+        {"type": "text", "text": f"⭐️ 最常吃：{top_shop_text}", "size": "sm", "margin": "md"},
         {"type": "separator", "margin": "md"},
     ]
 
-    # 4. 當 bowls == 0（打卡為 0）時，不要放任何圖片，直接在 body_contents 加一行提示文字
+    # 5. 當 bowls == 0（打卡為 0）時，不要放任何圖片，直接在 body_contents 加一行提示文字
     if bowls == 0:
         body_contents.append({
             "type": "text",
             "text": "🔒 打卡四張照片以上以解鎖拉麵 dump！",
             "size": "xs",
-            # "align": "center",    
             "weight": "bold",
             "color": "#063D74",
             "margin": "md",
@@ -753,12 +759,10 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "maxLines": 2
         })
 
-    # 5. 當 1 <= bowls < 4 時，雖然有打卡資料，但筆數不到 4，這裡顯示真正的圓餅圖＋鎖頭文字
+    # 6. 當 1 <= bowls < 4 時，顯示圓餅圖＋鎖頭文字
     elif 1 <= bowls < 4:
-        # 先產生圓餅圖 URL（create_quickchart_url 會正常產生有口味分布的圖）
         img_url = create_quickchart_url(flavor_pct)
 
-        # 圖片
         body_contents.append({
             "type": "text", 
             "text": "口味分布", 
@@ -780,8 +784,6 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "aspectMode": "cover",
             "margin": "md"
         })
-
-        # 再加一行紅色鎖頭文字
         body_contents.append({
             "type": "text",
             "text": "🔒 打卡四張照片以上以解鎖拉麵 dump！",
@@ -793,11 +795,10 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "maxLines": 2
         })
 
-    # 6. 當 bowls >= 4 時，顯示真正的圓餅圖＋按鈕（生成 4/6/12 格 dump）
+    # 7. 當 bowls >= 4 時，顯示圓餅圖＋按鈕
     else:  # bowls >= 4
         img_url = create_quickchart_url(flavor_pct)
 
-        # 圖片
         body_contents.append({
             "type": "text", 
             "text": "口味分布", 
@@ -819,8 +820,6 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "aspectMode": "cover",
             "margin": "md"
         })
-
-        # 再 append 「生成我的拉麵 dump」這行文字
         body_contents.append({
             "type": "text",
             "text": "生成我的拉麵 dump",
@@ -829,8 +828,6 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             "align": "center",
             "margin": "md"
         })
-
-        # 最後再 extend 三個按鈕
         body_contents.extend([
             {
                 "type": "button",
@@ -858,7 +855,7 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
             }
         ])
 
-    # 7. 把 body_contents 組成最終的 Flex Bubble
+    # 8. 組成 Flex Bubble 並回傳
     bubble = {
         "type": "bubble",
         "body": {
@@ -875,7 +872,6 @@ async def handle_analysis(reply_token: str, user_id: str, days: int):
         }
     }
 
-    # 8. 回傳 Flex Message
     flex_message = {
         "replyToken": reply_token,
         "messages": [{"type": "flex", "altText": "統整分析結果", "contents": bubble}]
@@ -914,12 +910,17 @@ def analyze_checkins(user_id: str, days: int) -> dict:
                 kw = "其他"
             keyword_counter[kw] += 1
 
-
     bowls = len(records)
     shops = len(shop_counter)
-    top_shop = shop_counter.most_common(1)[0][0] if shop_counter else '尚無資料'
 
-    # 使用打卡時傳入的 keyword 作為口味
+    # 找出最高打卡次數
+    top_shops = []
+    if shop_counter:
+        max_count = max(shop_counter.values())
+        # 取得所有次數等於 max_count 的店家
+        top_shops = [shop for shop, cnt in shop_counter.items() if cnt == max_count]
+
+    # 計算口味百分比
     flavor_pct = {}
     if bowls:
         for kw, cnt in keyword_counter.items():
@@ -927,8 +928,15 @@ def analyze_checkins(user_id: str, days: int) -> dict:
             flavor_pct[kw] = f"{pct:.1f}%"
 
     print(f"[DEBUG] flavor_pct for user={user_id}, days={days}: {flavor_pct}")
+    print(f"[DEBUG] top_shops for user={user_id}, days={days}: {top_shops}")
 
-    return {'bowls': bowls, 'shops': shops, 'top_shop': top_shop, 'flavor_pct': flavor_pct, 'records': records}
+    return {
+        'bowls': bowls,
+        'shops': shops,
+        'top_shops': top_shops,  # 現在傳回一個 list
+        'flavor_pct': flavor_pct,
+        'records': records
+    }
 
 ## 生成圓餅圖
 def create_quickchart_url(flavor_pct: dict[str, str]) -> str:
